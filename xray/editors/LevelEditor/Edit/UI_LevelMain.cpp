@@ -47,6 +47,7 @@
 #ifdef _LEVEL_EDITOR
 //.    if (m_Cursor->GetVisible()) RedrawScene();
 #endif
+#include "ESceneGroupTools.h"
 
 CLevelMain*&	    LUI=(CLevelMain*&)(TUI*&)UI;
 
@@ -1019,6 +1020,19 @@ CCommandVar CommandToggleAiMapVisibility(CCommandVar p1, CCommandVar p2)
     return 						TRUE;
 }
 
+CCommandVar CommandCreateGroup(CCommandVar p1, CCommandVar p2) {
+	ESceneGroupTool* tool = dynamic_cast<ESceneGroupTool*>(Scene->GetTool(OBJCLASS_GROUP));
+	VERIFY(tool);
+
+	tool->GroupObjects();
+
+	ExecCommand(COMMAND_CHANGE_TARGET, OBJCLASS_GROUP);
+	ExecCommand(COMMAND_UPDATE_PROPERTIES);
+	ExecCommand(COMMAND_REFRESH_UI_BAR);
+
+	return TRUE;
+}
+
 CCommandVar GenerateAiMap(CCommandVar p1, CCommandVar p2);
 
 void CLevelMain::RegisterCommands()
@@ -1116,9 +1130,10 @@ void CLevelMain::RegisterCommands()
 	REGISTER_CMD_S	    (COMMAND_UPDATE_TOOLBAR,            CommandUpdateToolBar);
 	REGISTER_CMD_S	    (COMMAND_UPDATE_CAPTION,            CommandUpdateCaption);
 	REGISTER_CMD_S	    (COMMAND_CREATE_SOUND_LIB,          CommandCreateSoundLib);
-	REGISTER_CMD_SE	    (COMMAND_TOGGLE_AIMAP_VISIBILITY,   "Visibility\\Toggle AIMap",			CommandToggleAiMapVisibility,true);
+	REGISTER_CMD_SE	    (COMMAND_TOGGLE_AIMAP_VISIBILITY,   "Visibility\\Toggle AIMap",		CommandToggleAiMapVisibility,true);
 	REGISTER_CMD_S	    (COMMAND_SHOW_CLIP_EDITOR,			CommandShowClipEditor);
-    REGISTER_CMD_S	    (COMMAND_GENERATE_AI_MAP,          	GenerateAiMap);    
+    REGISTER_CMD_S	    (COMMAND_GENERATE_AI_MAP,          	GenerateAiMap);
+	REGISTER_CMD_SE		(COMMAND_CREATE_GROUP, 				"Edit\\Create Group",			CommandCreateGroup,true);
 }
 
 const char* CLevelMain::GetCaption()
