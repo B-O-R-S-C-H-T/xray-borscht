@@ -23,7 +23,8 @@ using namespace std::placeholders;
 #define CURRENT_LEVELOP_VERSION 	0x0000000C
 //0x00000008
 
-#define CURRENT_LEVELOP_BP_VERSION 	0x00000009
+// 0x0a - добавлено поле m_aimap_export_version
+#define CURRENT_LEVELOP_BP_VERSION 	0x0000000a
 #define CURRENT_ENV_VERSION	 		0x00000007
 
 #define CHUNK_VERSION       	0x9df3
@@ -187,13 +188,10 @@ void st_LevelOptions::Read(IReader& F)
     if (F.find_chunk(CHUNK_LO_BP_VERSION))
 	    vers = F.r_u32( );
 
-    if (CURRENT_LEVELOP_BP_VERSION==vers){
-	    if (F.find_chunk(CHUNK_BUILD_PARAMS)) 	
-        	F.r(&m_BuildParams, sizeof(m_BuildParams));
-    }else{
-        ELog.DlgMsg	(mtError, "Skipping bad version of build params.");
-    	m_BuildParams.Init();
-    }
+    m_BuildParams.Init();
+    // такое странное версионирование: предположим, что поля только добавляются
+	if (auto sz = F.find_chunk(CHUNK_BUILD_PARAMS); sz != 0)
+        F.r(&m_BuildParams, std::min(sz, (u32)sizeof(m_BuildParams)));
 
     if (F.find_chunk(CHUNK_LIGHT_QUALITY))
     {

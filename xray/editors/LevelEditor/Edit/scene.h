@@ -300,6 +300,7 @@ private:
 
 //----------------------------------------------------
 extern EScene* Scene;
+const b_params& GetBuildsParams();
 //----------------------------------------------------
 
 #endif /*_INCDEF_Scene_H_*/

@@ -3,6 +3,7 @@
                                      
 #include "ESceneAIMapTools_Export.h"
 #include "ESceneAIMapTools.h"
+#include "../Engine/communicate.h"
 
 void ESceneAIMapTool::UnpackPosition(Fvector& Pdest, const NodePosition& Psrc, Fbox& bb, SAIParams& params)
 {
@@ -29,8 +30,12 @@ void ESceneAIMapTool::PackPosition(NodePosition& Dest, Fvector& Src, Fbox& bb, S
 	clamp	(pz,-32767,32767);	Dest.z = s16	(pz);
 }
 
+extern const b_params& GetBuildsParams();
+
 bool ESceneAIMapTool::Export(LPCSTR path)
 {
+    auto ver = GetBuildsParams().build_aimap_version;
+
 //.?	if (!RealUpdateSnapList()) return false;
 	if (!Valid()) return false;
 
@@ -44,7 +49,7 @@ bool ESceneAIMapTool::Export(LPCSTR path)
 
     if (F){
         F->open_chunk	(E_AIMAP_CHUNK_VERSION);
-        F->w_u16		(E_AIMAP_VERSION);
+        F->w_u16		(ver);
         F->close_chunk	();
 
         F->open_chunk	(E_AIMAP_CHUNK_BOX);
@@ -63,10 +68,11 @@ bool ESceneAIMapTool::Export(LPCSTR path)
             u16 			pl;
             NodePosition 	np;
 
-            id = (*it)->n1?(u32)(*it)->n1->idx:InvalidNode;  	F->w(&id, sizeof(id));
-            id = (*it)->n2?(u32)(*it)->n2->idx:InvalidNode;  	F->w(&id, sizeof(id));
-            id = (*it)->n3?(u32)(*it)->n3->idx:InvalidNode;  	F->w(&id, sizeof(id));
-            id = (*it)->n4?(u32)(*it)->n4->idx:InvalidNode;  	F->w(&id, sizeof(id));
+            u32 count = (ver == EXPORT_AIMAP_VERSION_2) ? 4 : 3;
+            id = (*it)->n1?(u32)(*it)->n1->idx:InvalidNode;  	F->w(&id, count);
+            id = (*it)->n2?(u32)(*it)->n2->idx:InvalidNode;  	F->w(&id, count);
+            id = (*it)->n3?(u32)(*it)->n3->idx:InvalidNode;  	F->w(&id, count);
+            id = (*it)->n4?(u32)(*it)->n4->idx:InvalidNode;  	F->w(&id, count);
             pl = pvCompress ((*it)->Plane.n);	 				F->w_u16(pl);
             PackPosition	(np,(*it)->Pos,bb,m_Params); 	F->w(&np,sizeof(np));
         }

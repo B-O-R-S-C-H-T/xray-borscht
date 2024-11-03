@@ -59,6 +59,12 @@ void st_LevelOptions::SetHighQuality()
     m_LightHemiQuality	= 3;
     m_LightSunQuality	= 3;
 }
+
+const b_params& GetBuildsParams()
+{
+    return Scene->m_LevelOp.m_BuildParams;
+}
+
 //------------------------------------------------------------------------------
 
 
@@ -514,6 +520,12 @@ xr_token		js_token	[ ]={
 	{ 0,					0 	}
 };
 
+xr_token		ai_version_token[] = {
+    { "1 - 3-bytes links",	EXPORT_AIMAP_VERSION_1	},
+    { "2 - 4-bytes links",	EXPORT_AIMAP_VERSION_2	},
+    { 0,					0 	}
+};
+
 void EScene::OnBuildControlClick	(ButtonValue* V, bool& bModif, bool& bSafe)
 {
     switch (V->btn_num){
@@ -561,6 +573,9 @@ void EScene::FillProp(LPCSTR pref, PropItemVec& items, ObjClassID cls_id)
     V=PHelper().CreateU32		(items,PrepareKey(pref,"Scene\\Build options\\Lighting\\Error (LM collapsing)"), 	&m_LevelOp.m_BuildParams.m_lm_rms,						0,255);		V->Owner()->Enable(enabled);
     V=PHelper().CreateU32		(items,PrepareKey(pref,"Scene\\Build options\\Lighting\\Error (LM zero)"),			&m_LevelOp.m_BuildParams.m_lm_rms_zero,					0,255);		V->Owner()->Enable(enabled);
     V=PHelper().CreateToken32	(items,PrepareKey(pref,"Scene\\Build options\\Lighting\\Jitter samples"),			&m_LevelOp.m_BuildParams.m_lm_jitter_samples, 			js_token);	V->Owner()->Enable(enabled);
+
+    // AI maps
+    V=PHelper().CreateToken16	(items,PrepareKey(pref,"Scene\\Build options\\AI\\build.aimap version"),	    		&m_LevelOp.m_BuildParams.build_aimap_version,        ai_version_token);
     
     // tools options
     if (OBJCLASS_DUMMY==cls_id)

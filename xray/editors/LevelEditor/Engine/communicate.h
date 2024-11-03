@@ -141,6 +141,9 @@ struct b_mu_reference
     u32					reserved	[8];
 };
 
+const u16 EXPORT_AIMAP_VERSION_1 = 0x0001;
+const u16 EXPORT_AIMAP_VERSION_2 = 0x0002;
+
 struct b_params
 {
 	// Normals & optimization
@@ -160,6 +163,8 @@ struct b_params
 	// Progressive
 	float		f_reserved[6];
 
+	u16			build_aimap_version;	//!< Версия аи-сетки при экспорте в build.aimap
+
     void SaveLTX(CInifile& ini)
     {
     	LPCSTR section 	= "build_params";
@@ -177,6 +182,7 @@ struct b_params
             sprintf		(buff,"reserved_%d",i);
             ini.w_float	(section,buff,f_reserved[i]);
         }
+		ini.w_u16		(section, "build_aimap_version", build_aimap_version);
     }
     void LoadLTX(CInifile& ini)
     {
@@ -195,6 +201,10 @@ struct b_params
             sprintf			(buff,"reserved_%d",i);
             f_reserved[i]	= ini.r_float	(section,buff);
         }
+		if (ini.line_exist(section, "build_aimap_version"))
+			build_aimap_version = ini.r_u16(section, "build_aimap_version");
+		else
+			build_aimap_version = EXPORT_AIMAP_VERSION_2;
     }
 
     void        Init					()
@@ -208,6 +218,8 @@ struct b_params
 		m_lm_rms				= 4;
 
         setHighQuality			();
+
+		build_aimap_version = EXPORT_AIMAP_VERSION_2;
 	}
 	void		setDraftQuality()
 	{
