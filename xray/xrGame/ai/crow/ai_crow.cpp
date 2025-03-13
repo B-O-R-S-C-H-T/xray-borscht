@@ -93,7 +93,7 @@ void CAI_Crow::init		()
 {
 	st_current			= eUndef;
 	st_target			= eFlyIdle;
-	vGoalDir.set		(10.0f*(Random.randF()-Random.randF()),10.0f*(Random.randF()-Random.randF()),10.0f*(Random.randF()-Random.randF()));
+	vGoalDir.set		(10.0f * (Random.randF() - Random.randF()), 10.0f * (Random.randF() - Random.randF()), 10.0f * (Random.randF() - Random.randF()) );
 	vCurrentDir.set		(0,0,1);
 	vHPB.set			(0,0,0);
 	fDHeading			= 0;
@@ -170,10 +170,12 @@ void CAI_Crow::switch2_FlyUp()
 {
 	smart_cast<IKinematicsAnimated*>(Visual())->PlayCycle	(m_Anims.m_fly.GetRandom());
 }
+
 void CAI_Crow::switch2_FlyIdle()
 {
 	smart_cast<IKinematicsAnimated*>(Visual())->PlayCycle	(m_Anims.m_idle.GetRandom());
 }
+
 void CAI_Crow::switch2_DeathDead()
 {
 	// AI need to pickup this
@@ -182,6 +184,7 @@ void CAI_Crow::switch2_DeathDead()
 	//
 	smart_cast<IKinematicsAnimated*>(Visual())->PlayCycle	(m_Anims.m_death_dead.GetRandom());
 }
+
 void CAI_Crow::switch2_DeathFall()
 {
 	Fvector V;
@@ -244,8 +247,8 @@ void CAI_Crow::state_DeathFall()
 	if (m_pPhysicsShell)
 	{
 		Fvector velocity;
-		m_pPhysicsShell->get_LinearVel(velocity);
-		if(velocity.y>-0.001f) st_target = eDeathDead;
+		m_pPhysicsShell -> get_LinearVel(velocity);
+		if(velocity.y > -0.001f) st_target = eDeathDead;
 	}
 	if (bPlayDeathIdle){
 		smart_cast<IKinematicsAnimated*>(Visual())->PlayCycle	(m_Anims.m_death_idle.GetRandom());
@@ -265,6 +268,7 @@ void CAI_Crow::Die				(CObject* who)
 	callback(GameObject::eDeath)(lua_game_object(), who_object ? who_object->lua_game_object() : 0);
 	
 };
+
 void CAI_Crow::UpdateWorkload	(float fdt)
 {
 	if (o_workload_frame	==	Device.dwFrame)	return;
@@ -279,6 +283,7 @@ void CAI_Crow::UpdateWorkload	(float fdt)
 		break;
 	}
 }
+
 void CAI_Crow::UpdateCL		()
 {
 	inherited::UpdateCL		();
@@ -288,12 +293,14 @@ void CAI_Crow::UpdateCL		()
 		XFORM().set					(m_pPhysicsShell->mXFORM);
 	}
 }
+
 void CAI_Crow::renderable_Render	()
 {
 	UpdateWorkload					(Device.fTimeDelta);
 	inherited::renderable_Render	();
 	o_workload_rframe				= Device.dwFrame	;
 }
+
 void CAI_Crow::shedule_Update		(u32 DT)
 {
 	float fDT				= float(DT)/1000.F;
@@ -316,18 +323,43 @@ void CAI_Crow::shedule_Update		(u32 DT)
 	case eFlyUp:			if	(Position().y<=vOldPosition.y)	st_target = eFlyIdle;	break;
 	case eDeathFall:		state_DeathFall();											break;
 	}
-	if ((eDeathFall!=st_current)&&(eDeathDead!=st_current)){
+
+	if ((eDeathFall != st_current) && (eDeathDead != st_current)) {
 		// At random times, change the direction (goal) of the plane
-		if(fGoalChangeTime<=0)	{
-			fGoalChangeTime += fGoalChangeDelta+fGoalChangeDelta*Random.randF(-0.5f,0.5f);
-			Fvector			vP = Actor()->Position();
-			vP.y			+= +fMinHeight;
-			vGoalDir.x		= vP.x+vVarGoal.x*Random.randF(-0.5f,0.5f); 
-			vGoalDir.y		= vP.y+vVarGoal.y*Random.randF(-0.5f,0.5f);
-			vGoalDir.z		= vP.z+vVarGoal.z*Random.randF(-0.5f,0.5f);
+		if (fGoalChangeTime <= 0) {
+			fGoalChangeTime = fGoalChangeDelta + fGoalChangeDelta * Random.randF(-0.5f, 0.5f);
+
+			xr_vector<CObject*> nearbyObjects;
+			Level().ObjectSpace.GetNearest(nearbyObjects, Position(), 300.0f, NULL);
+
+			xr_vector<CEntityAlive*> deadNPCs;
+			for (CObject* obj : nearbyObjects) {
+			    if (CEntityAlive* entity = smart_cast<CEntityAlive*>(obj); entity && !entity->g_Alive()) {
+			        deadNPCs.push_back(entity);
+			    }
+			}
+
+			Fvector vP;
+			if (!deadNPCs.empty()) {
+				CEntityAlive* targetNPC = deadNPCs[Random.randI(0, deadNPCs.size())];
+				vP = targetNPC->Position();
+				//Msg("Flying to dead NPC at [%f, %f, %f]", vP.x, vP.y, vP.z);
+			}
+			else {
+				vP = Actor()->Position();
+				float distanceToActor = Position().distance_to(vP);
+				if (distanceToActor > 500.0f) {
+					fGoalChangeTime = 30.0f;
+				}
+			}
+
+			vP.y += fMinHeight;
+			vGoalDir.x = vP.x + vVarGoal.x * Random.randF(-0.5f, 0.5f);
+			vGoalDir.y = vP.y + vVarGoal.y * Random.randF(-0.5f, 0.5f);
+			vGoalDir.z = vP.z + vVarGoal.z * Random.randF(-0.5f, 0.5f);
 		}
-		fGoalChangeTime		-= fDT;
-		// sounds
+		fGoalChangeTime = _max(fGoalChangeTime - fDT, 0.0f);
+        // sounds
 		if (fIdleSoundTime<=0){
 			fIdleSoundTime	= fIdleSoundDelta+fIdleSoundDelta*Random.randF(-0.5f,0.5f);
 			//if (st_current==eFlyIdle)

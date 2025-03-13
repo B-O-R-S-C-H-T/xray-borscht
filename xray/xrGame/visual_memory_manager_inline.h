@@ -30,6 +30,11 @@ IC	void CVisualMemoryManager::set_squad_objects(VISIBLES *squad_objects)
 		m_not_yet_visible_objects.clear	();
 }
 
+IC const CVisionParameters& CVisualMemoryManager::current_state() const
+{
+    return (!m_stalker || (m_stalker->movement().mental_state() != eMentalStateDanger) ? m_free : m_danger);
+}
+
 IC	float CVisualMemoryManager::visibility_threshold	() const
 {
 	return							(current_state().m_visibility_threshold);

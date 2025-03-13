@@ -24,7 +24,6 @@
 #include "gamepersistent.h"
 #include "actor_memory.h"
 #include "client_spawn_manager.h"
-#include "client_spawn_manager.h"
 #include "memory_manager.h"
 
 #ifndef MASTER_GOLD
@@ -148,11 +147,6 @@ void CVisualMemoryManager::reload				(LPCSTR section)
 	}
 	else
 		m_free.Load		(section,!!m_client);
-}
-
-IC	const CVisionParameters &CVisualMemoryManager::current_state() const
-{
-	return				(!m_stalker || (m_stalker->movement().mental_state() != eMentalStateDanger) ? m_free : m_danger);
 }
 
 u32	CVisualMemoryManager::visible_object_time_last_seen	(const CObject *object) const
