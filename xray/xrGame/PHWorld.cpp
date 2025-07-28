@@ -470,9 +470,9 @@ void CPHWorld::AddRecentlyDisabled(CPHObject* object)
 {
 	m_recently_disabled_objects.push_back(object);
 }
-void CPHWorld::RemoveFromRecentlyDisabled(PH_OBJECT_I i)
+void CPHWorld::RemoveFromRecentlyDisabled(CPHObject* i)
 {
-	m_recently_disabled_objects.erase(i);
+	m_recently_disabled_objects.erase(PH_OBJECT_I(i));
 }
 
 void CPHWorld::AddUpdateObject(CPHUpdateObject* object)
@@ -481,13 +481,13 @@ void CPHWorld::AddUpdateObject(CPHUpdateObject* object)
 	m_update_objects.push_back(object);
 }
 
-void CPHWorld::RemoveUpdateObject(PH_UPDATE_OBJECT_I i)
+void CPHWorld::RemoveUpdateObject(CPHUpdateObject* i)
 {
-	m_update_objects.erase(i);
+	m_update_objects.erase(PH_UPDATE_OBJECT_I(i));
 }
 
-void CPHWorld::RemoveObject(PH_OBJECT_I i){
-	m_objects.erase((i));
+void CPHWorld::RemoveObject(CPHObject* i){
+	m_objects.erase(PH_OBJECT_I(i));
 };
 
 void CPHWorld::AddFreezedObject(CPHObject* obj)
@@ -495,9 +495,9 @@ void CPHWorld::AddFreezedObject(CPHObject* obj)
 	m_freezed_objects.push_back(obj);
 }
 
-void CPHWorld::RemoveFreezedObject(PH_OBJECT_I i)
+void CPHWorld::RemoveFreezedObject(CPHObject* i)
 {
-	m_freezed_objects.erase(i);
+	m_freezed_objects.erase(PH_OBJECT_I(i));
 }
 void CPHWorld::Freeze()
 {
