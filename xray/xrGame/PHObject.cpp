@@ -221,7 +221,7 @@ void CPHObject::collision_enable()
 void CPHObject::Freeze()
 {
 	if(!m_flags.test(st_activated))return;
-	ph_world->RemoveObject(this);
+	ph_world->RemoveObject(PH_OBJECT_I(this));
 	ph_world->AddFreezedObject(this);
 	FreezeContent();
 }
@@ -230,7 +230,7 @@ void CPHObject::UnFreeze()
 {
 	if(!m_flags.test(st_freezed)) return;
 	UnFreezeContent();
-	ph_world->RemoveFreezedObject(this);
+	ph_world->RemoveFreezedObject(PH_OBJECT_I(this));
 	ph_world->AddObject(this);
 }
 
@@ -251,7 +251,7 @@ void CPHUpdateObject::Activate()
 void CPHUpdateObject::Deactivate()
 {
 	if(!b_activated)return;
-	ph_world->RemoveUpdateObject(this);
+	ph_world->RemoveUpdateObject(PH_UPDATE_OBJECT_I(this));
 	b_activated=false;
 }
 

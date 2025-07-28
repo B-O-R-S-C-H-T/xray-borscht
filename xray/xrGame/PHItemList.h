@@ -37,8 +37,8 @@ template<class T>
 						T		*my_ptr;
 					public:
 								iterator(){my_ptr=0;}
-								iterator(T* i){ my_ptr=i; }
-					iterator	operator ++ ()	{return my_ptr=((my_ptr)->next);}
+					explicit	iterator(T* i){ my_ptr=i; }
+					iterator	operator ++ ()	{my_ptr=((my_ptr)->next); return iterator(my_ptr);}
 					T*			operator *	()	{return	my_ptr;}
 					bool		operator !=	 (iterator right){return my_ptr!=right.my_ptr;}
 			};
