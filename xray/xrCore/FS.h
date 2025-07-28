@@ -211,7 +211,7 @@ public:
 	// Set file pointer to start of chunk data (0 for root chunk)
 	IC	void		rewind		()			{	impl().seek(0); }
 
-	u32 			find_chunk  (u32 ID, BOOL* bCompressed);
+	IC	u32			find_chunk  (u32 ID, BOOL* bCompressed);
 	
 	IC	BOOL		r_chunk		(u32 ID, void *dest)	// чтение XR Chunk'ов (4b-ID,4b-size,??b-data)
 	{
@@ -313,5 +313,7 @@ public:
 			CVirtualFileRW		(const char *cFileName);
 	virtual ~CVirtualFileRW		();
 };
+
+#include "FS_impl.h"
 
 #endif // fsH
