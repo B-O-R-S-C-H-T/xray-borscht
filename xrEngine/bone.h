@@ -129,20 +129,21 @@ struct ECORE_API SJointLimit
 
 struct ECORE_API SBoneShape
 {
-    enum EShapeType
+	enum EShapeType
 	{
-    	stNone,
-        stBox,
-        stSphere,
-        stCylinder,
-        stForceU32 = u16(-1)
-    };
+		stNone,
+		stBox,
+		stSphere,
+		stCylinder,
+		stForceU32 = u16(-1)
+	};
 
 	enum EShapeFlags{
 		sfNoPickable		= (1<<0), 	// use only in RayPick
-        sfRemoveAfterBreak  = (1<<1),	
+		sfRemoveAfterBreak  = (1<<1),	
 		sfNoPhysics			= (1<<2),
-        sfNoFogCollider		= (1<<3),	
+		sfNoFogCollider		= (1<<3),
+		sfNoAnimateTranslate = (1<<4),  // really should belong to CBoneData
 	};
 
 	u16				type;		// 2

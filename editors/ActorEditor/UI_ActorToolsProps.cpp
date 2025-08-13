@@ -648,7 +648,8 @@ void CActorTools::FillBoneProperties(PropItemVec& items, LPCSTR pref, ListItem* 
         PHelper().CreateFlag16		(items, PrepareKey(pref,"Bone\\Shape\\Flags\\No Physics"),	&BONE->shape.flags, SBoneShape::sfNoPhysics);
         PHelper().CreateFlag16		(items, PrepareKey(pref,"Bone\\Shape\\Flags\\Remove After Break"),	&BONE->shape.flags,SBoneShape::sfRemoveAfterBreak);
         PHelper().CreateFlag16		(items, PrepareKey(pref,"Bone\\Shape\\Flags\\No Fog Collider"),	&BONE->shape.flags,SBoneShape::sfNoFogCollider);
-        
+		PHelper().CreateFlag16		(items, PrepareKey(pref,"Bone\\Shape\\Flags\\Dont Animate Translate"),	&BONE->shape.flags,SBoneShape::sfNoAnimateTranslate);
+
 		V=PHelper().CreateToken16	(items,	PrepareKey(pref,"Bone\\Shape\\Type"),				&BONE->shape.type, shape_types);			V->OnChangeEvent.bind	(this,&CActorTools::OnShapeTypeChange);
         switch (BONE->shape.type){
         case SBoneShape::stBox:
