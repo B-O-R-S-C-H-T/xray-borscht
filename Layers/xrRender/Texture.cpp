@@ -278,6 +278,9 @@ ID3DBaseTexture*	CRender::texture_load(LPCSTR fRName, u32& ret_msize)
 	int						img_loaded_lod	= 0;
 	D3DFORMAT				fmt;
 	u32						mip_cnt=u32(-1);
+
+    HRESULT _hr;
+
 	// validation
 	R_ASSERT				(fRName);
 	R_ASSERT				(fRName[0]);
@@ -312,12 +315,23 @@ _DDS:
 		// Load and get header
 		D3DXIMAGE_INFO			IMG;
 		S						= FS.r_open	(fn);
+		R_ASSERT				(S);
+
 #ifdef DEBUG
 		Msg						("* Loaded: %s[%d]b",fn,S->length());
 #endif // DEBUG
 		img_size				= S->length	();
-		R_ASSERT				(S);
-		R_CHK2					(D3DXGetImageInfoFromFileInMemory	(S->pointer(),S->length(),&IMG), fn);
+
+#ifndef _EDITOR
+		R_CHK2(D3DXGetImageInfoFromFileInMemory	(S->pointer(),S->length(),&IMG), fn);
+#else
+		_hr = D3DXGetImageInfoFromFileInMemory	(S->pointer(),S->length(),&IMG);
+		if(FAILED(_hr)) {
+			Msg("!Unable to load texture '%s', HRESULT=0x%08X", fn, _hr);
+			return NULL;
+		}
+#endif
+
 		if (IMG.ResourceType	== D3DRTYPE_CUBETEXTURE)			goto _DDS_CUBE;
 		else														goto _DDS_2D;
 
@@ -353,18 +367,36 @@ _DDS_2D:
 
 			// Load   SYS-MEM-surface, bound to device restrictions
 			ID3DTexture2D*		T_sysmem;
-			R_CHK2(D3DXCreateTextureFromFileInMemoryEx
-					(
-						HW.pDevice,S->pointer(),S->length(),
-						D3DX_DEFAULT,D3DX_DEFAULT,
-						IMG.MipLevels,0,
-						IMG.Format,
-						D3DPOOL_SYSTEMMEM,
-						D3DX_DEFAULT,
-						D3DX_DEFAULT,
-						0,&IMG,0,
-						&T_sysmem
-					), fn);
+
+#ifndef _EDITOR
+			R_CHK2(D3DXCreateTextureFromFileInMemoryEx(
+				HW.pDevice,S->pointer(),S->length(),
+				D3DX_DEFAULT,D3DX_DEFAULT,
+				IMG.MipLevels,0,
+				IMG.Format,
+				D3DPOOL_SYSTEMMEM,
+				D3DX_DEFAULT,
+				D3DX_DEFAULT,
+				0,&IMG,0,
+				&T_sysmem
+			), fn);
+#else
+			_hr = D3DXCreateTextureFromFileInMemoryEx(
+				HW.pDevice,S->pointer(),S->length(),
+				D3DX_DEFAULT,D3DX_DEFAULT,
+				IMG.MipLevels,0,
+				IMG.Format,
+				D3DPOOL_SYSTEMMEM,
+				D3DX_DEFAULT,
+				D3DX_DEFAULT,
+				0,&IMG,0,
+				&T_sysmem
+			);
+			if(FAILED(_hr)) {
+				Msg("!Unable to load texture '%s', HRESULT=0x%08X", fn, _hr);
+				T_sysmem = NULL;
+			}
+#endif
 			FS.r_close				(S);
 			img_loaded_lod			= get_texture_load_lod(fn);
 			pTexture2D				= TW_LoadTextureFromTexture(T_sysmem,IMG.Format, img_loaded_lod, dwWidth, dwHeight);
@@ -471,6 +503,8 @@ _BUMP_from_base:
 		}
 //////////////////
 
+// Modera: below is really an unreachable code...
+
 		*strstr		(fname,"_bump")	= 0;
 		R_ASSERT2	(FS.exist(fn,"$game_textures$",	fname,	".dds"),fname);
 
@@ -479,11 +513,24 @@ _BUMP_from_base:
 		S						= FS.r_open	(fn);
 		img_size				= S->length	();
 		ID3DTexture2D*		T_base;
+
+#ifndef _EDITOR
 		R_CHK2(D3DXCreateTextureFromFileInMemoryEx(
 			HW.pDevice,	S->pointer(),S->length(),
 			D3DX_DEFAULT,D3DX_DEFAULT,	D3DX_DEFAULT,0,D3DFMT_A8R8G8B8,
 			D3DPOOL_SYSTEMMEM,			D3DX_DEFAULT,D3DX_DEFAULT,
-			0,&IMG,0,&T_base	), fn);
+			0,&IMG,0,&T_base), fn);
+#else
+		_hr = D3DXCreateTextureFromFileInMemoryEx(
+			HW.pDevice,	S->pointer(),S->length(),
+			D3DX_DEFAULT,D3DX_DEFAULT,	D3DX_DEFAULT,0,D3DFMT_A8R8G8B8,
+			D3DPOOL_SYSTEMMEM,			D3DX_DEFAULT,D3DX_DEFAULT,
+			0,&IMG,0,&T_base);
+		if(FAILED(_hr)) {
+			Msg("!Unable to load texture '%s', HRESULT=0x%08X", fn, _hr);
+			T_base = NULL;
+		}
+#endif		
 		FS.r_close				(S);
 
 		// Create HW-surface
