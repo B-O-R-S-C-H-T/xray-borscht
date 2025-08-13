@@ -771,15 +771,22 @@ const	CBlendInstance::BlendSVec	&Blend				= BLEND_INST.blend_vector();
 			keys.blends[channel][b_count]			=  B;
 			CMotion			&M						= *LL_GetMotion(B->motionID,SelfID);
 			Dequantize(*D,*B,M);
+			if(bd->shape.flags.is(SBoneShape::sfNoAnimateTranslate)) {
+				D->T.set(bd->bind_transform.c);
+			}
 			QR2Quat( M._keysR[0], BK[channel][b_count].Q	);
-			if(M.test_flag(flTKeyPresent))
-            {
-            	if(M.test_flag(flTKey16IsBit))
-					QT16_2T(M._keysT16[0] ,M ,BK[channel][b_count].T );
-                else
-					QT8_2T(M._keysT8[0] ,M ,BK[channel][b_count].T );
-			}else
-				BK[channel][b_count].T.set(M._initT);
+			if(!bd->shape.flags.is(SBoneShape::sfNoAnimateTranslate)) {
+				if(M.test_flag(flTKeyPresent))
+				{
+					if(M.test_flag(flTKey16IsBit))
+						QT16_2T(M._keysT16[0] ,M ,BK[channel][b_count].T );
+					else
+						QT8_2T(M._keysT8[0] ,M ,BK[channel][b_count].T );
+				}else
+					BK[channel][b_count].T.set(M._initT);
+			} else {
+				BK[channel][b_count].T.set(bd->bind_transform.c);
+			}
 			++b_count;
 		}
 		for(u16 j= 0;MAX_CHANNELS>j;++j)
