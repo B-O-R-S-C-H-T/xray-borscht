@@ -91,11 +91,12 @@ void CActor::cam_UnsetLadder()
 	C->lim_yaw[1]			= 0;
 	C->bClampYaw			= false;
 }
+
 float CActor::CameraHeight()
 {
 	Fvector						R;
 	character_physics_support()->movement()->Box().getsize		(R);
-	return						m_fCamHeightFactor*R.y;
+	return						m_fCamHeightFactor * R.y + GetCameraHeightBonus();
 }
 
 IC float viewport_near(float& w, float& h)

@@ -11,7 +11,6 @@
 #include "../Include/xrRender/Kinematics.h"
 #include "player_hud.h"
 
-
 CCustomOutfit::CCustomOutfit()
 {
 	m_flags.set(FUsingCondition, TRUE);
@@ -23,6 +22,7 @@ CCustomOutfit::CCustomOutfit()
 	m_boneProtection = xr_new<SBoneProtections>();
 	m_artefact_count = 0;
 	m_BonesProtectionSect = NULL;
+	m_fCameraHeightBonus = 0.0f;
 }
 
 CCustomOutfit::~CCustomOutfit() 
@@ -107,6 +107,8 @@ void CCustomOutfit::Load(LPCSTR section)
 	}
 	CActor* pActor = smart_cast<CActor*>( Level().CurrentViewEntity() );
 	ReloadBonesProtection( pActor );
+
+	m_fCameraHeightBonus = READ_IF_EXISTS(pSettings, r_float, section, "actor_camera_height_bonus", 0.0f);
 }
 
 void CCustomOutfit::ReloadBonesProtection( CActor* pActor )
@@ -148,7 +150,7 @@ float CCustomOutfit::HitThroughArmor( float hit_power, s16 element, float ap, bo
 
 	if( ap > EPS && ap > BoneArmor )
 	{
-		//пуля пробила бронь
+		// пуля пробила бронь
 		float d_ap = ap - BoneArmor;
 		NewHitPower *= ( d_ap / ap );
 
@@ -163,16 +165,16 @@ float CCustomOutfit::HitThroughArmor( float hit_power, s16 element, float ap, bo
 		
 		if ( NewHitPower < 0.0f ) { NewHitPower = 0.0f; }
 
-		//увеличить изношенность костюма
+		// увеличить изношенность костюма
 		Hit( NewHitPower, ALife::eHitTypeFireWound );
 	}
 	else
 	{
-		//пуля НЕ пробила бронь
+		// пуля НЕ пробила бронь
 		NewHitPower *= m_boneProtection->m_fHitFracActor;
 		add_wound = false; 	//раны нет
 		Hit( NewHitPower, ALife::eHitTypeFireWound );
-	}// if >=
+	}
 
 	return NewHitPower;
 }
@@ -192,6 +194,7 @@ void	CCustomOutfit::OnMoveToSlot		()
 		{
 			ReloadBonesProtection( pActor );
 			ApplySkinModel(pActor, true, false);
+			pActor->UpdateCollisionBoxes();
 		}
 	}
 }
@@ -256,6 +259,7 @@ void	CCustomOutfit::OnMoveToRuck		(EItemPlace prev)
 				pTorch->SwitchNightVision(false);
 			}
 			ApplySkinModel(pActor, false, false);
+			pActor->UpdateCollisionBoxes();
 		}
 	}
 };
@@ -321,6 +325,8 @@ bool CCustomOutfit::install_upgrade_impl( LPCSTR section, bool test )
 
 	result |= process_if_exists( section, "artefact_count", &CInifile::r_u32, m_artefact_count, test );
 	clamp( m_artefact_count, (u32)0, (u32)5 );
+
+	result |= process_if_exists( section, "actor_camera_height_bonus", &CInifile::r_float, m_fCameraHeightBonus,	test );
 
 	return result;
 }

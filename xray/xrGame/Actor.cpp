@@ -76,19 +76,13 @@ static float ICoincidenced = 0;
 //if we are not current control entity we use this value
 const float	CActor::cam_inert_value = 0.7f;
 
-
 //skeleton
-
-
-
 static Fbox		bbStandBox;
 static Fbox		bbCrouchBox;
 static Fvector	vFootCenter;
 static Fvector	vFootExt;
 
 Flags32			psActorFlags={/*AF_DYNAMIC_MUSIC|*/AF_GODMODE_RT};
-
-
 
 CActor::CActor() : CEntityAlive()
 {
@@ -239,6 +233,8 @@ void CActor::reinit	()
 	
 	set_input_external_handler					(0);
 	m_time_lock_accel							= 0;
+
+	UpdateCollisionBoxes();
 }
 
 void CActor::reload	(LPCSTR section)
@@ -269,6 +265,8 @@ void CActor::Load	(LPCSTR section )
 		self->spatial.type	&= ~STYPE_REACTTOSOUND;
 	}
 	//////////////////////////////////////////////////////////////////////////
+
+	#pragma todo("Этот код дублируется в UpdateCollisionBoxes()");
 
 	// m_PhysicMovementControl: General
 	//m_PhysicMovementControl->SetParent		(this);
@@ -310,8 +308,6 @@ void CActor::Load	(LPCSTR section )
 	if(pSettings->line_exist(section,"medium_monster_restrictor_radius"))
 		character_physics_support()->movement()->SetActorRestrictorRadius(CPHCharacter::rtMonsterMedium,pSettings->r_float(section,"medium_monster_restrictor_radius"));
 	character_physics_support()->movement()->Load(section);
-
-	
 
 	m_fWalkAccel				= pSettings->r_float(section,"walk_accel");	
 	m_fJumpSpeed				= pSettings->r_float(section,"jump_speed");
@@ -657,7 +653,6 @@ void CActor::HitSignal(float perc, Fvector& vLocalDir, CObject* who, s16 element
 {
 	if (g_Alive()) 
 	{
-
 		// check damage bone
 		Fvector D;
 		XFORM().transform_dir(D,vLocalDir);
@@ -675,7 +670,9 @@ void CActor::HitSignal(float perc, Fvector& vLocalDir, CObject* who, s16 element
 		tpKinematics->PlayFX(motion_ID,power_factor);
 	}
 }
+
 void start_tutorial(LPCSTR name);
+
 void CActor::Die	(CObject* who)
 {
 #ifdef DEBUG
@@ -1137,7 +1134,7 @@ void CActor::shedule_Update	(u32 DT)
 
 	inherited::shedule_Update	(DT);
 
-	//эффектор включаемый при ходьбе
+	// эффектор, включаемый при ходьбе
 	if (!pCamBobbing)
 	{
 		pCamBobbing = xr_new<CEffectorBobbing>	();
@@ -1145,7 +1142,7 @@ void CActor::shedule_Update	(u32 DT)
 	}
 	pCamBobbing->SetState						(mstate_real, conditions().IsLimping(), IsZoomAimingMode());
 
-	//звук тяжелого дыхания при уталости и хромании
+	// звук тяжелого дыхания при усталости и хромании
 	if(this==Level().CurrentControlEntity() && !g_dedicated_server )
 	{
 		if(conditions().IsLimping() && g_Alive()){
@@ -1205,14 +1202,13 @@ void CActor::shedule_Update	(u32 DT)
 			m_DangerSnd.stop();
 	}
 	
-	//если в режиме HUD, то сама модель актера не рисуется
+	// если в режиме HUD, то сама модель актера не рисуется
 	if(!character_physics_support()->IsRemoved())
 		setVisible				(!HUDview	());
 
-	//что актер видит перед собой
+	// что актор видит перед собой
 	collide::rq_result& RQ				= HUD().GetCurrentRayQuery();
 	
-
 	if(!input_external_handler_installed() && RQ.O && RQ.O->getVisible() &&  RQ.range<2.0f) 
 	{
 		m_pObjectWeLookingAt			= smart_cast<CGameObject*>(RQ.O);
@@ -1268,7 +1264,7 @@ void CActor::shedule_Update	(u32 DT)
 
 //	UpdateSleep									();
 
-	//для свойст артефактов, находящихся на поясе
+	// для свойств артефактов, находящихся на поясе
 	UpdateArtefactsOnBeltAndOutfit				();
 	m_pPhysics_support->in_shedule_Update		(DT);
 	Check_for_AutoPickUp						();
@@ -1293,8 +1289,6 @@ BOOL CActor::renderable_ShadowGenerate	()
 	
 	return inherited::renderable_ShadowGenerate();
 }
-
-
 
 void CActor::g_PerformDrop	( )
 {
@@ -1349,8 +1343,8 @@ void CActor::OnHUDDraw	(CCustomHUD*)
 		switch (m_PhysicMovementControl->Environment())
 		{
 		case CPHMovementControl::peOnGround:	strcpy_s(buf,"ground");			break;
-		case CPHMovementControl::peInAir:		strcpy_s(buf,"air");				break;
-		case CPHMovementControl::peAtWall:		strcpy_s(buf,"wall");				break;
+		case CPHMovementControl::peInAir:		strcpy_s(buf,"air");			break;
+		case CPHMovementControl::peAtWall:		strcpy_s(buf,"wall");			break;
 		}
 		HUD().Font().pFontStat->OutNext	(buf);
 
@@ -1370,7 +1364,6 @@ void CActor::OnHUDDraw	(CCustomHUD*)
 void CActor::RenderIndicator			(Fvector dpos, float r1, float r2, const ui_shader &IndShader)
 {
 	if (!g_Alive()) return;
-
 
 	UIRender->StartPrimitive(4, IUIRender::ptTriStrip, IUIRender::pttLIT);
 
@@ -1400,26 +1393,16 @@ void CActor::RenderIndicator			(Fvector dpos, float r1, float r2, const ui_shade
 	UIRender->PushPoint(a.x+pos.x,a.y+pos.y,a.z+pos.z, 0xffffffff, 0.f,0.f);
 	UIRender->PushPoint(c.x+pos.x,c.y+pos.y,c.z+pos.z, 0xffffffff, 1.f,1.f);
 	UIRender->PushPoint(b.x+pos.x,b.y+pos.y,b.z+pos.z, 0xffffffff, 1.f,0.f);
-	//pv->set         (d.x+pos.x,d.y+pos.y,d.z+pos.z, 0xffffffff, 0.f,1.f);        pv++;
-	//pv->set         (a.x+pos.x,a.y+pos.y,a.z+pos.z, 0xffffffff, 0.f,0.f);        pv++;
-	//pv->set         (c.x+pos.x,c.y+pos.y,c.z+pos.z, 0xffffffff, 1.f,1.f);        pv++;
-	//pv->set         (b.x+pos.x,b.y+pos.y,b.z+pos.z, 0xffffffff, 1.f,0.f);        pv++;
-	// render	
-	//dwCount 				= u32(pv-pv_start);
-	//RCache.Vertex.Unlock	(dwCount,hFriendlyIndicator->vb_stride);
 
 	UIRender->CacheSetXformWorld(Fidentity);
-	//RCache.set_xform_world		(Fidentity);
 	UIRender->SetShader(*IndShader);
-	//RCache.set_Shader			(IndShader);
-	//RCache.set_Geometry			(hFriendlyIndicator);
-	//RCache.Render	   			(D3DPT_TRIANGLESTRIP,dwOffset,0, dwCount, 0, 2);
 	UIRender->FlushPrimitive();
 };
 
 static float mid_size = 0.097f;
 static float fontsize = 15.0f;
 static float upsize	= 0.33f;
+
 void CActor::RenderText				(LPCSTR Text, Fvector dpos, float* pdup, u32 color)
 {
 	if (!g_Alive()) return;
@@ -1562,7 +1545,6 @@ void CActor::OnItemDrop(CInventoryItem *inventory_item)
 	
 }
 
-
 void CActor::OnItemDropUpdate ()
 {
 	CInventoryOwner::OnItemDropUpdate		();
@@ -1575,7 +1557,6 @@ void CActor::OnItemDropUpdate ()
 			attach(*I);
 }
 
-
 void CActor::OnItemRuck		(CInventoryItem *inventory_item, EItemPlace previous_place)
 {
 	CInventoryOwner::OnItemRuck(inventory_item, previous_place);
@@ -1584,6 +1565,7 @@ void CActor::OnItemRuck		(CInventoryItem *inventory_item, EItemPlace previous_pl
 	if(artefact && previous_place == eItemPlaceBelt)
 		MoveArtefactBelt(artefact, false);
 }
+
 void CActor::OnItemBelt		(CInventoryItem *inventory_item, EItemPlace previous_place)
 {
 	CInventoryOwner::OnItemBelt(inventory_item, previous_place);
@@ -1593,12 +1575,11 @@ void CActor::OnItemBelt		(CInventoryItem *inventory_item, EItemPlace previous_pl
 		MoveArtefactBelt(artefact, true);
 }
 
-
 void CActor::MoveArtefactBelt(const CArtefact* artefact, bool on_belt)
 {
 	VERIFY(artefact);
 
-	//повесить артефакт на пояс
+	// повесить артефакт на пояс
 	if(on_belt)
 	{
 		VERIFY(m_ArtefactsOnBelt.end() == std::find(m_ArtefactsOnBelt.begin(), m_ArtefactsOnBelt.end(), artefact));
@@ -1780,15 +1761,6 @@ void CActor::UpdateMotionIcon(u32 mstate_rl)
 		else
 			motion_icon.ShowState(CUIMotionIcon::stNormal);
 	}
-
-/*
-						stNormal, --
-						stCrouch, --
-						stCreep,  --
-						stClimb,  --
-						stRun,    --
-						stSprint, --
-*/
 }
 
 
@@ -1828,11 +1800,11 @@ bool CActor::can_attach			(const CInventoryItem *inventory_item) const
 	if (!item || /*!item->enabled() ||*/ !item->can_be_attached())
 		return			(false);
 
-	//можно ли присоединять объекты такого типа
+	// можно ли присоединять объекты такого типа
 	if( m_attach_item_sections.end() == std::find(m_attach_item_sections.begin(),m_attach_item_sections.end(),inventory_item->object().cNameSect()) )
 		return false;
 
-	//если уже есть присоединненый объет такого типа 
+	// если уже есть присоединённый объект такого типа 
 	if(attached(inventory_item->object().cNameSect()))
 		return false;
 
@@ -1992,7 +1964,6 @@ float CActor::GetRestoreSpeed( ALife::EConditionRestoreType const& type )
 	return res;
 }
 
-
 void CActor::On_SetEntity()
 {
 	prev_cam_inert_value = psCamInert;
@@ -2020,4 +1991,46 @@ void CActor::blockAction(EGameActions cmd)
 void CActor::unblockAction(EGameActions cmd)
 {
 	m_blockedActions.reset(cmd);
+}
+
+float CActor::GetCameraHeightBonus() const
+{
+    CCustomOutfit* outfit = GetOutfit();
+    return outfit ? outfit->GetCameraHeightBonus() : 0.0f;
+}
+
+void CActor::UpdateCollisionBoxes()
+{
+    float   camera_bonus = GetCameraHeightBonus();
+    float   physical_delta = (camera_bonus > EPS) ? camera_bonus / m_fCamHeightFactor : 0.0f;
+    float   half_delta = physical_delta / 2.0f;
+
+    Fbox    bb;
+    Fvector vBOX_center, vBOX_size;
+
+    vBOX_center = pSettings->r_fvector3(cNameSect().c_str(), "ph_box2_center");
+    vBOX_size = pSettings->r_fvector3(cNameSect().c_str(), "ph_box2_size");
+    vBOX_center.y += half_delta;
+    vBOX_size.y += half_delta;
+    bb.set(vBOX_center, vBOX_center);
+    bb.grow(vBOX_size);
+    character_physics_support()->movement()->SetBox(2, bb);
+
+    vBOX_center = pSettings->r_fvector3(cNameSect().c_str(), "ph_box1_center");
+    vBOX_size = pSettings->r_fvector3(cNameSect().c_str(), "ph_box1_size");
+    vBOX_center.y += half_delta;
+    vBOX_size.y += half_delta;
+    bb.set(vBOX_center, vBOX_center);
+    bb.grow(vBOX_size);
+    character_physics_support()->movement()->SetBox(1, bb);
+
+    vBOX_center = pSettings->r_fvector3(cNameSect().c_str(), "ph_box0_center");
+    vBOX_size = pSettings->r_fvector3(cNameSect().c_str(), "ph_box0_size");
+    vBOX_center.y += half_delta;
+    vBOX_size.y += half_delta;
+    bb.set(vBOX_center, vBOX_center);
+    bb.grow(vBOX_size);
+    character_physics_support()->movement()->SetBox(0, bb);
+
+    character_physics_support()->movement()->ActivateBox(character_physics_support()->movement()->BoxID(), true);
 }

@@ -69,4 +69,8 @@ public:
 
 protected:
 	virtual bool			install_upgrade_impl( LPCSTR section, bool test );
+	float					m_fCameraHeightBonus;
+
+public:
+	float					GetCameraHeightBonus	()	const	{ return m_fCameraHeightBonus; }
 };
