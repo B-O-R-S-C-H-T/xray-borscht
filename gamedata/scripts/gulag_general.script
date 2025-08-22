@@ -1149,7 +1149,7 @@ function add_exclusive_job(sect, work_field, smart_ini, job_table)
     local ini_path = "scripts\\"..work
 
     local fs = getFS()
-    if fs:exist("$game_config$",ini_path) == nil then
+    if not fs:exist("$game_config$",ini_path) then
         abort("there is no configuration file [%s]", ini_path)
     end
     local job_ini_file = ini_file(ini_path)
