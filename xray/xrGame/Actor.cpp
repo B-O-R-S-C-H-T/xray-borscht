@@ -672,70 +672,58 @@ void CActor::HitSignal(float perc, Fvector& vLocalDir, CObject* who, s16 element
 
 void start_tutorial(LPCSTR name);
 
-void CActor::Die	(CObject* who)
-{
+void CActor::Die(CObject* who) {
 #ifdef DEBUG
 	Msg("--- Actor [%s] dies !", this->Name());
 #endif // #ifdef DEBUG
-	inherited::Die		(who);
+	inherited::Die(who);
 
-	if (OnServer())
-	{	
+	if (OnServer()) {
 		xr_vector<CInventorySlot>::iterator I = inventory().m_slots.begin();
 		xr_vector<CInventorySlot>::iterator E = inventory().m_slots.end();
 
-		for (u32 slot_idx=0 ; I != E; ++I,++slot_idx)
-		{
-			if (slot_idx == inventory().GetActiveSlot()) 
-			{
-				if((*I).m_pIItem)
-				{
+		for (u32 slot_idx = 0; I != E; ++I, ++slot_idx) {
+			if (slot_idx == inventory().GetActiveSlot()) {
+				if ((*I).m_pIItem) {
 					if (IsGameTypeSingle())
 						(*I).m_pIItem->SetDropManual(TRUE);
-					else
-					{
+					else {
 						//This logic we do on a server site
 						/*
 						if ((*I).m_pIItem->object().CLS_ID != CLSID_OBJECT_W_KNIFE)
 						{
 							(*I).m_pIItem->SetDropManual(TRUE);
-						}*/							
+						}*/
 					}
 				};
-			continue;
-			}
-			else
-			{
-				CCustomOutfit *pOutfit = smart_cast<CCustomOutfit *> ((*I).m_pIItem);
-				if (pOutfit) continue;
+				continue;
+			} else {
+				CCustomOutfit* pOutfit = smart_cast<CCustomOutfit*>((*I).m_pIItem);
+				if (pOutfit)
+					continue;
 			};
-			if((*I).m_pIItem) 
+			if ((*I).m_pIItem)
 				inventory().Ruck((*I).m_pIItem);
 		};
 
 		///!!! чистка пояса
-		TIItemContainer &l_blist = inventory().m_belt;
-		while (!l_blist.empty())	
+		TIItemContainer& l_blist = inventory().m_belt;
+		while (!l_blist.empty())
 			inventory().Ruck(l_blist.front());
 
-		if (!IsGameTypeSingle())
-		{
+		if (!IsGameTypeSingle()) {
 			//if we are on server and actor has PDA - destroy PDA
-			TIItemContainer &l_rlist	= inventory().m_ruck;
-			for(TIItemContainer::iterator l_it = l_rlist.begin(); l_rlist.end() != l_it; ++l_it)
-			{
-				if (GameID() == eGameIDArtefactHunt)
-				{
-					CArtefact* pArtefact = smart_cast<CArtefact*> (*l_it);
-					if (pArtefact)
-					{
+			TIItemContainer& l_rlist = inventory().m_ruck;
+			for (TIItemContainer::iterator l_it = l_rlist.begin(); l_rlist.end() != l_it; ++l_it) {
+				if (GameID() == eGameIDArtefactHunt) {
+					CArtefact* pArtefact = smart_cast<CArtefact*>(*l_it);
+					if (pArtefact) {
 						(*l_it)->SetDropManual(TRUE);
 						continue;
 					};
 				};
 
-				if ((*l_it)->object().CLS_ID == CLSID_OBJECT_PLAYERS_BAG)
-				{
+				if ((*l_it)->object().CLS_ID == CLSID_OBJECT_PLAYERS_BAG) {
 					(*l_it)->SetDropManual(TRUE);
 					continue;
 				};
@@ -743,24 +731,22 @@ void CActor::Die	(CObject* who)
 		};
 	};
 
-//	cam_Set					(eacFreeLook);
-	mstate_wishful	&=		~mcAnyMove;
-	mstate_real		&=		~mcAnyMove;
+	//	cam_Set					(eacFreeLook);
+	mstate_wishful &= ~mcAnyMove;
+	mstate_real &= ~mcAnyMove;
 
-	if(!g_dedicated_server)
-	{
-		::Sound->play_at_pos	(sndDie[Random.randI(SND_DIE_COUNT)],this,Position());
+	if (!g_dedicated_server) {
+		::Sound->play_at_pos(sndDie[Random.randI(SND_DIE_COUNT)], this, Position());
 
-		m_HeavyBreathSnd.stop	();
-		m_BloodSnd.stop			();		
-		m_DangerSnd.stop		();		
+		m_HeavyBreathSnd.stop();
+		m_BloodSnd.stop();
+		m_DangerSnd.stop();
 	}
 
-	if(IsGameTypeSingle())
-	{
-		start_tutorial		("game_over");
+	if (IsGameTypeSingle()) {
+		start_tutorial("game_over");
 	}
-	xr_delete				(m_sndShockEffector);
+	xr_delete(m_sndShockEffector);
 }
 
 void	CActor::SwitchOutBorder(bool new_border_state)
@@ -847,61 +833,77 @@ float CActor::currentFOV()
 	}
 }
 
-void CActor::UpdateCL	()
-{
-	UpdateInventoryOwner			(Device.dwTimeDelta);
+void CActor::UpdateCL() {
+	UpdateInventoryOwner(Device.dwTimeDelta);
 
-	if(m_feel_touch_characters>0)
-	{
-		for(xr_vector<CObject*>::iterator it = feel_touch.begin(); it != feel_touch.end(); it++)
-		{
-			CPhysicsShellHolder	*sh = smart_cast<CPhysicsShellHolder*>(*it);
-			if(sh&&sh->character_physics_support())
-			{
+	if (m_feel_touch_characters > 0) {
+		for (xr_vector<CObject*>::iterator it = feel_touch.begin(); it != feel_touch.end(); it++) {
+			CPhysicsShellHolder* sh = smart_cast<CPhysicsShellHolder*>(*it);
+			if (sh && sh->character_physics_support()) {
 				sh->character_physics_support()->movement()->UpdateObjectBox(character_physics_support()->movement()->PHCharacter());
 			}
 		}
 	}
-	if(m_holder)
-		m_holder->UpdateEx( currentFOV() );
+	if (m_holder)
+		m_holder->UpdateEx(currentFOV());
 
-	m_snd_noise -= 0.3f*Device.fTimeDelta;
+	m_snd_noise -= 0.3f * Device.fTimeDelta;
 
-	inherited::UpdateCL				();
-	m_pPhysics_support->in_UpdateCL	();
+	inherited::UpdateCL();
+	m_pPhysics_support->in_UpdateCL();
 
 	if (g_Alive())
 		PickupModeUpdate();
 
 	PickupModeUpdate_COD();
 
-	SetZoomAimingMode		(false);
-	CWeapon* pWeapon		= smart_cast<CWeapon*>(inventory().ActiveItem());	
+	SetZoomAimingMode(false);
+	CWeapon* pWeapon = smart_cast<CWeapon*>(inventory().ActiveItem());
 
-	cam_Update(float(Device.dwTimeDelta)/1000.0f, currentFOV());
+	cam_Update(float(Device.dwTimeDelta) / 1000.0f, currentFOV());
 
-	if(Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID() )
-	{
-		psHUD_Flags.set( HUD_CROSSHAIR_RT2, true );
-		psHUD_Flags.set( HUD_DRAW_RT, true );
+	if (!g_Alive() && cam_active == eacFirstEye) {
+		// получаем позицию головы актора
+		IKinematics* K = smart_cast<IKinematics*>(Visual());
+		K->CalculateBones();
+		u16		head	 = m_head;
+		Fmatrix mHead	 = K->LL_GetTransform(head);
+		Fvector head_pos = mHead.c;
+		XFORM().transform_tiny(head_pos);
+		// получаем позицию камеры и направление
+		Fvector cam_pos = cameras[eacFirstEye]->vPosition;
+		Fvector dir		= Fvector().sub(cam_pos, head_pos);
+		float	dist	= dir.magnitude();
+		// проверяем на пересечение с геометрией
+		if (dist > EPS_L) {
+			dir.normalize();
+			collide::rq_result rq;
+			if (Level().ObjectSpace.RayPick(head_pos, dir, dist, collide::rqtBoth, rq, this)) {
+				if (rq.range < dist - EPS_L) {
+					cam_Set(eacLookAt);
+				}
+			}
+		}
 	}
-	if(pWeapon )
-	{
-		if(pWeapon->IsZoomed())
-		{
-			float full_fire_disp = pWeapon->GetFireDispersion(true);
 
-			CEffectorZoomInertion* S = smart_cast<CEffectorZoomInertion*>	(Cameras().GetCamEffector(eCEZoom));
-			if(S) 
+	if (Level().CurrentEntity() && this->ID() == Level().CurrentEntity()->ID()) {
+		psHUD_Flags.set(HUD_CROSSHAIR_RT2, true);
+		psHUD_Flags.set(HUD_DRAW_RT, true);
+	}
+	if (pWeapon) {
+		if (pWeapon->IsZoomed()) {
+			float				   full_fire_disp = pWeapon->GetFireDispersion(true);
+
+			CEffectorZoomInertion* S			  = smart_cast<CEffectorZoomInertion*>(Cameras().GetCamEffector(eCEZoom));
+			if (S)
 				S->SetParams(full_fire_disp);
 
-			SetZoomAimingMode		(true);
+			SetZoomAimingMode(true);
 		}
-		if(Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID() )
-		{
+		if (Level().CurrentEntity() && this->ID() == Level().CurrentEntity()->ID()) {
 			float fire_disp_full = pWeapon->GetFireDispersion(true);
 			m_fdisp_controller.SetDispertion(fire_disp_full);
-			
+
 			fire_disp_full = m_fdisp_controller.GetCurrentDispertion();
 
 			HUD().SetCrosshairDisp(fire_disp_full, 0.02f);
@@ -910,19 +912,16 @@ void CActor::UpdateCL	()
 			HUD().SetFirstBulletCrosshairDisp(pWeapon->GetFirstBulletDisp());
 #endif
 
-			BOOL B = ! ((mstate_real & mcLookout) && !IsGameTypeSingle());
-			psHUD_Flags.set( HUD_WEAPON_RT, B );
+			BOOL B = !((mstate_real & mcLookout) && !IsGameTypeSingle());
+			psHUD_Flags.set(HUD_WEAPON_RT, B);
 			B = B && pWeapon->show_crosshair();
 
-			psHUD_Flags.set( HUD_CROSSHAIR_RT2, B );
+			psHUD_Flags.set(HUD_CROSSHAIR_RT2, B);
 
-			psHUD_Flags.set( HUD_DRAW_RT,		pWeapon->show_indicators() );
+			psHUD_Flags.set(HUD_DRAW_RT, pWeapon->show_indicators());
 		}
-	}
-	else
-	{
-		if(Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID() )
-		{
+	} else {
+		if (Level().CurrentEntity() && this->ID() == Level().CurrentEntity()->ID()) {
 			HUD().SetCrosshairDisp(0.f);
 			HUD().ShowCrosshair(false);
 		}
@@ -930,50 +929,29 @@ void CActor::UpdateCL	()
 
 	UpdateDefferedMessages();
 
-	if (g_Alive()) 
+	if (g_Alive())
 		CStepManager::update();
 
-	spatial.type |=STYPE_REACTTOSOUND;
+	spatial.type |= STYPE_REACTTOSOUND;
 
-	if(m_sndShockEffector)
-	{
-		if (this == Level().CurrentViewEntity())
-		{
+	if (m_sndShockEffector) {
+		if (this == Level().CurrentViewEntity()) {
 			m_sndShockEffector->Update();
 
-			if(!m_sndShockEffector->InWork() || !g_Alive())
+			if (!m_sndShockEffector->InWork() || !g_Alive())
 				xr_delete(m_sndShockEffector);
-		}
-		else
+		} else
 			xr_delete(m_sndShockEffector);
 	}
 
-	Fmatrix							trans;
-
-	if(cam_Active() == cam_FirstEye())
-	{
-/*
-		CCameraBase* C = cam_Active();
-		Fvector vRight, vNormal, vDirection, vPosition;
-
-		vNormal					= C->vNormal; 
-		vNormal.normalize		();
-		vDirection				= C->vDirection;
-		vDirection.normalize	();
-
-		vRight.crossproduct		(vNormal,vDirection);
-		vNormal.crossproduct	(vDirection,vRight);
-
-		vPosition				= C->vPosition;
-
-		trans.set				(vRight, vNormal, vDirection, vPosition);
-*/
-		Cameras().hud_camera_Matrix		(trans);
-	}else
-		Cameras().camera_Matrix			(trans);
+	Fmatrix trans;
+	if (cam_Active() == cam_FirstEye()) {
+		Cameras().hud_camera_Matrix(trans);
+	} else
+		Cameras().camera_Matrix(trans);
 
 	if (IsFocused())
-		g_player_hud->update			(trans);
+		g_player_hud->update(trans);
 }
 
 float	NET_Jump = 0;
