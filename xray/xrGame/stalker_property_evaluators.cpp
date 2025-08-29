@@ -141,7 +141,7 @@ CStalkerPropertyEvaluatorEnemySeeMe::CStalkerPropertyEvaluatorEnemySeeMe	(CAI_St
 _value_type CStalkerPropertyEvaluatorEnemySeeMe::evaluate	()
 {
 	const CEntityAlive		*enemy = m_object->memory().enemy().selected();
-	if (!enemy)
+	if (!enemy || !enemy->g_Alive())
 		return				(false);
 
 	const CCustomMonster	*enemy_monster = smart_cast<const CCustomMonster*>(enemy);
@@ -149,7 +149,7 @@ _value_type CStalkerPropertyEvaluatorEnemySeeMe::evaluate	()
 		return				(enemy_monster->memory().visual().visible_now(m_object));
 
 	const CActor			*actor = smart_cast<const CActor*>(enemy);
-	if (actor)
+	if (!actor || !actor->g_Alive())
 		return				(actor->memory().visual().visible_now(m_object));
 
 	return					(false);
