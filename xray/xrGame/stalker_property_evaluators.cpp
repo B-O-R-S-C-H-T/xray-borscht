@@ -21,7 +21,6 @@
 #include "enemy_manager.h"
 #include "danger_manager.h"
 #include "ai_space.h"
-#include "ai/stalker/ai_stalker.h"
 #include "xrServer_Objects_ALife_Monsters.h"
 #include "alife_human_brain.h"
 #include "actor.h"
@@ -30,8 +29,6 @@
 #include "agent_manager.h"
 #include "agent_enemy_manager.h"
 #include "agent_member_manager.h"
-#include "cover_point.h"
-#include "level_graph.h"
 #include "cover_point.h"
 #include "level_graph.h"
 #include "stalker_animation_manager.h"
@@ -149,7 +146,7 @@ _value_type CStalkerPropertyEvaluatorEnemySeeMe::evaluate	()
 		return				(enemy_monster->memory().visual().visible_now(m_object));
 
 	const CActor			*actor = smart_cast<const CActor*>(enemy);
-	if (!actor || !actor->g_Alive())
+	if (actor)
 		return				(actor->memory().visual().visible_now(m_object));
 
 	return					(false);
