@@ -88,6 +88,8 @@ private:
 
 	ref_texture				tonemap;
 	ref_texture				tsky0,tsky1;
+
+	bool					m_use_new_sky;
 };
 
 #endif	//	EnvironmentRender_included

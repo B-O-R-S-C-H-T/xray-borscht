@@ -8,12 +8,8 @@
 
 #include "../../xrEngine/xr_efflensflare.h"
 
-
-//////////////////////////////////////////////////////////////////////////
-// half box def
-
-#if 0
-static	Fvector3	hbox_verts[24]	=
+// xray-специфичный skybox
+static const Fvector3 hbox_verts_xray[24] =
 {
 	{-1.f,	-1.f,	-1.f}, {-1.f,	-1.01f,	-1.f},	// down
 	{ 1.f,	-1.f,	-1.f}, { 1.f,	-1.01f,	-1.f},	// down
@@ -28,8 +24,9 @@ static	Fvector3	hbox_verts[24]	=
 	{ 1.f,	 0.f,	 1.f}, { 1.f,	-1.f,	 1.f},	// half
 	{-1.f,	 0.f,	 1.f}, {-1.f,	-1.f,	 1.f}	// half
 };
-#else
-static	Fvector3	hbox_verts[24]	=
+
+// общепринятый skybox
+static const Fvector3 hbox_verts_new[24] =
 {
 	{-1.f,	-1.f,	-1.f}, {-1.f,	-1.0f,	-1.f},	// down
 	{ 1.f,	-1.f,	-1.f}, { 1.f,	-1.0f,	-1.f},	// down
@@ -44,7 +41,6 @@ static	Fvector3	hbox_verts[24]	=
 	{ 1.f,	 0.f,	 1.f}, { 1.f,	 0.f,	 1.f},	// half
 	{-1.f,	 0.f,	 1.f}, {-1.f,	 0.f,	 1.f}	// half
 };
-#endif
 
 static	u16			hbox_faces[20*3]	=
 {
@@ -76,13 +72,13 @@ struct v_skybox				{
 	u32			color;
 	Fvector3	uv	[2];
 
-	void		set			(Fvector3& _p, u32 _c, Fvector3& _tc)
+    void		set			(const Fvector3& _p, u32 _c, const Fvector3& _tc)
 	{
-		p					= _p;
-		color				= _c;
-		uv[0]				= _tc;
-		uv[1]				= _tc;
-	}
+        p					= _p;
+        color				= _c;
+        uv[0]				= _tc;
+        uv[1]				= _tc;
+    }
 };
 const	u32 v_skybox_fvf	= D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX2 | D3DFVF_TEXCOORDSIZE3(0) | D3DFVF_TEXCOORDSIZE3(1);
 struct v_clouds				{
@@ -94,7 +90,7 @@ struct v_clouds				{
 		p					= _p;
 		color				= _c;
 		intensity			= _i;
-	}
+    }
 };
 const	u32 v_clouds_fvf	= D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_SPECULAR;
 #pragma pack(pop)
@@ -187,6 +183,7 @@ dxEnvironmentRender::dxEnvironmentRender()
 {
 	tsky0	= DEV->_CreateTexture("$user$sky0");
 	tsky1	= DEV->_CreateTexture("$user$sky1");
+	m_use_new_sky = (strstr(Core.Params, "-new_sky") != nullptr);
 }
 
 void dxEnvironmentRender::OnFrame(CEnvironment &env)
@@ -246,54 +243,56 @@ void dxEnvironmentRender::OnUnload()
 
 void dxEnvironmentRender::RenderSky(CEnvironment &env)
 {
-	// clouds_sh.create		("clouds","null");
-	//. this is the bug-fix for the case when the sky is broken
-	//. for some unknown reason the geoms happen to be invalid sometimes
-	//. if vTune show this in profile, please add simple cache (move-to-forward last found) 
-	//. to the following functions:
-	//.		CResourceManager::_CreateDecl
-	//.		CResourceManager::CreateGeom
-	if(env.bNeed_re_create_env)
-	{
-		sh_2sky.create			(&m_b_skybox,"skybox_2t");
-		sh_2geom.create			(v_skybox_fvf,RCache.Vertex.Buffer(), RCache.Index.Buffer());
-		clouds_sh.create		("clouds","null");
-		clouds_geom.create		(v_clouds_fvf,RCache.Vertex.Buffer(), RCache.Index.Buffer());
-		env.bNeed_re_create_env		= FALSE;
-	}
-	::Render->rmFar				();
+    // clouds_sh.create		("clouds","null");
+    //. this is the bug-fix for the case when the sky is broken
+    //. for some unknown reason the geoms happen to be invalid sometimes
+    //. if vTune show this in profile, please add simple cache (move-to-forward last found) 
+    //. to the following functions:
+    //.		CResourceManager::_CreateDecl
+    //.		CResourceManager::CreateGeom
+    if(env.bNeed_re_create_env)
+    {
+        sh_2sky.create			(&m_b_skybox,"skybox_2t");
+        sh_2geom.create			(v_skybox_fvf,RCache.Vertex.Buffer(), RCache.Index.Buffer());
+        clouds_sh.create		("clouds","null");
+        clouds_geom.create		(v_clouds_fvf,RCache.Vertex.Buffer(), RCache.Index.Buffer());
+        env.bNeed_re_create_env		= FALSE;
+    }
+    ::Render->rmFar				();
 
-	dxEnvDescriptorMixerRender &mixRen = *(dxEnvDescriptorMixerRender*)&*env.CurrentEnv->m_pDescriptorMixer;
+    dxEnvDescriptorMixerRender &mixRen = *(dxEnvDescriptorMixerRender*)&*env.CurrentEnv->m_pDescriptorMixer;
 
-	// draw sky box
-	Fmatrix						mSky;
-	mSky.rotateY				(env.CurrentEnv->sky_rotation);
-	mSky.translate_over			(Device.vCameraPosition);
+    // draw sky box
+    Fmatrix						mSky;
+    mSky.rotateY				(env.CurrentEnv->sky_rotation);
+    mSky.translate_over			(Device.vCameraPosition);
 
-	u32		i_offset,v_offset;
-	u32		C					= color_rgba(iFloor(env.CurrentEnv->sky_color.x*255.f), iFloor(env.CurrentEnv->sky_color.y*255.f), iFloor(env.CurrentEnv->sky_color.z*255.f), iFloor(env.CurrentEnv->weight*255.f));
+    u32		i_offset,v_offset;
+    u32		C					= color_rgba(iFloor(env.CurrentEnv->sky_color.x*255.f), iFloor(env.CurrentEnv->sky_color.y*255.f), iFloor(env.CurrentEnv->sky_color.z*255.f), iFloor(env.CurrentEnv->weight*255.f));
 
-	// Fill index buffer
-	u16*	pib					= RCache.Index.Lock	(20*3,i_offset);
-	CopyMemory					(pib,hbox_faces,20*3*2);
-	RCache.Index.Unlock			(20*3);
+    const Fvector3* verts = m_use_new_sky ? hbox_verts_new : hbox_verts_xray;
 
-	// Fill vertex buffer
-	v_skybox* pv				= (v_skybox*)	RCache.Vertex.Lock	(12,sh_2geom.stride(),v_offset);
-	for (u32 v=0; v<12; v++)	pv[v].set		(hbox_verts[v*2],C,hbox_verts[v*2+1]);
-	RCache.Vertex.Unlock		(12,sh_2geom.stride());
+    // Fill index buffer
+    u16*	pib					= RCache.Index.Lock	(20*3,i_offset);
+    CopyMemory					(pib,hbox_faces,20*3*2);
+    RCache.Index.Unlock			(20*3);
 
-	// Render
-	RCache.set_xform_world		(mSky);
-	RCache.set_Geometry			(sh_2geom);
-	RCache.set_Shader			(sh_2sky);
+    // Fill vertex buffer
+    v_skybox* pv				= (v_skybox*)	RCache.Vertex.Lock	(12,sh_2geom.stride(),v_offset);
+    for (u32 v=0; v<12; v++)	pv[v].set		(verts[v*2],C,verts[v*2+1]);
+    RCache.Vertex.Unlock		(12,sh_2geom.stride());
+
+    // Render
+    RCache.set_xform_world		(mSky);
+    RCache.set_Geometry			(sh_2geom);
+    RCache.set_Shader			(sh_2sky);
 //	RCache.set_Textures			(&env.CurrentEnv->sky_r_textures);
-	RCache.set_Textures			(&mixRen.sky_r_textures);
-	RCache.Render				(D3DPT_TRIANGLELIST,v_offset,0,12,i_offset,20);
+    RCache.set_Textures			(&mixRen.sky_r_textures);
+    RCache.Render				(D3DPT_TRIANGLELIST,v_offset,0,12,i_offset,20);
 
-	// Sun
-	::Render->rmNormal			();
-	env.eff_LensFlare->Render		(TRUE,FALSE,FALSE);
+    // Sun
+    ::Render->rmNormal			();
+    env.eff_LensFlare->Render		(TRUE,FALSE,FALSE);
 }
 
 void dxEnvironmentRender::RenderClouds(CEnvironment &env)
