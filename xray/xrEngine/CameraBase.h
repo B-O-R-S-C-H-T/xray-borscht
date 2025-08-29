@@ -53,7 +53,7 @@ public:
 	virtual	void	OnActivate		( CCameraBase* old_cam )					{;}
 	virtual	void	OnDeactivate	( )											{;}
 	virtual void	Move			( int cmd, float val=0, float factor=1.0f)	{;}
-	virtual void	Update			( Fvector& point, Fvector& noise_angle )	{;}
+	virtual void	Update			( Fvector& point, Fvector& noise_dangle )	{;}
 	virtual void	Get				( Fvector& P, Fvector& D, Fvector& N )		{P.set(vPosition);D.set(vDirection);N.set(vNormal);}
 	virtual void	Set				( const Fvector& P, const Fvector& D, const Fvector& N ){vPosition.set(P);vDirection.set(D);vNormal.set(N);}
 	virtual void	Set				( float Y, float P, float R )				{yaw=Y;pitch=P;roll=R;}

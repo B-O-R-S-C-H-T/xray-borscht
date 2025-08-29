@@ -65,6 +65,7 @@
 #include "../Include/xrRender/UIRender.h"
 #include "ai_object_location.h"
 #include "embedded_editor/embedded_editor_prop.h"
+#include "debug_renderer.h"
 
 const u32		patch_frames	= 50;
 const float		respawn_delay	= 1.f;
@@ -144,7 +145,6 @@ CActor::CActor() : CEntityAlive()
 	m_holder				=	NULL;
 	m_holderID				=	u16(-1);
 
-
 #ifdef DEBUG
 	Device.seqRender.Add	(this,REG_PRIORITY_LOW);
 #endif
@@ -171,7 +171,6 @@ CActor::CActor() : CEntityAlive()
 
 	m_pUsableObject			= NULL;
 
-
 	m_anims					= xr_new<SActorMotions>();
 	m_vehicle_anims			= xr_new<SActorVehicleAnims>();
 	m_entity_condition		= NULL;
@@ -189,7 +188,6 @@ CActor::CActor() : CEntityAlive()
 	m_location_manager		= xr_new<CLocationManager>(this);
 	m_block_sprint_counter	= 0;
 }
-
 
 CActor::~CActor()
 {
@@ -266,7 +264,7 @@ void CActor::Load	(LPCSTR section )
 	}
 	//////////////////////////////////////////////////////////////////////////
 
-	#pragma todo("Этот код дублируется в UpdateCollisionBoxes()");
+	#pragma todo("Этот код дублируется в UpdateCollisionBoxes()")
 
 	// m_PhysicMovementControl: General
 	//m_PhysicMovementControl->SetParent		(this);
@@ -321,10 +319,11 @@ void CActor::Load	(LPCSTR section )
 	m_fWalk_StrafeFactor		= READ_IF_EXISTS(pSettings, r_float, section, "walk_strafe_coef", 1.0f);
 	m_fRun_StrafeFactor			= READ_IF_EXISTS(pSettings, r_float, section, "run_strafe_coef", 1.0f);
 
-
 	m_fCamHeightFactor			= pSettings->r_float(section,"camera_height_factor");
+	m_fEyeOffset				= READ_IF_EXISTS(pSettings, r_fvector3, section, "eye_offset", Fvector().set(0.f, 0.0f, 0.1f));
+
 	character_physics_support()->movement()->SetJumpUpVelocity(m_fJumpSpeed);
-	float AirControlParam		= pSettings->r_float(section,"air_control_param"	);
+	float AirControlParam		= pSettings->r_float(section,"air_control_param");
 	character_physics_support()->movement()->SetAirControlParam(AirControlParam);
 
 	m_fPickupInfoRadius			= pSettings->r_float(section,"pickup_info_radius");
@@ -685,7 +684,6 @@ void CActor::Die	(CObject* who)
 		xr_vector<CInventorySlot>::iterator I = inventory().m_slots.begin();
 		xr_vector<CInventorySlot>::iterator E = inventory().m_slots.end();
 
-
 		for (u32 slot_idx=0 ; I != E; ++I,++slot_idx)
 		{
 			if (slot_idx == inventory().GetActiveSlot()) 
@@ -714,7 +712,6 @@ void CActor::Die	(CObject* who)
 			if((*I).m_pIItem) 
 				inventory().Ruck((*I).m_pIItem);
 		};
-
 
 		///!!! чистка пояса
 		TIItemContainer &l_blist = inventory().m_belt;
@@ -746,7 +743,7 @@ void CActor::Die	(CObject* who)
 		};
 	};
 
-	cam_Set					(eacFreeLook);
+//	cam_Set					(eacFreeLook);
 	mstate_wishful	&=		~mcAnyMove;
 	mstate_real		&=		~mcAnyMove;
 
@@ -828,6 +825,7 @@ void CActor::g_Physics			(Fvector& _accel, float jump, float dt)
 		}
 	}
 }
+
 float g_fov = 67.5f;
 
 float CActor::currentFOV()
@@ -872,9 +870,8 @@ void CActor::UpdateCL	()
 	inherited::UpdateCL				();
 	m_pPhysics_support->in_UpdateCL	();
 
-
-	if (g_Alive()) 
-		PickupModeUpdate	();	
+	if (g_Alive())
+		PickupModeUpdate();
 
 	PickupModeUpdate_COD();
 
@@ -900,7 +897,6 @@ void CActor::UpdateCL	()
 
 			SetZoomAimingMode		(true);
 		}
-
 		if(Level().CurrentEntity() && this->ID()==Level().CurrentEntity()->ID() )
 		{
 			float fire_disp_full = pWeapon->GetFireDispersion(true);
@@ -913,20 +909,15 @@ void CActor::UpdateCL	()
 #ifdef DEBUG
 			HUD().SetFirstBulletCrosshairDisp(pWeapon->GetFirstBulletDisp());
 #endif
-			
+
 			BOOL B = ! ((mstate_real & mcLookout) && !IsGameTypeSingle());
-
 			psHUD_Flags.set( HUD_WEAPON_RT, B );
-
 			B = B && pWeapon->show_crosshair();
 
 			psHUD_Flags.set( HUD_CROSSHAIR_RT2, B );
-			
 
-			
 			psHUD_Flags.set( HUD_DRAW_RT,		pWeapon->show_indicators() );
 		}
-
 	}
 	else
 	{
@@ -956,7 +947,9 @@ void CActor::UpdateCL	()
 		else
 			xr_delete(m_sndShockEffector);
 	}
+
 	Fmatrix							trans;
+
 	if(cam_Active() == cam_FirstEye())
 	{
 /*
@@ -978,13 +971,13 @@ void CActor::UpdateCL	()
 		Cameras().hud_camera_Matrix		(trans);
 	}else
 		Cameras().camera_Matrix			(trans);
-	
-	
-	if(IsFocused())
+
+	if (IsFocused())
 		g_player_hud->update			(trans);
 }
 
 float	NET_Jump = 0;
+
 void CActor::shedule_Update	(u32 DT)
 {
 	setSVU							(OnServer());
@@ -1203,8 +1196,8 @@ void CActor::shedule_Update	(u32 DT)
 	}
 	
 	// если в режиме HUD, то сама модель актера не рисуется
-	if(!character_physics_support()->IsRemoved())
-		setVisible				(!HUDview	());
+	if (!character_physics_support()->IsRemoved())
+		setVisible				(HUDview() || !g_Alive());
 
 	// что актор видит перед собой
 	collide::rq_result& RQ				= HUD().GetCurrentRayQuery();
@@ -1271,12 +1264,12 @@ void CActor::shedule_Update	(u32 DT)
 
 	SetPropObject(RQ.O);
 };
-#include "debug_renderer.h"
+
 void CActor::renderable_Render	()
 {
 	VERIFY(_valid(XFORM()));
 	inherited::renderable_Render			();
-	if (!HUDview()){
+	if (!HUDview() || !g_Alive()) {
 		CInventoryOwner::renderable_Render	();
 	}
 	VERIFY(_valid(XFORM()));

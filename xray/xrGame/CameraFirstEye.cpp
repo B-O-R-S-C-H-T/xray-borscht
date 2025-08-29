@@ -1,13 +1,10 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 
-
+#include "actor.h"
 #include "CameraFirstEye.h"
 #include "xr_level_controller.h"
 #include "../xrEngine/xr_object.h"
-
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
+#include "../Include/xrRender/Kinematics.h"
 
 CCameraFirstEye::CCameraFirstEye(CObject* p, u32 flags ) : CCameraBase(p, flags),lookat_active(false)
 {
@@ -30,7 +27,7 @@ void CCameraFirstEye::UpdateLookat()
 
 	Fvector								_dest_dir;
 	_dest_dir.sub						(lookat_point, vPosition);
-	
+
 	Fmatrix								_m;
 	_m.identity							();
 	_m.k.normalize_safe					(_dest_dir);
@@ -58,29 +55,58 @@ void CCameraFirstEye::UpdateLookat()
 
 void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle)
 {
-	vPosition.set	(point);
+	CActor* actor = smart_cast<CActor*>(parent);
+	if (actor && !actor->g_Alive()) { // режим смерти
+		IKinematics* V = smart_cast<IKinematics*>(actor->Visual());
+		if (!V)
+			return;
+		V->CalculateBones();
+		u16 head = actor->GetHeadBoneID();
+		Fmatrix mHead = V->LL_GetTransform(head);
+		Fvector eye_local = actor->m_fEyeOffset;
+		Fvector eye_world;
+		mHead.transform_tiny(eye_world, eye_local);
+		Fmatrix actor_xform = actor->XFORM();
+		actor_xform.transform_tiny(eye_world);
+		vPosition.set(eye_world);
 
-	UpdateLookat	();
+		Fvector dir_local;
+		dir_local.set(0, 0, 1);
+		Fvector dir_world;
+		mHead.transform_dir(dir_world, dir_local);
+		actor_xform.transform_dir(dir_world);
+		vDirection.set(dir_world);
 
-	Fmatrix			mR, R;
-	Fmatrix			rX, rY, rZ;
-	rX.rotateX		(noise_dangle.x);
-	rY.rotateY		(-noise_dangle.y);
-	rZ.rotateZ		(noise_dangle.z);
-	R.mul_43		(rY,rX);
-	R.mulB_43		(rZ);
-	
-	mR.identity		();
-	Fquaternion		Q;
-	Q.rotationYawPitchRoll(roll,yaw,pitch);
-	mR.rotation		(Q);
-	mR.transpose	();
-	mR.mulB_43		(R);
-	
-	vDirection.set	(mR.k);
-	vNormal.set		(mR.j);
+		Fvector up_local;
+		up_local.set(0, 1, 0);
+		Fvector up_world;
+		mHead.transform_dir(up_world, up_local);
+		actor_xform.transform_dir(up_world);
+		vNormal.set(up_world);
 
-	if (m_Flags.is(flRelativeLink))	
+	} else { // нормальный режим
+		vPosition.set(point);
+
+		Fmatrix mR, R;
+		Fmatrix rX, rY, rZ;
+		rX.rotateX(noise_dangle.x);
+		rY.rotateY(-noise_dangle.y);
+		rZ.rotateZ(noise_dangle.z);
+		R.mul_43(rY, rX);
+		R.mulB_43(rZ);
+
+		mR.identity();
+		Fquaternion		Q;
+		Q.rotationYawPitchRoll(roll, yaw, pitch);
+		mR.rotation(Q);
+		mR.transpose();
+		mR.mulB_43(R);
+
+		vDirection.set(mR.k);
+		vNormal.set(mR.j);
+	}
+
+	if (m_Flags.is(flRelativeLink))
 	{
 		parent->XFORM().transform_dir	(vDirection);
 		parent->XFORM().transform_dir	(vNormal);
@@ -110,4 +136,6 @@ void CCameraFirstEye::OnActivate( CCameraBase* old_cam )
 {
 	if (old_cam&&(m_Flags.is(flRelativeLink)==old_cam->m_Flags.is(flRelativeLink)))
 		yaw = (old_cam)->yaw;
+	if (yaw > PI_MUL_2) yaw -= PI_MUL_2;
+	if (yaw < -PI_MUL_2)yaw += PI_MUL_2;
 }
