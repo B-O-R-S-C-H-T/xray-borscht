@@ -595,13 +595,42 @@ public:
 	IC	void	getXYZ	(Tvector& xyz) const{getXYZ(xyz.x,xyz.y,xyz.z);}
 	IC	void	getXYZi	(T& x, T& y, T& z) const{getHPB(y,x,z);x*=-1.f;y*=-1.f;z*=-1.f;}
 	IC	void	getXYZi	(Tvector& xyz) const{getXYZ(xyz.x,xyz.y,xyz.z);xyz.mul(-1.f);}
+
+	// Вычисление детерминанта 3x3 ротационной подматрицы
+	IC	T det33() const
+	{
+		VERIFY(_valid(i) && _valid(j) && _valid(k));
+		return	i.x * (j.y * k.z - j.z * k.y) -
+				i.y * (j.x * k.z - j.z * k.x) +
+				i.z * (j.x * k.y - j.y * k.x);
+	}
+
+	// Вычисление детерминанта 4x4 матрицы через частный случай теоремы Лапласа
+	IC	T det() const
+	{
+		VERIFY(_valid(*this));
+		// Разложение по первой строке
+		T det33_0 = _22 * (_33 * _44 - _34 * _43) -
+					_23 * (_32 * _44 - _34 * _42) +
+					_24 * (_32 * _43 - _33 * _42);
+		T det33_1 = _21 * (_33 * _44 - _34 * _43) -
+					_23 * (_31 * _44 - _34 * _41) +
+					_24 * (_31 * _43 - _33 * _41);
+		T det33_2 = _21 * (_32 * _44 - _34 * _42) -
+					_22 * (_31 * _44 - _34 * _41) +
+					_24 * (_31 * _42 - _32 * _41);
+		T det33_3 = _21 * (_32 * _43 - _33 * _42) -
+					_22 * (_31 * _43 - _33 * _41) +
+					_23 * (_31 * _42 - _32 * _41);
+		return _11 * det33_0 - _12 * det33_1 + _13 * det33_2 - _14 * det33_3;
+	}
 };
 
 typedef		_matrix<float>	Fmatrix;
 typedef		_matrix<double>	Dmatrix;
 
 template <class T>
-BOOL	_valid			(const _matrix<T>& m)		
+BOOL	_valid			(const _matrix<T>& m)
 { 
 	return 
 		_valid(m.i) && _valid(m._14_)	&& 
