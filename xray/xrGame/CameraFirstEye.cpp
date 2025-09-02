@@ -53,16 +53,15 @@ void CCameraFirstEye::UpdateLookat()
 
 }
 
-void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle)
-{
+void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle) {
 	CActor* actor = smart_cast<CActor*>(parent);
 	if (actor && !actor->g_Alive()) { // режим смерти
 		IKinematics* V = smart_cast<IKinematics*>(actor->Visual());
 		if (!V)
 			return;
 		V->CalculateBones();
-		u16 head = actor->GetHeadBoneID();
-		Fmatrix mHead = V->LL_GetTransform(head);
+		u16		head	  = actor->GetHeadBoneID();
+		Fmatrix mHead	  = V->LL_GetTransform(head);
 		Fvector eye_local = actor->m_fEyeOffset;
 		Fvector eye_world;
 		mHead.transform_tiny(eye_world, eye_local);
@@ -78,7 +77,7 @@ void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle)
 		vDirection.set(dir_world);
 
 		Fvector up_local;
-		up_local.set(0, 1, 0);
+		up_local.set(1, 0, 0);
 		Fvector up_world;
 		mHead.transform_dir(up_world, up_local);
 		actor_xform.transform_dir(up_world);
@@ -96,7 +95,7 @@ void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle)
 		R.mulB_43(rZ);
 
 		mR.identity();
-		Fquaternion		Q;
+		Fquaternion Q;
 		Q.rotationYawPitchRoll(roll, yaw, pitch);
 		mR.rotation(Q);
 		mR.transpose();
@@ -106,10 +105,9 @@ void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle)
 		vNormal.set(mR.j);
 	}
 
-	if (m_Flags.is(flRelativeLink))
-	{
-		parent->XFORM().transform_dir	(vDirection);
-		parent->XFORM().transform_dir	(vNormal);
+	if (m_Flags.is(flRelativeLink)) {
+		parent->XFORM().transform_dir(vDirection);
+		parent->XFORM().transform_dir(vNormal);
 	}
 }
 
