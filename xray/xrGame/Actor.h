@@ -114,7 +114,6 @@ public:
 
 #endif
 
-
 public:
 	virtual bool OnReceiveInfo		(shared_str info_id) const;
 	virtual void OnDisableInfo		(shared_str info_id) const;
@@ -159,7 +158,6 @@ public:
 			bool OnDialogSoundHandlerStart	(CInventoryOwner *inv_owner, LPCSTR phrase);
 			bool OnDialogSoundHandlerStop	(CInventoryOwner *inv_owner);
 
-
 	virtual void reinit			();
 	virtual void reload			(LPCSTR section);
 	virtual bool use_bolts		() const;
@@ -173,7 +171,6 @@ public:
 	virtual void OnItemDropUpdate ();
 
 	virtual	void OnPlayHeadShotParticle (NET_Packet P);
-
 
 	virtual void						Die				(CObject* who);
 	virtual	void						Hit				(SHit* pHDS);
@@ -191,13 +188,10 @@ public:
 	virtual	bool						use_default_throw_force	();
 	virtual	float						missile_throw_force		(); 
 
-
 	virtual bool						NeedToDestroyObject()  const;
 	virtual ALife::_TIME_ID				TimePassedAfterDeath() const;
 
-
 public:
-
 	//свойства артефактов
 	virtual void		UpdateArtefactsOnBeltAndOutfit();
 	virtual void		MoveArtefactBelt		(const CArtefact* artefact, bool on_belt);
@@ -223,7 +217,6 @@ protected:
 	SndShockEffector*		m_sndShockEffector;
 	xr_vector<ref_sound>	sndHit[ALife::eHitTypeMax];
 	ref_sound				sndDie[SND_DIE_COUNT];
-
 
 	float					m_fLandingTime;
 	float					m_fJumpTime;
@@ -338,8 +331,7 @@ protected:
 	float					fCurAVelocity;
 	CEffectorBobbing*		pCamBobbing;
 
-
-	//менеджер эффекторов, есть у каждого актрера
+	//менеджер эффекторов, есть у каждого актора
 	CActorCameraManager*	m_pActorEffector;
 	static float			f_Ladder_cam_limit;
 public:
@@ -384,10 +376,8 @@ public:
 	void					PickupModeOn		();
 	void					PickupModeOff		();
 
-
-
 	//////////////////////////////////////////////////////////////////////////
-	// Motions (передвижения актрера)
+	// Motions (передвижения актора)
 	//////////////////////////////////////////////////////////////////////////
 public:
 	void					g_cl_CheckControls		(u32 mstate_wf, Fvector &vControlAccel, float &Jump, float dt);
@@ -411,6 +401,7 @@ public:
 
 	bool					is_jump					();
 	u32						MovingState				() const {return mstate_real;}
+
 protected:
 	u32						mstate_wishful;
 	u32						mstate_old;
@@ -429,6 +420,7 @@ protected:
 
 	float					m_fWalk_StrafeFactor;
 	float					m_fRun_StrafeFactor;
+
 	//////////////////////////////////////////////////////////////////////////
 	// User input/output
 	//////////////////////////////////////////////////////////////////////////
@@ -475,27 +467,24 @@ protected:
 	//смещение firepoint относительно default firepoint для бросания болтов и гранат
 	Fvector								m_vMissileOffset;
 public:
-	// Получение, и запись смещения для гранат
+	// Получение и запись смещения для гранат
 	Fvector								GetMissileOffset	() const;
 	void								SetMissileOffset	(const Fvector &vNewOffset);
 
 protected:
-	//косточки используемые при стрельбе
-	int									m_r_hand;
-	int									m_l_finger1;
-    int									m_r_finger2;
-	int									m_head;
-	int									m_eye_left;
-	int									m_eye_right;
-
-	int									m_l_clavicle;
-	int									m_r_clavicle;
-	int									m_spine2;
-	int									m_spine1;
-	int									m_spine;
-	int									m_neck;
-
-
+	//косточки, используемые при стрельбе
+	u16									m_r_hand;
+	u16									m_l_finger1;
+	u16									m_r_finger2;
+	u16									m_head;
+	u16									m_eye_left;
+	u16									m_eye_right;
+	u16									m_l_clavicle;
+	u16									m_r_clavicle;
+	u16									m_spine2;
+	u16									m_spine1;
+	u16									m_spine;
+	u16									m_neck;
 
 	//////////////////////////////////////////////////////////////////////////
 	// Network
@@ -528,8 +517,6 @@ protected:
 	void					net_Import_Physic_proceed	( );
 	//---------------------------------------------
 	
-
-
 ////////////////////////////////////////////////////////////////////////////
 virtual	bool				can_validate_position_on_spawn	(){return false;}
 	///////////////////////////////////////////////////////
@@ -551,7 +538,6 @@ virtual	bool				can_validate_position_on_spawn	(){return false;}
 	VIS_POSITION	LastPosL;
 #endif
 
-	
 	SPHNetState				LastState;
 	SPHNetState				RecalculatedState;
 	SPHNetState				PredictedState;
@@ -603,7 +589,7 @@ public:
 		return				(true);
 	}
 
-	virtual	shared_str			GetDefaultVisualOutfit	() const	{return m_DefaultVisualOutfit;};
+	virtual	shared_str		GetDefaultVisualOutfit	() const	{return m_DefaultVisualOutfit;};
 	virtual	void			SetDefaultVisualOutfit	(shared_str DefaultOutfit) {m_DefaultVisualOutfit = DefaultOutfit;};
 	virtual void			UpdateAnimation			() 	{ g_SetAnimation(mstate_real); };
 
@@ -673,6 +659,7 @@ protected:
 	bool						m_bWasBackStabbed;
 
 	virtual		bool			Check_for_BackStab_Bone			(u16 element);
+
 public:
 	virtual void				SetHitInfo						(CObject* who, CObject* weapon, s16 element, Fvector Pos, Fvector Dir);
 
@@ -749,16 +736,20 @@ public:
 static CPhysicsShell		*actor_camera_shell;
 
 private:
-	std::bitset<kNOTBINDED + 1> m_blockedActions;// Заблокированные действия
+	std::bitset<kNOTBINDED + 1> m_blockedActions;
 
 public:
-	void blockAction(EGameActions cmd);// Заблокировать действие
-	void unblockAction(EGameActions cmd);// Разблокировать действие
+	void blockAction(EGameActions cmd);
+	void unblockAction(EGameActions cmd);
 
 DECLARE_SCRIPT_REGISTER_FUNCTION
 
 	float GetCameraHeightBonus() const;
 	void  UpdateCollisionBoxes();
+
+	u16						GetHeadBoneID						() const	{ return m_head; }
+	Fvector					m_fEyeOffset;
+	void					SwitchToThirdPersonCamera			()			{ cam_Set(eacLookAt); }
 };
 
 add_to_type_list(CActor)
