@@ -19,20 +19,18 @@
 #include "phdebug.h"
 #endif
 
-static const float	s_fLandingTime1		= 0.1f;// через сколько снять флаг Landing1 (т.е. включить следующую анимацию)
-static const float	s_fLandingTime2		= 0.3f;// через сколько снять флаг Landing2 (т.е. включить следующую анимацию)
+static const float	s_fLandingTime1		= 0.1f;	// через сколько снять флаг Landing1 (т.е. включить следующую анимацию)
+static const float	s_fLandingTime2		= 0.3f;	// через сколько снять флаг Landing2 (т.е. включить следующую анимацию)
 static const float	s_fJumpTime			= 0.3f;
 static const float	s_fJumpGroundTime	= 0.1f;	// для снятия флажка Jump если на земле
-	   const float	s_fFallTime			= 0.2f;
+	   const float	s_fFallTime			= 0.5f;
 
 IC static void generate_orthonormal_basis1(const Fvector& dir,Fvector& updir, Fvector& right)
 {
-
-	right.crossproduct(dir,updir); //. <->
+	right.crossproduct(dir,updir);
 	right.normalize();
 	updir.crossproduct(right,dir);
 }
-
 
 void CActor::g_cl_ValidateMState(float dt, u32 mstate_wf)
 {
@@ -194,7 +192,6 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 			Jump				= m_fJumpSpeed;
 			m_fJumpTime			= s_fJumpTime;
 
-
 			//уменьшить силу игрока из-за выполненого прыжка
 			if (!GodMode())
 				conditions().ConditionJump(inventory().TotalWeight() / MaxCarryWeight());
@@ -256,8 +253,6 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 				else
 					if (mstate_real&mcBack)
 						scale *= m_fWalkBackFactor;
-
-
 
 				if (mstate_real&mcCrouch)	scale *= m_fCrouchFactor;
 				if (mstate_real&mcClimb)	scale *= m_fClimbFactor;
@@ -330,7 +325,6 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 }
 
 #define ACTOR_ANIM_SECT "actor_animation"
-
 #define ACTOR_LLOOKOUT_ANGLE	PI_DIV_4
 #define ACTOR_RLOOKOUT_ANGLE	PI_DIV_4
 
@@ -560,27 +554,20 @@ bool CActor::CanJump()
 	return can_Jump;
 }
 
-bool CActor::CanMove()
-{
-	if( conditions().IsCantWalk() )
-	{
-		if(mstate_wishful&mcAnyMove)
-		{
+bool CActor::CanMove() {
+	if (conditions().IsCantWalk()) {
+		if (mstate_wishful & mcAnyMove) {
 			HUD().GetUI()->AddInfoMessage("cant_walk");
 		}
 		return false;
-	}else
-	if( conditions().IsCantWalkWeight() )
-	{
-		if(mstate_wishful&mcAnyMove)
-		{
+	} else if (conditions().IsCantWalkWeight()) {
+		if (mstate_wishful & mcAnyMove) {
 			HUD().GetUI()->AddInfoMessage("cant_walk_weight");
 		}
 		return false;
-	
 	}
 
-	if(IsTalking())
+	if (IsTalking())
 		return false;
 	else
 		return true;
@@ -598,7 +585,7 @@ bool CActor::is_jump()
 	return ((mstate_real & (mcJump|mcFall|mcLanding|mcLanding2)) != 0);
 }
 
-//максимальный переносимы вес
+// максимальный переносимый вес
 #include "CustomOutfit.h"
 float CActor::MaxCarryWeight () const
 {

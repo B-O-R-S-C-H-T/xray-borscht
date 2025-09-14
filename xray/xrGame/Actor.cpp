@@ -85,6 +85,9 @@ static Fvector	vFootExt;
 
 Flags32			psActorFlags={/*AF_DYNAMIC_MUSIC|*/AF_GODMODE_RT};
 
+float			NET_Jump	= 0;
+float			g_fov		= 67.5f;
+
 CActor::CActor() : CEntityAlive()
 {
 	encyclopedia_registry	= xr_new<CEncyclopediaRegistryWrapper	>();
@@ -812,8 +815,6 @@ void CActor::g_Physics			(Fvector& _accel, float jump, float dt)
 	}
 }
 
-float g_fov = 67.5f;
-
 float CActor::currentFOV()
 {
 	if (!psHUD_Flags.is(HUD_WEAPON|HUD_WEAPON_RT|HUD_WEAPON_RT2))
@@ -878,9 +879,31 @@ void CActor::UpdateCL() {
 		if (dist > EPS_L) {
 			dir.normalize();
 			collide::rq_result rq;
-			if (Level().ObjectSpace.RayPick(head_pos, dir, dist, collide::rqtBoth, rq, this)) {
-				if (rq.range < dist - EPS_L) {
-					cam_Set(eacLookAt);
+			float h_w, h_h;
+			viewport_size(dist, *cameras[eacFirstEye], h_w, h_h);
+			h_w /= 2.f;
+			h_h /= 2.f;
+			Fvector offsets[4] = {
+				{ h_w,  h_h, 0.f},
+				{ h_w, -h_h, 0.f},
+				{-h_w,  h_h, 0.f},
+				{-h_w, -h_h, 0.f}
+			};
+			for (int i = 0; i < 4; ++i) {
+				Fvector corner_pos{};
+				corner_pos.mad(cam_pos, cameras[eacFirstEye]->Right(), offsets[i].x);
+				corner_pos.mad(corner_pos, cameras[eacFirstEye]->Up(), offsets[i].y);
+				Fvector corner_dir	= Fvector().sub(corner_pos, head_pos);
+				float	corner_dist = corner_dir.magnitude();
+				bool	corner_hit	= false;
+				if (corner_dist > EPS_L) {
+					corner_dir.normalize();
+					if (Level().ObjectSpace.RayPick(head_pos, corner_dir, corner_dist, collide::rqtBoth, rq, this)) {
+						if (rq.range < corner_dist - EPS_L) {
+							corner_hit = true;
+							cam_Set(eacLookAt);
+						}
+					}
 				}
 			}
 		}
@@ -893,31 +916,24 @@ void CActor::UpdateCL() {
 	if (pWeapon) {
 		if (pWeapon->IsZoomed()) {
 			float				   full_fire_disp = pWeapon->GetFireDispersion(true);
-
 			CEffectorZoomInertion* S			  = smart_cast<CEffectorZoomInertion*>(Cameras().GetCamEffector(eCEZoom));
 			if (S)
 				S->SetParams(full_fire_disp);
-
 			SetZoomAimingMode(true);
 		}
 		if (Level().CurrentEntity() && this->ID() == Level().CurrentEntity()->ID()) {
 			float fire_disp_full = pWeapon->GetFireDispersion(true);
 			m_fdisp_controller.SetDispertion(fire_disp_full);
-
 			fire_disp_full = m_fdisp_controller.GetCurrentDispertion();
-
 			HUD().SetCrosshairDisp(fire_disp_full, 0.02f);
 			HUD().ShowCrosshair(pWeapon->use_crosshair());
 #ifdef DEBUG
 			HUD().SetFirstBulletCrosshairDisp(pWeapon->GetFirstBulletDisp());
 #endif
-
 			BOOL B = !((mstate_real & mcLookout) && !IsGameTypeSingle());
 			psHUD_Flags.set(HUD_WEAPON_RT, B);
 			B = B && pWeapon->show_crosshair();
-
 			psHUD_Flags.set(HUD_CROSSHAIR_RT2, B);
-
 			psHUD_Flags.set(HUD_DRAW_RT, pWeapon->show_indicators());
 		}
 	} else {
@@ -953,8 +969,6 @@ void CActor::UpdateCL() {
 	if (IsFocused())
 		g_player_hud->update(trans);
 }
-
-float	NET_Jump = 0;
 
 void CActor::shedule_Update	(u32 DT)
 {
