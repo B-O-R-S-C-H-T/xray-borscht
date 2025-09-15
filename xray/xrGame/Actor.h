@@ -675,7 +675,6 @@ public:
 			void				SwitchTorch						();
 
 public:
-	
 	virtual	void				on_weapon_shot_start			(CWeapon *weapon);
 	virtual	void				on_weapon_shot_update			();
 	virtual	void				on_weapon_shot_stop				();
@@ -683,6 +682,7 @@ public:
 	virtual	void				on_weapon_hide					(CWeapon *weapon);
 			Fvector				weapon_recoil_delta_angle		();
 			Fvector				weapon_recoil_last_delta		();
+
 protected:
 	virtual	void				update_camera					(CCameraShotEffector* effector);
 	//step manager
@@ -763,3 +763,5 @@ IC	CActorCondition	&CActor::conditions	() const{ VERIFY(m_entity_condition); ret
 extern CActor*		g_actor;
 CActor*				Actor		();
 extern const float	s_fFallTime;
+
+extern BOOL			g_draw_actor_body;

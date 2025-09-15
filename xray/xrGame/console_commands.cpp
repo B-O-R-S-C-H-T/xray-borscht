@@ -54,7 +54,8 @@
 #	include "game_graph.h"
 #endif // DEBUG
 
-#include "hudmanager.h"
+#include "UIGameCustom.h"
+#include "HUDManager.h"
 
 string_path		g_last_saved_game;
 
@@ -103,6 +104,7 @@ void register_mp_console_commands();
 		BOOL	g_bCheckTime			= FALSE;
 		int		net_cl_inputupdaterate	= 50;
 		Flags32	g_mt_config				= {mtLevelPath | mtDetailPath | mtObjectHandler | mtSoundPlayer | mtAiVision | mtBullets | mtLUA_GC | mtLevelSounds | mtALife | mtMap};
+
 #ifdef DEBUG
 		Flags32	dbg_net_Draw_Flags		= {0};
 #endif
@@ -116,6 +118,7 @@ extern	BOOL	g_bDrawFirstBulletCrosshair;
 
 		float	debug_on_frame_gather_stats_frequency	= 0.f;
 #endif
+
 #ifdef DEBUG 
 extern LPSTR	dbg_stalker_death_anim;
 extern BOOL		b_death_anim_velocity;
@@ -125,8 +128,10 @@ extern BOOL		dbg_imotion_draw_velocity;
 extern BOOL		dbg_imotion_collide_debug;
 extern float	dbg_imotion_draw_velocity_scale;
 #endif
+
 int g_AI_inactive_time = 0;
 Flags32 g_uCommonFlags;
+
 enum E_COMMON_FLAGS{
 	flAiUseTorchDynamicLights = 1
 };
@@ -201,10 +206,6 @@ public:
 		strcpy_s(I,"game difficulty"); 
 	}
 };
-
-
-
-
 
 #ifdef DEBUG
 class CCC_ALifePath : public IConsole_Command {
@@ -422,9 +423,6 @@ bool valid_saved_game_name(LPCSTR file_name)
 	return		(true);
 }
 
-
-#include "UIGameCustom.h"
-#include "HUDManager.h"
 class CCC_ALifeSave : public IConsole_Command {
 public:
 	CCC_ALifeSave(LPCSTR N) : IConsole_Command(N)  { bEmptyArgsHandled = true; };
@@ -446,10 +444,8 @@ public:
 			return;
 		}
 
-		string_path				S,S1;
-		S[0]					= 0;
-//.		sscanf					(args ,"%s",S);
-		strcpy_s					(S,args);
+		string_path				S{}, S1{};
+		strcpy_s				(S,args);
 		
 #ifdef DEBUG
 		CTimer					timer;
@@ -507,9 +503,7 @@ public:
 			return;
 		}
 
-		string256					saved_game;
-		saved_game[0]				= 0;
-//.		sscanf						(args,"%s",saved_game);
+		string256					saved_game{};
 		strcpy_s					(saved_game, args);
 		if (!xr_strlen(saved_game)) {
 			Log						("! Specify file name!");
@@ -654,8 +648,6 @@ public:
 #endif
 	  }
 };
-
-
 
 class CCC_Net_CL_InputUpdateRate : public CCC_Integer {
 protected:
@@ -868,8 +860,6 @@ public:
 
 };
 
-
-
 class CCC_DebugFonts : public IConsole_Command {
 public:
 	CCC_DebugFonts (LPCSTR N) : IConsole_Command(N) {bEmptyArgsHandled = true; }
@@ -1071,12 +1061,12 @@ struct CCC_JumpToLevel : public IConsole_Command {
 	}
 };
 #endif
+
 class CCC_Script : public IConsole_Command {
 public:
 	CCC_Script(LPCSTR N) : IConsole_Command(N)  { bEmptyArgsHandled = true; };
 	virtual void Execute(LPCSTR args) {
-		string256	S;
-		S[0]		= 0;
+		string256 S{};
 		sscanf		(args ,"%s",S);
 		if (!xr_strlen(S))
 			Log("* Specify script name!");
@@ -1121,6 +1111,7 @@ public:
 		}
 	}
 };
+
 #ifndef MASTER_GOLD
 class CCC_TimeFactor : public IConsole_Command {
 public:
@@ -1141,11 +1132,9 @@ public:
 		strcpy_s				(I,"[0.001 - 1000.0]");
 	}
 };
-
 #endif // MASTER_GOLD
 
 #include "GamePersistent.h"
-
 
 class CCC_MainMenu : public IConsole_Command {
 public:
@@ -1294,6 +1283,7 @@ struct CCC_DbgBullets : public CCC_Integer {
 	}
 };
 #endif
+
 #ifndef MASTER_GOLD
 #include "attachable_item.h"
 #include "attachment_owner.h"
@@ -1326,6 +1316,7 @@ public		:
 	}
 };
 #endif
+
 #ifdef DEBUG
 class CCC_Crash : public IConsole_Command {
 public:
@@ -1518,8 +1509,6 @@ public:
 	}
 };
 
-
-
 class CCC_Net_SV_GuaranteedPacketMode : public CCC_Integer {
 protected:
 	int		*value_blin;
@@ -1580,7 +1569,6 @@ void CCC_RegisterCommands()
 	CMD1(CCC_ALifeObjectsPerUpdate,	"al_objects_per_update"	);		// set process time
 	CMD1(CCC_ALifeSwitchFactor,		"al_switch_factor"		);		// set switch factor
 #endif // MASTER_GOLD
-
 
 	CMD3(CCC_Mask,				"hud_weapon",			&psHUD_Flags,	HUD_WEAPON);
 	CMD3(CCC_Mask,				"hud_info",				&psHUD_Flags,	HUD_INFO);
@@ -1690,14 +1678,12 @@ CMD4(CCC_Integer,			"hit_anims_tune",						&tune_hit_anims,		0, 1);
 #endif // DEBUG_MEMORY_MANAGER
 
 	CMD1(CCC_DumpModelBones,	"debug_dump_model_bones");
-
 	CMD1(CCC_DrawGameGraphAll,		"ai_draw_game_graph_all");
 	CMD1(CCC_DrawGameGraphCurrent,	"ai_draw_game_graph_current_level");
 	CMD1(CCC_DrawGameGraphLevel,	"ai_draw_game_graph_level");
-
 	CMD4(CCC_Integer,			"ai_dbg_inactive_time",	&g_AI_inactive_time, 0, 1000000);
-	
 	CMD1(CCC_DebugNode,			"ai_dbg_node");
+
 #if defined(USE_DEBUGGER) && !defined(USE_LUA_STUDIO)
 	CMD1(CCC_ScriptDbg,			"script_debug_break");
 	CMD1(CCC_ScriptDbg,			"script_debug_stop");
@@ -1712,11 +1698,12 @@ CMD4(CCC_Integer,			"hit_anims_tune",						&tune_hit_anims,		0, 1);
 	CMD1(CCC_ShowMonsterInfo,	"ai_monster_info");
 	CMD1(CCC_DebugFonts,		"debug_fonts");
 #endif
+
 #ifndef MASTER_GOLD
 	CMD1(CCC_TuneAttachableItem,"dbg_adjust_attachable_item");
 #endif
-#ifdef DEBUG
 
+#ifdef DEBUG
 	CMD1(CCC_ShowAnimationStats,"ai_show_animation_stats");
 #endif // DEBUG
 	
@@ -1743,14 +1730,11 @@ CMD4(CCC_Integer,			"hit_anims_tune",						&tune_hit_anims,		0, 1);
 	CMD3(CCC_Mask,			"g_unlimitedammo",	&psActorFlags,	AF_UNLIMITEDAMMO);
 	CMD1(CCC_TimeFactor, "time_factor");
 #endif // MASTER_GOLD
+
 	CMD1(CCC_Script,		"run_script");
 	CMD1(CCC_ScriptCommand,	"run_string");
-
-
-
 	CMD3(CCC_Mask,		"g_autopickup",			&psActorFlags,	AF_AUTOPICKUP);
 	CMD3(CCC_Mask,		"g_dynamic_music",		&psActorFlags,	AF_DYNAMIC_MUSIC);
-
 
 #ifdef DEBUG
 	CMD1(CCC_LuaHelp,				"lua_help");
@@ -1769,8 +1753,6 @@ CMD4(CCC_Integer,			"hit_anims_tune",						&tune_hit_anims,		0, 1);
 	CMD3(CCC_Mask,		"dbg_draw_rp",				&dbg_net_Draw_Flags,	dbg_draw_rp);
 	CMD3(CCC_Mask,		"dbg_draw_climbable",		&dbg_net_Draw_Flags,	dbg_draw_climbable);
 	CMD3(CCC_Mask,		"dbg_draw_skeleton",		&dbg_net_Draw_Flags,	dbg_draw_skeleton);
-
-
 	CMD3(CCC_Mask,		"dbg_draw_ph_contacts",			&ph_dbg_draw_mask,	phDbgDrawContacts);
 	CMD3(CCC_Mask,		"dbg_draw_ph_enabled_aabbs",	&ph_dbg_draw_mask,	phDbgDrawEnabledAABBS);
 	CMD3(CCC_Mask,		"dbg_draw_ph_intersected_tries",&ph_dbg_draw_mask,	phDBgDrawIntersectedTries);
@@ -1879,8 +1861,6 @@ extern float	dbg_text_height_scale;
 CMD4(CCC_FloatBlock,		"dbg_text_height_scale",	&dbg_text_height_scale	,			0.2f	,5.f	);
 #endif
 
-
-
 #ifdef DEBUG
 	CMD4(CCC_Integer,	"string_table_error_msg",	&CStringTable::m_bWriteErrorsToLog,	0,	1);
 
@@ -1898,7 +1878,6 @@ CMD4(CCC_FloatBlock,		"dbg_text_height_scale",	&dbg_text_height_scale	,			0.2f	,
 	CMD1(CCC_StartTimeSingle,	"start_time_single");
 	CMD4(CCC_TimeFactorSingle,	"time_factor_single", &g_fTimeFactor, 0.f,flt_max);
 #endif // MASTER_GOLD
-
 
 	g_uCommonFlags.zero();
 	g_uCommonFlags.set(flAiUseTorchDynamicLights, TRUE);
@@ -1946,8 +1925,9 @@ extern BOOL dbg_moving_bones_snd_player;
 	CMD4(CCC_Float,		"air_resistance_epsilon",	&air_resistance_epsilon,	.0f, 1.f);
 #endif // #ifdef DEBUG
 	
-	
 	*g_last_saved_game	= 0;
+
+	CMD4(CCC_Integer,	"draw_actor_body",			&g_draw_actor_body, 0, 1);
 
 	register_mp_console_commands					();
 }

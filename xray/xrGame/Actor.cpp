@@ -67,9 +67,9 @@
 #include "embedded_editor/embedded_editor_prop.h"
 #include "debug_renderer.h"
 
-const u32		patch_frames	= 50;
-const float		respawn_delay	= 1.f;
-const float		respawn_auto	= 7.f;
+//const u32			patch_frames	= 50;
+//const float		respawn_delay	= 1.f;
+//const float		respawn_auto	= 7.f;
 
 static float IReceived = 0;
 static float ICoincidenced = 0;
@@ -78,15 +78,17 @@ static float ICoincidenced = 0;
 const float	CActor::cam_inert_value = 0.7f;
 
 //skeleton
-static Fbox		bbStandBox;
-static Fbox		bbCrouchBox;
-static Fvector	vFootCenter;
-static Fvector	vFootExt;
+//static Fbox		bbStandBox;
+//static Fbox		bbCrouchBox;
+//static Fvector	vFootCenter;
+//static Fvector	vFootExt;
 
 Flags32			psActorFlags={/*AF_DYNAMIC_MUSIC|*/AF_GODMODE_RT};
 
 float			NET_Jump	= 0;
 float			g_fov		= 67.5f;
+
+BOOL			g_draw_actor_body	= FALSE;
 
 CActor::CActor() : CEntityAlive()
 {
@@ -119,7 +121,6 @@ CActor::CActor() : CEntityAlive()
 	fCurAVelocity			= 0.0f;
 	// эффекторы
 	pCamBobbing				= 0;
-
 
 	r_torso.yaw				= 0;
 	r_torso.pitch			= 0;
@@ -271,7 +272,8 @@ void CActor::Load	(LPCSTR section )
 
 	// m_PhysicMovementControl: General
 	//m_PhysicMovementControl->SetParent		(this);
-	Fbox	bb;Fvector	vBOX_center,vBOX_size;
+	Fbox	bb{};
+	Fvector vBOX_center, vBOX_size;
 	// m_PhysicMovementControl: BOX
 	vBOX_center= pSettings->r_fvector3	(section,"ph_box2_center"	);
 	vBOX_size	= pSettings->r_fvector3	(section,"ph_box2_size"		);
@@ -341,20 +343,21 @@ void CActor::Load	(LPCSTR section )
 	m_vMissileOffset			= pSettings->r_fvector3(section,"missile_throw_offset");
 
 
-if(!g_dedicated_server)
-{
-	LPCSTR hit_snd_sect = pSettings->r_string(section,"hit_sounds");
-	for(int hit_type=0; hit_type<(int)ALife::eHitTypeMax; ++hit_type)
+	if(!g_dedicated_server)
 	{
-		LPCSTR hit_name = ALife::g_cafHitType2String((ALife::EHitType)hit_type);
-		LPCSTR hit_snds = READ_IF_EXISTS(pSettings, r_string, hit_snd_sect, hit_name, "");
-		int cnt = _GetItemCount(hit_snds);
-		string128		tmp;
-		VERIFY			(cnt!=0);
-		for(int i=0; i<cnt;++i)
+		LPCSTR hit_snd_sect = pSettings->r_string(section,"hit_sounds");
+		for(int hit_type=0; hit_type<(int)ALife::eHitTypeMax; ++hit_type)
 		{
-			sndHit[hit_type].push_back		(ref_sound());
-			sndHit[hit_type].back().create	(_GetItem(hit_snds,i,tmp),st_Effect,sg_SourceType);
+			LPCSTR hit_name = ALife::g_cafHitType2String((ALife::EHitType)hit_type);
+			LPCSTR hit_snds = READ_IF_EXISTS(pSettings, r_string, hit_snd_sect, hit_name, "");
+			int cnt = _GetItemCount(hit_snds);
+			string128		tmp;
+			VERIFY			(cnt!=0);
+			for(int i=0; i<cnt;++i)
+			{
+				sndHit[hit_type].push_back		(ref_sound());
+				sndHit[hit_type].back().create	(_GetItem(hit_snds,i,tmp),st_Effect,sg_SourceType);
+			}
 		}
 		char buf[256];
 
@@ -367,7 +370,6 @@ if(!g_dedicated_server)
 		m_BloodSnd.create		(pSettings->r_string(section,"heavy_blood_snd"), st_Effect,SOUND_TYPE_MONSTER_INJURING);
 		m_DangerSnd.create		(pSettings->r_string(section,"heavy_danger_snd"), st_Effect,SOUND_TYPE_MONSTER_INJURING);
 	}
-}
 	if( psActorFlags.test(AF_PSP) )
 		cam_Set					(eacLookAt);
 	else
@@ -393,7 +395,7 @@ if(!g_dedicated_server)
 
 	invincibility_fire_shield_1st	= READ_IF_EXISTS(pSettings,r_string,section,"Invincibility_Shield_1st",0);
 	invincibility_fire_shield_3rd	= READ_IF_EXISTS(pSettings,r_string,section,"Invincibility_Shield_3rd",0);
-//-----------------------------------------
+
 	m_AutoPickUp_AABB				= READ_IF_EXISTS(pSettings,r_fvector3,section,"AutoPickUp_AABB",Fvector().set(0.02f, 0.02f, 0.02f));
 	m_AutoPickUp_AABB_Offset		= READ_IF_EXISTS(pSettings,r_fvector3,section,"AutoPickUp_AABB_offs",Fvector().set(0, 0, 0));
 
@@ -404,9 +406,10 @@ if(!g_dedicated_server)
 	m_sCarCharacterUseAction		= "car_character_use";
 	m_sInventoryItemUseAction		= "inventory_item_use";
 	m_sInventoryBoxUseAction		= "inventory_box_use";
-	//---------------------------------------------------------------------
+
 	m_sHeadShotParticle	= READ_IF_EXISTS(pSettings,r_string,section,"HeadShotParticle",0);
 
+	g_draw_actor_body = READ_IF_EXISTS(pSettings, r_bool, section, "render_actor_model_fp", FALSE);
 }
 
 void CActor::PHHit(SHit &H)
@@ -505,7 +508,6 @@ void	CActor::Hit							(SHit* pHDS)
 		};
 	}
 
-	
 	//slow actor, only when he gets hit
 	m_hit_slowmo = conditions().HitSlowmo(pHDS);
 
@@ -547,7 +549,7 @@ void	CActor::Hit							(SHit* pHDS)
 		if (HDS.hit_type == ALife::eHitTypeWound_2 && Check_for_BackStab_Bone(HDS.bone()))
 		{
 			// convert impulse into local coordinate system
-			Fmatrix					mInvXForm;
+			Fmatrix					mInvXForm{};
 			mInvXForm.invert		(XFORM());
 			Fvector					vLocalDir;
 			mInvXForm.transform_dir	(vLocalDir,HDS.dir);
@@ -606,11 +608,11 @@ void CActor::HitMark	(float P,
 		dir.normalize_safe			();
 
 		float ang_diff				= angle_difference	(cam_dir.getH(), dir.getH());
-		Fvector						cp;
+		Fvector						cp{};
 		cp.crossproduct				(cam_dir,dir);
 		bool bUp					=(cp.y>0.0f);
 
-		Fvector cross;
+		Fvector						cross{};
 		cross.crossproduct			(cam_dir, dir);
 		VERIFY						(ang_diff>=0.0f && ang_diff<=PI);
 
@@ -769,7 +771,7 @@ void	CActor::SwitchOutBorder(bool new_border_state)
 void CActor::g_Physics			(Fvector& _accel, float jump, float dt)
 {
 	// Correct accel
-	Fvector		accel;
+	Fvector						accel{};
 	accel.set					(_accel);
 	m_hit_slowmo				-=	dt;
 	if(m_hit_slowmo<0)			m_hit_slowmo = 0.f;
@@ -815,21 +817,15 @@ void CActor::g_Physics			(Fvector& _accel, float jump, float dt)
 	}
 }
 
-float CActor::currentFOV()
-{
-	if (!psHUD_Flags.is(HUD_WEAPON|HUD_WEAPON_RT|HUD_WEAPON_RT2))
+float CActor::currentFOV() {
+	if (!psHUD_Flags.is(HUD_WEAPON | HUD_WEAPON_RT | HUD_WEAPON_RT2))
 		return g_fov;
 
-	CWeapon* pWeapon = smart_cast<CWeapon*>(inventory().ActiveItem());	
+	CWeapon* pWeapon = smart_cast<CWeapon*>(inventory().ActiveItem());
 
-	if (eacFirstEye == cam_active && pWeapon &&
-		pWeapon->IsZoomed() && 
-		( !pWeapon->ZoomTexture() || (!pWeapon->IsRotatingToZoom() && pWeapon->ZoomTexture()) )
-		 )
-	{
+	if (eacFirstEye == cam_active && pWeapon && pWeapon->IsZoomed() && (!pWeapon->ZoomTexture() || (!pWeapon->IsRotatingToZoom() && pWeapon->ZoomTexture()))) {
 		return pWeapon->GetZoomFactor() * (0.75f);
-	}else
-	{
+	} else {
 		return g_fov;
 	}
 }
@@ -1144,7 +1140,7 @@ void CActor::shedule_Update	(u32 DT)
 		float bs = conditions().BleedingSpeed();
 		if(bs>0.6f)
 		{
-			Fvector snd_pos;
+			Fvector		snd_pos{};
 			snd_pos.set(0,ACTOR_HEIGHT,0);
 			if(!m_BloodSnd._feedback())
 				m_BloodSnd.play_at_pos(this, snd_pos, sm_Looped | sm_2D);
@@ -1165,7 +1161,7 @@ void CActor::shedule_Update	(u32 DT)
 		bs = conditions().GetZoneDanger();
 		if ( bs > 0.1f )
 		{
-			Fvector snd_pos;
+			Fvector snd_pos{};
 			snd_pos.set(0,ACTOR_HEIGHT,0);
 			if(!m_DangerSnd._feedback())
 				m_DangerSnd.play_at_pos(this, snd_pos, sm_Looped | sm_2D);
@@ -1187,9 +1183,9 @@ void CActor::shedule_Update	(u32 DT)
 			m_DangerSnd.stop();
 	}
 	
-	// если в режиме HUD, то сама модель актера не рисуется
+	// отрисовка модели актора
 	if (!character_physics_support()->IsRemoved())
-		setVisible				(HUDview() || !g_Alive());
+		setVisible(!HUDview() || (!g_Alive() || g_draw_actor_body));
 
 	// что актор видит перед собой
 	collide::rq_result& RQ				= HUD().GetCurrentRayQuery();
@@ -1261,7 +1257,8 @@ void CActor::renderable_Render	()
 {
 	VERIFY(_valid(XFORM()));
 	inherited::renderable_Render			();
-	if (!HUDview() || !g_Alive()) {
+	// инвентарный предмет в руках актора
+	if (!HUDview() || (g_Alive() && g_draw_actor_body)) {
 		CInventoryOwner::renderable_Render	();
 	}
 	VERIFY(_valid(XFORM()));
@@ -1353,14 +1350,14 @@ void CActor::RenderIndicator			(Fvector dpos, float r1, float r2, const ui_shade
 	UIRender->StartPrimitive(4, IUIRender::ptTriStrip, IUIRender::pttLIT);
 
 	CBoneInstance& BI = smart_cast<IKinematics*>(Visual())->LL_GetBoneInstance(u16(m_head));
-	Fmatrix M;
+	Fmatrix		   M{};
 	smart_cast<IKinematics*>(Visual())->CalculateBones	();
 	M.mul						(XFORM(),BI.mTransform);
 
 	Fvector pos = M.c; pos.add(dpos);
 	const Fvector& T        = Device.vCameraTop;
 	const Fvector& R        = Device.vCameraRight;
-	Fvector Vr, Vt;
+	Fvector		   Vr{}, Vt{};
 	Vr.x            = R.x*r1;
 	Vr.y            = R.y*r1;
 	Vr.z            = R.z*r1;
@@ -1368,7 +1365,7 @@ void CActor::RenderIndicator			(Fvector dpos, float r1, float r2, const ui_shade
 	Vt.y            = T.y*r2;
 	Vt.z            = T.z*r2;
 
-	Fvector         a,b,c,d;
+	Fvector			a{}, b{}, c{}, d{};
 	a.sub           (Vt,Vr);
 	b.add           (Vt,Vr);
 	c.invert        (a);
@@ -1393,11 +1390,11 @@ void CActor::RenderText				(LPCSTR Text, Fvector dpos, float* pdup, u32 color)
 	if (!g_Alive()) return;
 	
 	CBoneInstance& BI = smart_cast<IKinematics*>(Visual())->LL_GetBoneInstance(u16(m_head));
-	Fmatrix M;
+	Fmatrix		   M{};
 	smart_cast<IKinematics*>(Visual())->CalculateBones	();
 	M.mul						(XFORM(),BI.mTransform);
 	//------------------------------------------------
-	Fvector v0, v1;
+	Fvector			v0{}, v1{};
 	v0.set(M.c); v1.set(M.c);
 	Fvector T        = Device.vCameraTop;
 	v1.add(T);
@@ -1990,7 +1987,7 @@ void CActor::UpdateCollisionBoxes()
     float   physical_delta = (camera_bonus > EPS) ? camera_bonus / m_fCamHeightFactor : 0.0f;
     float   half_delta = physical_delta / 2.0f;
 
-    Fbox    bb;
+    Fbox	bb{};
     Fvector vBOX_center, vBOX_size;
 
     vBOX_center = pSettings->r_fvector3(cNameSect().c_str(), "ph_box2_center");
