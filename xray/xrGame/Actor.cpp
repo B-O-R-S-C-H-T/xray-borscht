@@ -268,35 +268,10 @@ void CActor::Load	(LPCSTR section )
 	}
 	//////////////////////////////////////////////////////////////////////////
 
-	#pragma todo("Этот код дублируется в UpdateCollisionBoxes()")
-
 	// m_PhysicMovementControl: General
 	//m_PhysicMovementControl->SetParent		(this);
-	Fbox	bb{};
-	Fvector vBOX_center, vBOX_size;
-	// m_PhysicMovementControl: BOX
-	vBOX_center= pSettings->r_fvector3	(section,"ph_box2_center"	);
-	vBOX_size	= pSettings->r_fvector3	(section,"ph_box2_size"		);
-	bb.set	(vBOX_center,vBOX_center); bb.grow(vBOX_size);
-	character_physics_support()->movement()->SetBox		(2,bb);
 
-	// m_PhysicMovementControl: BOX
-	vBOX_center= pSettings->r_fvector3	(section,"ph_box1_center"	);
-	vBOX_size	= pSettings->r_fvector3	(section,"ph_box1_size"		);
-	bb.set	(vBOX_center,vBOX_center); bb.grow(vBOX_size);
-	character_physics_support()->movement()->SetBox		(1,bb);
-
-	// m_PhysicMovementControl: BOX
-	vBOX_center= pSettings->r_fvector3	(section,"ph_box0_center"	);
-	vBOX_size	= pSettings->r_fvector3	(section,"ph_box0_size"		);
-	bb.set	(vBOX_center,vBOX_center); bb.grow(vBOX_size);
-	character_physics_support()->movement()->SetBox		(0,bb);
-
-	//// m_PhysicMovementControl: Foots
-	//Fvector	vFOOT_center= pSettings->r_fvector3	(section,"ph_foot_center"	);
-	//Fvector	vFOOT_size	= pSettings->r_fvector3	(section,"ph_foot_size"		);
-	//bb.set	(vFOOT_center,vFOOT_center); bb.grow(vFOOT_size);
-	////m_PhysicMovementControl->SetFoots	(vFOOT_center,vFOOT_size);
+	SetupCollisionBoxes(0.0f);
 
 	// m_PhysicMovementControl: Crash speed and mass
 	float	cs_min		= pSettings->r_float	(section,"ph_crash_speed_min"	);
@@ -339,9 +314,8 @@ void CActor::Load	(LPCSTR section )
 	
 	character_physics_support()->in_Load		(section);
 	
-	//загрузить параметры смещения firepoint
+	// загрузить параметры смещения firepoint
 	m_vMissileOffset			= pSettings->r_fvector3(section,"missile_throw_offset");
-
 
 	if(!g_dedicated_server)
 	{
@@ -370,6 +344,7 @@ void CActor::Load	(LPCSTR section )
 		m_BloodSnd.create		(pSettings->r_string(section,"heavy_blood_snd"), st_Effect,SOUND_TYPE_MONSTER_INJURING);
 		m_DangerSnd.create		(pSettings->r_string(section,"heavy_danger_snd"), st_Effect,SOUND_TYPE_MONSTER_INJURING);
 	}
+
 	if( psActorFlags.test(AF_PSP) )
 		cam_Set					(eacLookAt);
 	else
@@ -410,6 +385,54 @@ void CActor::Load	(LPCSTR section )
 	m_sHeadShotParticle	= READ_IF_EXISTS(pSettings,r_string,section,"HeadShotParticle",0);
 
 	g_draw_actor_body = READ_IF_EXISTS(pSettings, r_bool, section, "render_actor_model_fp", FALSE);
+}
+
+void CActor::SetupCollisionBoxes(float half_delta) {
+	Fbox	bb{};
+	Fvector vBOX_center, vBOX_size;
+
+	// m_PhysicMovementControl: BOX
+	vBOX_center = pSettings->r_fvector3(cNameSect().c_str(), "ph_box2_center");
+	vBOX_size	= pSettings->r_fvector3(cNameSect().c_str(), "ph_box2_size");
+	vBOX_center.y += half_delta;
+	vBOX_size.y += half_delta;
+	bb.set(vBOX_center, vBOX_center);
+	bb.grow(vBOX_size);
+	character_physics_support()->movement()->SetBox(2, bb);
+
+	// m_PhysicMovementControl: BOX
+	vBOX_center = pSettings->r_fvector3(cNameSect().c_str(), "ph_box1_center");
+	vBOX_size	= pSettings->r_fvector3(cNameSect().c_str(), "ph_box1_size");
+	vBOX_center.y += half_delta;
+	vBOX_size.y += half_delta;
+	bb.set(vBOX_center, vBOX_center);
+	bb.grow(vBOX_size);
+	character_physics_support()->movement()->SetBox(1, bb);
+
+	// m_PhysicMovementControl: BOX
+	vBOX_center = pSettings->r_fvector3(cNameSect().c_str(), "ph_box0_center");
+	vBOX_size	= pSettings->r_fvector3(cNameSect().c_str(), "ph_box0_size");
+	vBOX_center.y += half_delta;
+	vBOX_size.y += half_delta;
+	bb.set(vBOX_center, vBOX_center);
+	bb.grow(vBOX_size);
+	character_physics_support()->movement()->SetBox(0, bb);
+
+	//// m_PhysicMovementControl: Foots
+	//Fvector	vFOOT_center= pSettings->r_fvector3	(section,"ph_foot_center"	);
+	//Fvector	vFOOT_size	= pSettings->r_fvector3	(section,"ph_foot_size"		);
+	//bb.set	(vFOOT_center,vFOOT_center); bb.grow(vFOOT_size);
+	////m_PhysicMovementControl->SetFoots	(vFOOT_center,vFOOT_size);
+}
+
+void CActor::UpdateCollisionBoxes() {
+	float camera_bonus	 = GetCameraHeightBonus();
+	float physical_delta = (camera_bonus > EPS) ? camera_bonus / m_fCamHeightFactor : 0.0f;
+	float half_delta	 = physical_delta / 2.0f;
+
+	SetupCollisionBoxes(half_delta);
+
+	character_physics_support()->movement()->ActivateBox(character_physics_support()->movement()->BoxID(), true);
 }
 
 void CActor::PHHit(SHit &H)
@@ -1979,40 +2002,4 @@ float CActor::GetCameraHeightBonus() const
 {
     CCustomOutfit* outfit = GetOutfit();
     return outfit ? outfit->GetCameraHeightBonus() : 0.0f;
-}
-
-void CActor::UpdateCollisionBoxes()
-{
-    float   camera_bonus = GetCameraHeightBonus();
-    float   physical_delta = (camera_bonus > EPS) ? camera_bonus / m_fCamHeightFactor : 0.0f;
-    float   half_delta = physical_delta / 2.0f;
-
-    Fbox	bb{};
-    Fvector vBOX_center, vBOX_size;
-
-    vBOX_center = pSettings->r_fvector3(cNameSect().c_str(), "ph_box2_center");
-    vBOX_size = pSettings->r_fvector3(cNameSect().c_str(), "ph_box2_size");
-    vBOX_center.y += half_delta;
-    vBOX_size.y += half_delta;
-    bb.set(vBOX_center, vBOX_center);
-    bb.grow(vBOX_size);
-    character_physics_support()->movement()->SetBox(2, bb);
-
-    vBOX_center = pSettings->r_fvector3(cNameSect().c_str(), "ph_box1_center");
-    vBOX_size = pSettings->r_fvector3(cNameSect().c_str(), "ph_box1_size");
-    vBOX_center.y += half_delta;
-    vBOX_size.y += half_delta;
-    bb.set(vBOX_center, vBOX_center);
-    bb.grow(vBOX_size);
-    character_physics_support()->movement()->SetBox(1, bb);
-
-    vBOX_center = pSettings->r_fvector3(cNameSect().c_str(), "ph_box0_center");
-    vBOX_size = pSettings->r_fvector3(cNameSect().c_str(), "ph_box0_size");
-    vBOX_center.y += half_delta;
-    vBOX_size.y += half_delta;
-    bb.set(vBOX_center, vBOX_center);
-    bb.grow(vBOX_size);
-    character_physics_support()->movement()->SetBox(0, bb);
-
-    character_physics_support()->movement()->ActivateBox(character_physics_support()->movement()->BoxID(), true);
 }

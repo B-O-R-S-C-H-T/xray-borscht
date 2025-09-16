@@ -76,8 +76,10 @@ class	CActor:
 #endif
 {
 	friend class CActorCondition;
+
 private:
 	typedef CEntityAlive	inherited;
+
 public:
 										CActor				();
 	virtual								~CActor				();
@@ -94,8 +96,8 @@ public:
 	virtual	CCharacterPhysicsSupport*	character_physics_support	() const				{return m_pPhysics_support;}
 	virtual CPHDestroyable*				ph_destroyable				()						;
 			CHolderCustom*				Holder						()						{return m_holder;}
-public:
 
+public:
 	virtual void						Load				( LPCSTR section );
 
 	virtual void						shedule_Update		( u32 T ); 
@@ -111,7 +113,6 @@ public:
 			float						m_snd_noise;
 #ifdef DEBUG
 	virtual void						OnRender			();
-
 #endif
 
 public:
@@ -135,11 +136,14 @@ struct SDefNewsMsg{
 	};
 	xr_vector<SDefNewsMsg> m_defferedMessages;
 	void UpdateDefferedMessages();	
+
 public:	
 	void			AddGameNews_deffered	 (GAME_NEWS_DATA& news_data, u32 delay);
 	virtual void	AddGameNews				 (GAME_NEWS_DATA& news_data);
+
 protected:
 	CActorStatisticMgr*				m_statistic_manager;
+
 public:
 	virtual void StartTalk			(CInventoryOwner* talk_partner);
 			void RunTalkDialog		(CInventoryOwner* talk_partner, bool disable_break);
@@ -199,6 +203,7 @@ public:
 			float		GetProtection_ArtefactsOnBelt(ALife::EHitType hit_type);
 
 	const xr_vector<const CArtefact*>& ArtefactsOnBelt() {return m_ArtefactsOnBelt;}
+
 protected:
 	//звук тяжелого дыхания
 	ref_sound			m_HeavyBreathSnd;
@@ -235,8 +240,10 @@ protected:
 	bool					m_bOutBorder;
 	//сохраняет счетчик объектов в feel_touch, для которых необходимо обновлять размер колижена с актером 
 	u32						m_feel_touch_characters;
+
 private:
 	void					SwitchOutBorder(bool new_border_state);
+
 public:
 	bool					m_bAllowDeathRemove;
 
@@ -249,8 +256,8 @@ public:
 	void					detach_Holder			();
 	void					steer_Vehicle			(float angle);
 	void					attach_Holder			(CHolderCustom* vehicle);
-
 	virtual bool			can_attach				(const CInventoryItem *inventory_item) const;
+
 protected:
 	CHolderCustom*			m_holder;
 	u16						m_holderID;
@@ -272,7 +279,6 @@ protected:
 	float					r_model_yaw_dest;
 	float					r_model_yaw;			// orientation of model
 	float					r_model_yaw_delta;		// effect on multiple "strafe"+"something"
-
 
 public:
 	SActorMotions*			m_anims;
@@ -299,6 +305,7 @@ public:
 
 	void					g_SetAnimation		(u32 mstate_rl);
 	void					g_SetSprintAnimation(u32 mstate_rl,MotionID &head,MotionID &torso,MotionID &legs);
+
 public:
 	virtual void			OnHUDDraw			(CCustomHUD* hud);
 			BOOL			HUDview				( )const ;
@@ -307,7 +314,6 @@ public:
 	virtual	float			ffGetFov			()	const	{ return 90.f;		}	
 	virtual	float			ffGetRange			()	const	{ return 500.f;		}
 
-	
 public:
 	CActorCameraManager&	Cameras				() 	{VERIFY(m_pActorEffector); return *m_pActorEffector;}
 	IC CCameraBase*			cam_Active			()	{return cameras[cam_active];}
@@ -719,16 +725,17 @@ public:
 	}
 
 private:
-	ALife::_OBJECT_ID	m_holder_id;
+	ALife::_OBJECT_ID		m_holder_id;
 
 public:
-	virtual bool				register_schedule				() const {return false;}
-	virtual	bool				is_ai_obstacle					() const;
+	virtual bool			register_schedule				() const {return false;}
+	virtual	bool			is_ai_obstacle					() const;
 	
-			float				GetRestoreSpeed					(ALife::EConditionRestoreType const& type);
+			float			GetRestoreSpeed					(ALife::EConditionRestoreType const& type);
 private:
 	static const float		cam_inert_value;
 	float					prev_cam_inert_value;
+
 public:
 	virtual void			On_SetEntity();
 	virtual void			On_LostEntity();
@@ -742,14 +749,18 @@ public:
 	void blockAction(EGameActions cmd);
 	void unblockAction(EGameActions cmd);
 
+public:
+	float	GetCameraHeightBonus() const;
+	void	UpdateCollisionBoxes();
+
+	u16		GetHeadBoneID() const { return m_head; }
+	Fvector m_fEyeOffset;
+	void	SwitchToThirdPersonCamera() { cam_Set(eacLookAt); }
+
+private:
+	void	SetupCollisionBoxes(float half_delta);
+
 DECLARE_SCRIPT_REGISTER_FUNCTION
-
-	float GetCameraHeightBonus() const;
-	void  UpdateCollisionBoxes();
-
-	u16						GetHeadBoneID						() const	{ return m_head; }
-	Fvector					m_fEyeOffset;
-	void					SwitchToThirdPersonCamera			()			{ cam_Set(eacLookAt); }
 };
 
 add_to_type_list(CActor)
