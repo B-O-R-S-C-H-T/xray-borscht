@@ -145,9 +145,6 @@
     <Filter Include="RenderRef\Execution &amp; 3D\Visuals\Skeleton">
       <UniqueIdentifier>{7cd49ad4-e54c-4e1d-bcfa-fa3fed3f965b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="RenderRef\doug_lea_memory_allocator">
-      <UniqueIdentifier>{c09a52cf-d0d4-4021-8c96-ca86aff55cff}</UniqueIdentifier>
-    </Filter>
     <Filter Include="OpenAutomate">
       <UniqueIdentifier>{276c0b84-ec71-4936-8261-a686d10644b6}</UniqueIdentifier>
     </Filter>
@@ -432,9 +429,6 @@
     <ClInclude Include="SkeletonMotions.h">
       <Filter>RenderRef\Execution &amp; 3D\Visuals\Skeleton</Filter>
     </ClInclude>
-    <ClInclude Include="doug_lea_memory_allocator.h">
-      <Filter>RenderRef\doug_lea_memory_allocator</Filter>
-    </ClInclude>
     <ClInclude Include="xrSASH.h">
       <Filter>OpenAutomate</Filter>
     </ClInclude>
@@ -712,9 +706,6 @@
     </ClCompile>
     <ClCompile Include="SkeletonMotions.cpp">
       <Filter>RenderRef\Execution &amp; 3D\Visuals\Skeleton</Filter>
-    </ClCompile>
-    <ClCompile Include="doug_lea_memory_allocator.c">
-      <Filter>RenderRef\doug_lea_memory_allocator</Filter>
     </ClCompile>
     <ClCompile Include="xrSASH.cpp">
       <Filter>OpenAutomate</Filter>

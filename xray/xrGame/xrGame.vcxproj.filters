@@ -5298,9 +5298,6 @@
     <ClInclude Include="..\xrServerEntities\script_stack_tracker_inline.h">
       <Filter>AI\AScript\ScriptThread\ScriptStackTracker</Filter>
     </ClInclude>
-    <ClInclude Include="..\xrServerEntities\doug_lea_memory_allocator.h">
-      <Filter>AI\AScript\memory_allocator</Filter>
-    </ClInclude>
     <ClInclude Include="..\xrServerEntities\lua_studio.h">
       <Filter>AI\AScript\lua_studio</Filter>
     </ClInclude>
@@ -8938,9 +8935,6 @@
     </ClCompile>
     <ClCompile Include="..\xrServerEntities\script_stack_tracker.cpp">
       <Filter>AI\AScript\ScriptThread\ScriptStackTracker</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrServerEntities\doug_lea_memory_allocator.c">
-      <Filter>AI\AScript\memory_allocator</Filter>
     </ClCompile>
     <ClCompile Include="..\xrServerEntities\lua_studio.cpp">
       <Filter>AI\AScript\lua_studio</Filter>

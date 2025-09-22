@@ -189,9 +189,6 @@
     <ClInclude Include="..\xrRender\r__dsgraph_types.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\xrRender\doug_lea_memory_allocator.h">
-      <Filter>Core\memory</Filter>
-    </ClInclude>
     <ClInclude Include="..\xrRender\DetailFormat.h">
       <Filter>Details</Filter>
     </ClInclude>
@@ -676,9 +673,6 @@
     </ClCompile>
     <ClCompile Include="..\xrRender\tga.cpp">
       <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrRender\doug_lea_memory_allocator.c">
-      <Filter>Core\memory</Filter>
     </ClCompile>
     <ClCompile Include="..\xrRender\DetailManager.cpp">
       <Filter>Details</Filter>

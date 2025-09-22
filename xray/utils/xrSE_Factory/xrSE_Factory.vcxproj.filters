@@ -177,9 +177,6 @@
     <ClInclude Include="stdafx.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="xr_LuaAllocator.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="xrSE_Factory.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -402,9 +399,6 @@
     <ClInclude Include="script_file.h">
       <Filter>Scripts\ScriptDebugger</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xrServerEntities\doug_lea_memory_allocator.h">
-      <Filter>Scripts\memory_manager</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xrServerEntities\lua_studio.h">
       <Filter>Scripts\lua_studio</Filter>
     </ClInclude>
@@ -560,9 +554,6 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="xr_LuaAllocator.c">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="xrSE_Factory.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -655,9 +646,6 @@
     </ClCompile>
     <ClCompile Include="script_file.cpp">
       <Filter>Scripts\ScriptDebugger</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xrServerEntities\doug_lea_memory_allocator.c">
-      <Filter>Scripts\memory_manager</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xrServerEntities\lua_studio.cpp">
       <Filter>Scripts\lua_studio</Filter>
