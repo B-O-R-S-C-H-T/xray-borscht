@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "ai/stalker/ai_stalker.h"
+#include "stalker_movement_manager_smart_cover.h"
 #include "visual_memory_params.h"
 #include "memory_space.h"
 
