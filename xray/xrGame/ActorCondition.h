@@ -125,6 +125,13 @@ protected:
 
 	float m_fLimpingHealthBegin;
 	float m_fLimpingHealthEnd;
+
+	float m_fFaintThreshold;	// порог алкоголя для обморока
+	bool  m_bFainted;			// флаг обморока
+	u64   m_iLastAlcoholTime;	// время последнего употребления алкоголя
+
+public:
+	bool  IsFainted() const { return m_bFainted; }
 };
 
 class CActorDeathEffector

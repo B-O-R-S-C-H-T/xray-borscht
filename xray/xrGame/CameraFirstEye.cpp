@@ -1,34 +1,30 @@
 ﻿#include "stdafx.h"
 
-#include "actor.h"
 #include "CameraFirstEye.h"
+
 #include "xr_level_controller.h"
-#include "../xrEngine/xr_object.h"
+
 #include "../Include/xrRender/Kinematics.h"
+#include "../xrEngine/xr_object.h"
+#include "actor.h"
 
-CCameraFirstEye::CCameraFirstEye(CObject* p, u32 flags ) : CCameraBase(p, flags),lookat_active(false)
-{
-}
+CCameraFirstEye::CCameraFirstEye(CObject* p, u32 flags) : CCameraBase(p, flags), lookat_active(false) {}
 
-CCameraFirstEye::~CCameraFirstEye()
-{
-}
+CCameraFirstEye::~CCameraFirstEye() {}
 
-void CCameraFirstEye::Load(LPCSTR section)
-{
+void CCameraFirstEye::Load(LPCSTR section) {
 	inherited::Load		(section);
 	style				= csFirstEye;
 }
 
-void CCameraFirstEye::UpdateLookat()
-{
+void CCameraFirstEye::UpdateLookat() {
 	if(!lookat_active)
 		return;
 
-	Fvector								_dest_dir;
+	Fvector								_dest_dir{};
 	_dest_dir.sub						(lookat_point, vPosition);
 
-	Fmatrix								_m;
+	Fmatrix								_m{};
 	_m.identity							();
 	_m.k.normalize_safe					(_dest_dir);
 	Fvector::generate_orthonormal_basis	(_m.k, _m.j, _m.i);
@@ -50,12 +46,11 @@ void CCameraFirstEye::UpdateLookat()
 											PI,
 											PI,
 											Device.fTimeDelta);
-
 }
 
 void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle) {
 	CActor* actor = smart_cast<CActor*>(parent);
-	if (actor && !actor->g_Alive()) { // режим смерти
+	if (actor && (!actor->g_Alive() || actor->m_bFainted || actor->m_bRecoveringFromFaint)) { // режим смерти или обморока
 		IKinematics* V = smart_cast<IKinematics*>(actor->Visual());
 		if (!V)
 			return;
@@ -69,14 +64,14 @@ void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle) {
 		actor_xform.transform_tiny(eye_world);
 		vPosition.set(eye_world);
 
-		Fvector dir_local;
+		Fvector dir_local{};
 		dir_local.set(0, 0, 1);
 		Fvector dir_world;
 		mHead.transform_dir(dir_world, dir_local);
 		actor_xform.transform_dir(dir_world);
 		vDirection.set(dir_world);
 
-		Fvector up_local;
+		Fvector up_local{};
 		up_local.set(1, 0, 0);
 		Fvector up_world;
 		mHead.transform_dir(up_world, up_local);
@@ -84,10 +79,10 @@ void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle) {
 		vNormal.set(up_world);
 
 	} else { // нормальный режим
-		vPosition.set(point);
+		vPosition.set		(point);
 
-		Fmatrix mR, R;
-		Fmatrix rX, rY, rZ;
+		Fmatrix mR{}, R{};
+		Fmatrix rX{}, rY{}, rZ{};
 		rX.rotateX(noise_dangle.x);
 		rY.rotateY(-noise_dangle.y);
 		rZ.rotateZ(noise_dangle.z);
@@ -95,14 +90,14 @@ void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle) {
 		R.mulB_43(rZ);
 
 		mR.identity();
-		Fquaternion Q;
+		Fquaternion Q{};
 		Q.rotationYawPitchRoll(roll, yaw, pitch);
 		mR.rotation(Q);
 		mR.transpose();
 		mR.mulB_43(R);
 
-		vDirection.set(mR.k);
-		vNormal.set(mR.j);
+		vDirection.set		(mR.k);
+		vNormal.set			(mR.j);
 	}
 
 	if (m_Flags.is(flRelativeLink)) {

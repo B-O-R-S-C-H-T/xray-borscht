@@ -3,7 +3,6 @@
 #include "../xrEngine/feel_touch.h"
 #include "../xrEngine/feel_sound.h"
 #include "../xrEngine/iinputreceiver.h"
-#include "../Include/xrRender/KinematicsAnimated.h"
 #include "actor_flags.h"
 #include "actor_defs.h"
 #include "fire_disp_controller.h"
@@ -17,7 +16,6 @@
 #include "step_manager.h"
 #include "script_export_space.h"
 #include "xr_level_controller.h"
-#include <bitset>
 
 using namespace ACTOR_DEFS;
 
@@ -42,15 +40,15 @@ class CUsableScriptObject;
 
 struct SShootingEffector;
 struct SSleepEffector;
-class  CSleepEffectorPP;
+class CSleepEffectorPP;
 class CInventoryBox;
 
-class	CHudItem;
-class   CArtefact;
+class CHudItem;
+class CArtefact;
 
 struct SActorMotions;
 struct SActorVehicleAnims;
-class  CActorCondition;
+class CActorCondition;
 class SndShockEffector;
 class CActorFollowerMngr;
 
@@ -176,24 +174,24 @@ public:
 
 	virtual	void OnPlayHeadShotParticle (NET_Packet P);
 
-	virtual void						Die				(CObject* who);
-	virtual	void						Hit				(SHit* pHDS);
-	virtual	void						PHHit			(SHit &H);
-	virtual void						HitSignal		(float P, Fvector &vLocalDir,	CObject* who, s16 element);
-			void						HitSector		(CObject* who, CObject* weapon);
-			void						HitMark			(float P, Fvector dir,			CObject* who, s16 element, Fvector position_in_bone_space, float impulse,  ALife::EHitType hit_type);
+	virtual void Die			(CObject* who);
+	virtual	void Hit			(SHit* pHDS);
+	virtual	void PHHit			(SHit &H);
+	virtual void HitSignal		(float P, Fvector &vLocalDir, CObject* who, s16 element);
+			void HitSector		(CObject* who, CObject* weapon);
+			void HitMark		(float P, Fvector dir, CObject* who, s16 element, Fvector position_in_bone_space, float impulse,  ALife::EHitType hit_type);
 
-			void						Feel_Grenade_Update( float rad );
+			void Feel_Grenade_Update( float rad );
 
-	virtual float						GetMass				() ;
-	virtual float						Radius				() const;
-	virtual void						g_PerformDrop		();
+	virtual float GetMass		();
+	virtual float Radius		() const;
+	virtual void g_PerformDrop	();
 	
-	virtual	bool						use_default_throw_force	();
-	virtual	float						missile_throw_force		(); 
+	virtual	bool  use_default_throw_force	();
+	virtual	float missile_throw_force		(); 
 
-	virtual bool						NeedToDestroyObject()  const;
-	virtual ALife::_TIME_ID				TimePassedAfterDeath() const;
+	virtual bool			NeedToDestroyObject()  const;
+	virtual ALife::_TIME_ID	TimePassedAfterDeath() const;
 
 public:
 	//свойства артефактов
@@ -267,7 +265,7 @@ protected:
 
 protected:
 	BOOL					m_bAnimTorsoPlayed;
-	static void				AnimTorsoPlayCallBack(CBlend* B);
+	static void				AnimTorsoPlayCallback(CBlend* B);
 
 	// Rotation
 	SRotation				r_torso;
@@ -462,7 +460,7 @@ protected:
 	float								m_fDispBase;
 	float								m_fDispAim;
 	//коэффициенты на сколько процентов увеличитс€ базова€ дисперси€
-	//учитывает скорость актера 
+	//учитывает скорость актора 
 	float								m_fDispVelFactor;
 	//если актер бежит
 	float								m_fDispAccelFactor;
@@ -534,7 +532,7 @@ virtual	bool				can_validate_position_on_spawn	(){return false;}
 	/// spline coeff /////////////////////
 	float			SCoeff[3][4];			//коэффициэнты дл€ сплайна Ѕизье
 	float			HCoeff[3][4];			//коэффициэнты дл€ сплайна Ёрмита
-	Fvector			IPosS, IPosH, IPosL;	//положение актера после интерпол€ции Ѕизье, Ёрмита, линейной
+	Fvector			IPosS, IPosH, IPosL;	//положение актора после интерпол€ции Ѕизье, Ёрмита, линейной
 
 #ifdef DEBUG
 	DEF_DEQUE		(VIS_POSITION, Fvector);
@@ -750,17 +748,27 @@ public:
 	void unblockAction(EGameActions cmd);
 
 public:
-	float	GetCameraHeightBonus() const;
-	void	UpdateCollisionBoxes();
+	float					GetCameraHeightBonus() const;
+	void					UpdateCollisionBoxes();
 
-	u16		GetHeadBoneID() const { return m_head; }
-	Fvector m_fEyeOffset;
-	void	SwitchToThirdPersonCamera() { cam_Set(eacLookAt); }
+	u16						GetHeadBoneID() const		{ return m_head; }
+	Fvector					m_fEyeOffset;
+	void					SwitchToThirdPersonCamera() { cam_Set(eacLookAt); }
 
 private:
-	void	SetupCollisionBoxes(float half_delta);
+	void					SetupCollisionBoxes(float half_delta);
 
-DECLARE_SCRIPT_REGISTER_FUNCTION
+public:
+	bool					m_bFainted;							 // флаг обморока
+	bool					m_bRecoveringFromFaint;				 // флаг восстановлени€ из обморока
+	MotionID				m_recovering_anim;					 // анимаци€ вставани€
+	static void				RecoverFromFaintCallback(CBlend* B); // коллбек окончани€ анимации
+
+private:
+	void					Faint(CObject* who);
+	void					RecoverFromFaint();
+
+	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
 
 add_to_type_list(CActor)
@@ -776,3 +784,4 @@ CActor*				Actor		();
 extern const float	s_fFallTime;
 
 extern BOOL			g_draw_actor_body;
+

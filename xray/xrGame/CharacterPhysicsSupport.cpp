@@ -28,7 +28,6 @@
 #include "inventory.h"
 #include "phdynamicdata.h"
 #include "activatingcharcollisiondelay.h"
-#include "ai/stalker/ai_stalker.h"
 #include "stalker_movement_manager_smart_cover.h"
 #include "xrServer_Objects_ALife_Monsters.h"
 
@@ -386,11 +385,13 @@ const float cmp_angle = M_PI/10.f;
 const float cmp_ldisp = 0.1f;
 IC bool cmp( const Fmatrix &f0, const Fmatrix &f1 )
 {
-	Fmatrix if0; if0.invert( f0 );
-	Fmatrix cm;cm.mul_43( if0, f1 );
+	Fmatrix if0{};
+	if0.invert(f0);
+	Fmatrix cm{};
+	cm.mul_43(if0, f1);
 	
 	Fvector ax; float ang;
-	Fquaternion q;
+	Fquaternion q{};
 	q.set( cm );
 	q.get_axis_angle( ax, ang );
 
@@ -399,10 +400,12 @@ IC bool cmp( const Fmatrix &f0, const Fmatrix &f1 )
 
 bool is_similar( const Fmatrix &m0, const Fmatrix &m1, float param )
 {
-	Fmatrix tmp1; tmp1.invert( m0 );
-	Fmatrix tmp2; tmp2.mul( tmp1, m1 );
+	Fmatrix tmp1{};
+	tmp1.invert(m0);
+	Fmatrix tmp2{};
+	tmp2.mul(tmp1, m1);
 	Fvector ax;float ang;
-	Fquaternion q;
+	Fquaternion q{};
 	q.set( tmp2 );
 	q.get_axis_angle( ax, ang );
 	return _abs( ang )<M_PI/2.f;
@@ -417,9 +420,11 @@ void CCharacterPhysicsSupport::KillHit( SHit &H )
 	VERIFY( m_EntityAlife.Visual( ) );
 	VERIFY( m_EntityAlife.Visual( )->dcast_PKinematics( ) );
 	m_character_shell_control.TestForWounded( m_EntityAlife.XFORM( ), m_EntityAlife.Visual( )->dcast_PKinematics( ) );
-	Fmatrix prev_pose; prev_pose.set( mXFORM );
+	Fmatrix prev_pose{};
+	prev_pose.set(mXFORM);
 
-	Fvector start;start.set( m_EntityAlife.Position( ) );
+	Fvector start{};
+	start.set(m_EntityAlife.Position());
 	Fvector velocity;
 	Fvector death_position;
 	CreateShell( H.who, death_position, velocity );
@@ -511,7 +516,6 @@ void CCharacterPhysicsSupport::in_Hit( SHit &H, bool is_killing )
 	}
 }
 
-
 IC		void	CCharacterPhysicsSupport::						UpdateDeathAnims				()
 {
 	VERIFY(m_pPhysicsShell->isFullActive());
@@ -544,10 +548,7 @@ void dbg_draw_geoms(xr_vector<CODEGeom*>& m_weapon_geoms)
 }
 #endif
 
-
-void CCharacterPhysicsSupport::in_UpdateCL( )
-{
-	
+void CCharacterPhysicsSupport::in_UpdateCL() {
 	if( m_eState==esRemoved )
 	{
 		return;
@@ -646,7 +647,7 @@ void CCharacterPhysicsSupport::CreateSkeleton(CPhysicsShell* &pShell)
 
 	pShell->SmoothElementsInertia(0.3f);
 	pShell->set_PhysicsRefObject(&m_EntityAlife);
-	SAllDDOParams disable_params;
+	SAllDDOParams disable_params{};
 	disable_params.Load(smart_cast<IKinematics*>(m_EntityAlife.Visual())->LL_UserData());
 	pShell->set_DisableParams(disable_params);
 
@@ -671,8 +672,9 @@ bool CCharacterPhysicsSupport::DoCharacterShellCollide()
 bool CCharacterPhysicsSupport::CollisionCorrectObjPos(const Fvector& start_from,bool	character_create/*=false*/)
 {
 	//Fvector shift;shift.sub( start_from, m_EntityAlife.Position() );
-	Fvector shift;shift.set(0,0,0);
-	Fbox box;
+	Fvector shift{};
+	shift.set(0, 0, 0);
+	Fbox box{};
 	if(character_create)
 		box.set( movement()->Box() );
 	else
@@ -795,7 +797,8 @@ BOOL dbg_draw_ragdoll_spawn = FALSE;
 void CCharacterPhysicsSupport::ActivateShell			( CObject* who )
 {
 	R_ASSERT( _valid(m_EntityAlife.Position( )) );
-	Fvector start;start.set( m_EntityAlife.Position( ) );
+	Fvector start{};
+	start.set(m_EntityAlife.Position());
 	Fvector velocity;
 	Fvector death_position;
 	CreateShell( who, death_position, velocity );
@@ -1003,7 +1006,8 @@ void	CCharacterPhysicsSupport::	CreateShell						( CObject* who, Fvector& dp, Fv
 	//animation movement controller issues
 	bool	anim_mov_ctrl =m_EntityAlife.animation_movement_controlled( );
 	CBoneInstance	&BR = K->LL_GetBoneInstance( K->LL_GetBoneRoot( ) );
-	Fmatrix start_xform; start_xform.identity( );
+	Fmatrix		   start_xform{};
+	start_xform.identity();
 	CBlend *anim_mov_blend = 0;
 	if( anim_mov_ctrl )
 	{
@@ -1306,7 +1310,8 @@ void						CCharacterPhysicsSupport::FlyTo(const	Fvector &disp)
 		void*	cd=m_pPhysicsShell->get_CallbackData();
 		m_pPhysicsShell->set_CallbackData(m_pPhysicsShell->PIsland());
 		m_pPhysicsShell->UnFreeze();
-		Fvector vel;vel.set(disp);
+		Fvector vel{};
+		vel.set(disp);
 		const	u16	steps_num=10;
 		const	float	fsteps_num=steps_num;
 		vel.mul(1.f/fsteps_num/fixed_step);
@@ -1366,17 +1371,43 @@ bool	CCharacterPhysicsSupport::	can_drop_active_weapon	( )
 	return !interactive_motion() && m_flags.test(fl_death_anim_on);
 };
 
-void		CCharacterPhysicsSupport::in_Die( )
-{
-	if( m_hit_valide_time < Device.dwTimeGlobal || !m_sv_hit.is_valide() )
-	{
-		if( m_EntityAlife.use_simplified_visual( ) )
+void CCharacterPhysicsSupport::in_Die() {
+	if (m_hit_valide_time < Device.dwTimeGlobal || !m_sv_hit.is_valide()) {
+		if (m_EntityAlife.use_simplified_visual())
 			return;
-		ActivateShell( NULL );
-		m_PhysicMovementControl->DestroyCharacter( );
+		ActivateShell(NULL);
+		m_PhysicMovementControl->DestroyCharacter();
 		return;
 	}
-	in_Hit( m_sv_hit, true );
+	in_Hit(m_sv_hit, true);
+}
+
+void CCharacterPhysicsSupport::RecoverFromFaint() {
+	if (!m_pPhysicsShell || !m_pPhysicsShell->isActive())
+		return;
+
+	Msg("[DEBUG] Physics recover from faint for %s", m_EntityAlife.cName().c_str());
+
+	m_pPhysicsShell->Deactivate();
+	xr_delete(m_pPhysicsShell);
+
+	m_flags.set(fl_death_anim_on, FALSE);
+	m_eState = esAlive;
+
+	movement()->CreateCharacter();
+	movement()->SetPhysicsRefObject(&m_EntityAlife);
+	movement()->SetPosition(m_EntityAlife.Position());
+	movement()->SetVelocity(0, 0, 0);
+
+	xr_delete(m_interactive_animation);
+	destroy_animation_collision();
+	destroy(m_interactive_motion);
+
+	if (m_ik_controller) {
+		m_ik_controller->Create(&m_EntityAlife);
+	}
+
+	Msg("[DEBUG] Physics recovered from faint");
 }
 
 u16	CCharacterPhysicsSupport::PHGetSyncItemsNumber( )

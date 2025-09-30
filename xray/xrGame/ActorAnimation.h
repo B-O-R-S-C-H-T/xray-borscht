@@ -3,7 +3,6 @@
 #pragma once
 
 // animation state constants
-//-------------------------------------------------------------------------------
 #define _Fwd			(mcFwd)
 #define _Back			(mcBack)
 #define _LStr			(mcLStrafe)
@@ -21,7 +20,7 @@
 #define _AFwdRStr		(mcAccel|mcFwd|mcRStrafe)
 #define _ABackLStr		(mcAccel|mcBack|mcLStrafe)
 #define _ABackRStr		(mcAccel|mcBack|mcRStrafe)
-// 
+
 #define _Crch			(mcCrouch)
 #define _ACrch			(mcCrouch|mcAccel)
 #define _CrchFwd		(mcCrouch|mcFwd)
@@ -42,6 +41,5 @@
 #define _ACrchBackRStr	(mcCrouch|mcAccel|mcBack|mcRStrafe)
 
 #define _Jump			(mcJump)
-//-------------------------------------------------------------------------------
 
 #endif //_Actor_Animation_H

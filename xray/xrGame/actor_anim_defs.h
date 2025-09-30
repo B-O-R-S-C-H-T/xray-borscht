@@ -38,7 +38,6 @@ struct STorsoWpn{
 
 struct SActorState
 {
-
 	MotionID		legs_idle;
 	MotionID		jump_begin;
 	MotionID		jump_idle;
@@ -52,6 +51,7 @@ struct SActorState
 	MotionID		m_head_idle;
 
 	MotionID		m_damage[DAMAGE_FX_COUNT];
+
 	void			Create							(IKinematicsAnimated* K, LPCSTR base);
 	void			CreateClimb						(IKinematicsAnimated* K);
 };

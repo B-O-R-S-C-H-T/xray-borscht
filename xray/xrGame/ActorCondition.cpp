@@ -13,15 +13,15 @@
 #include "script_game_object.h"
 #include "game_object_space.h"
 #include "ui\UIVideoPlayerWnd.h"
-#include "script_callback_ex.h"
 #include "object_broker.h"
 #include "weapon.h"
+#include "CharacterPhysicsSupport.h"
 
 #define MAX_SATIETY					1.0f
 #define START_SATIETY				0.5f
 
 BOOL	GodMode	()	
-{ 
+{
 	if (GameID() == eGameIDSingle) 
 		return psActorFlags.test(AF_GODMODE|AF_GODMODE_RT); 
 	return FALSE;	
@@ -59,6 +59,11 @@ CActorCondition::CActorCondition(CActor *object) :
 	m_zone_danger[ALife::infl_psi]	= 0.0f;
 	m_zone_danger[ALife::infl_electra]= 0.0f;
 	m_f_time_affected = Device.fTimeGlobal;
+
+	// некрасиво
+	m_bFainted							= false;
+	m_fFaintThreshold					= 0.2f;
+	m_iLastAlcoholTime					= 0;
 }
 
 CActorCondition::~CActorCondition()
@@ -116,6 +121,9 @@ void CActorCondition::LoadCondition(LPCSTR entity_section)
 	m_zone_max_power[ALife::infl_psi]	= pSettings->r_float(section, "psi_zone_max_power" );
 	m_zone_max_power[ALife::infl_electra]= pSettings->r_float(section, "electra_zone_max_power" );
 
+	// хардкод порога обморока
+	m_fFaintThreshold					 = 0.2f;
+
 	VERIFY( !fis_zero(m_zone_max_power[ALife::infl_rad]) );
 	VERIFY( !fis_zero(m_zone_max_power[ALife::infl_fire]) );
 	VERIFY( !fis_zero(m_zone_max_power[ALife::infl_acid]) );
@@ -157,107 +165,100 @@ float CActorCondition::GetZoneMaxPower( ALife::EHitType hit_type ) const
 	return GetZoneMaxPower( iz_type );
 }
 
+// вычисление параметров с ходом времени
+void CActorCondition::UpdateCondition() {
+	if (GodMode())
+		return;
+	if (!object().g_Alive())
+		return;
+	if (!object().Local() && m_object != Level().CurrentViewEntity())
+		return;
 
-//вычисление параметров с ходом времени
-#include "UI.h"
-#include "HUDManager.h"
+	float base_weight = object().MaxCarryWeight();
+	float cur_weight  = object().inventory().TotalWeight();
 
-void CActorCondition::UpdateCondition()
-{
-	if (GodMode())				return;
-	if (!object().g_Alive())	return;
-	if (!object().Local() && m_object != Level().CurrentViewEntity())		return;	
-	
-	float base_weight			= object().MaxCarryWeight();
-	float cur_weight			= object().inventory().TotalWeight();
-
-	if ((object().mstate_real&mcAnyMove))
-	{
-		ConditionWalk( cur_weight / base_weight,
-			isActorAccelerated( object().mstate_real,object().IsZoomAimingMode() ),
-			(object().mstate_real&mcSprint) != 0 );
+	if ((object().mstate_real & mcAnyMove)) {
+		ConditionWalk(cur_weight / base_weight, isActorAccelerated(object().mstate_real, object().IsZoomAimingMode()), (object().mstate_real & mcSprint) != 0);
+	} else {
+		ConditionStand(cur_weight / base_weight);
 	}
-	else
-	{
-		ConditionStand( cur_weight / base_weight );
-	}
-	
-	if ( IsGameTypeSingle() )
-	{
+
+	if (IsGameTypeSingle()) {
 		float k_max_power = 1.0f;
-		if( true )
-		{
-			k_max_power = 1.0f + _min(cur_weight, base_weight) / base_weight
-				+ _max(0.0f, (cur_weight - base_weight) / 10.0f);
-		}
-		else
-		{
+		if (true) {
+			k_max_power = 1.0f + _min(cur_weight, base_weight) / base_weight + _max(0.0f, (cur_weight - base_weight) / 10.0f);
+		} else {
 			k_max_power = 1.0f;
 		}
-		SetMaxPower		(GetMaxPower() - m_fPowerLeakSpeed * m_fDeltaTime * k_max_power);
+		SetMaxPower(GetMaxPower() - m_fPowerLeakSpeed * m_fDeltaTime * k_max_power);
 	}
 
+	m_fAlcohol += m_fV_Alcohol * m_fDeltaTime;
+	clamp(m_fAlcohol, 0.0f, 1.0f);
 
-	m_fAlcohol		+= m_fV_Alcohol*m_fDeltaTime;
-	clamp			(m_fAlcohol,			0.0f,		1.0f);
+	Msg("[DEBUG] Alcohol level: %.2f (faint if > %.2f)", m_fAlcohol, m_fFaintThreshold);
 
-	if ( IsGameTypeSingle() )
-	{	
+	// проверка на обморок
+	if (m_fAlcohol > m_fFaintThreshold && (Device.dwTimeGlobal - m_iLastAlcoholTime > 2000)) {
+		if (!m_bFainted) {
+			m_bFainted = true;
+			Msg("[DEBUG] Entering faint state: alcohol=%.2f > threshold=%.2f", m_fAlcohol, m_fFaintThreshold);
+			object().Faint(NULL);
+		}
+	} else if (m_bFainted && m_fAlcohol <= m_fFaintThreshold) {
+		m_bFainted = false;
+		Msg("[DEBUG] Actor recovered from faint: alcohol=%.2f < recovery_threshold=%.2f", m_fAlcohol, m_fFaintThreshold);
+		object().RecoverFromFaint();
+	}
+
+	if (IsGameTypeSingle()) {
 		CEffectorCam* ce = Actor()->Cameras().GetCamEffector((ECamEffectorType)effAlcohol);
-		if	((m_fAlcohol>0.0001f) ){
-			if(!ce){
-				AddEffector(m_object,effAlcohol, "effector_alcohol", GET_KOEFF_FUNC(this, &CActorCondition::GetAlcohol));
+		if ((m_fAlcohol > 0.0001f)) {
+			if (!ce) {
+				AddEffector(m_object, effAlcohol, "effector_alcohol", GET_KOEFF_FUNC(this, &CActorCondition::GetAlcohol));
 			}
-		}else{
-			if(ce)
-				RemoveEffector(m_object,effAlcohol);
+		} else {
+			if (ce)
+				RemoveEffector(m_object, effAlcohol);
 		}
 
-		
-		string512			pp_sect_name;
-		shared_str ln		= Level().name();
-		if(ln.size())
-		{
-			CEffectorPP* ppe	= object().Cameras().GetPPEffector((EEffectorPPType)effPsyHealth);
-			
+		string512  pp_sect_name;
+		shared_str ln = Level().name();
+		if (ln.size()) {
+			CEffectorPP* ppe = object().Cameras().GetPPEffector((EEffectorPPType)effPsyHealth);
 
-			strconcat			(sizeof(pp_sect_name),pp_sect_name, "effector_psy_health", "_", *ln);
-			if(!pSettings->section_exist(pp_sect_name))
-				strcpy_s			(pp_sect_name, "effector_psy_health");
+			strconcat(sizeof(pp_sect_name), pp_sect_name, "effector_psy_health", "_", *ln);
+			if (!pSettings->section_exist(pp_sect_name))
+				strcpy_s(pp_sect_name, "effector_psy_health");
 
-			if	( !fsimilar(GetPsyHealth(), 1.0f, 0.05f) )
-			{
-				if(!ppe)
-				{
-					AddEffector(m_object,effPsyHealth, pp_sect_name, GET_KOEFF_FUNC(this, &CActorCondition::GetPsy));
+			if (!fsimilar(GetPsyHealth(), 1.0f, 0.05f)) {
+				if (!ppe) {
+					AddEffector(m_object, effPsyHealth, pp_sect_name, GET_KOEFF_FUNC(this, &CActorCondition::GetPsy));
 				}
-			}else
-			{
-				if(ppe)
-					RemoveEffector(m_object,effPsyHealth);
+			} else {
+				if (ppe)
+					RemoveEffector(m_object, effPsyHealth);
 			}
 		}
-//-		if(fis_zero(GetPsyHealth()))
-//-			SetHealth( 0.0f );
+		//-		if(fis_zero(GetPsyHealth()))
+		//-			SetHealth( 0.0f );
 	};
 
-	UpdateSatiety				();
+	UpdateSatiety();
 
-	inherited::UpdateCondition	();
+	inherited::UpdateCondition();
 
-	if( IsGameTypeSingle() )
+	if (IsGameTypeSingle())
 		UpdateTutorialThresholds();
 
-	if(GetHealth()<0.05f && m_death_effector==NULL && IsGameTypeSingle())
-	{
-		if(pSettings->section_exist("actor_death_effector"))
+	if (GetHealth() < 0.05f && m_death_effector == NULL && IsGameTypeSingle()) {
+		if (pSettings->section_exist("actor_death_effector"))
 			m_death_effector = xr_new<CActorDeathEffector>(this, "actor_death_effector");
 	}
-	if(m_death_effector && m_death_effector->IsActual())
-	{
-		m_death_effector->UpdateCL	();
+	if (m_death_effector && m_death_effector->IsActual()) {
+		m_death_effector->UpdateCL();
 
-		if(!m_death_effector->IsActual())
+		if (!m_death_effector->IsActual())
 			m_death_effector->Stop();
 	}
 
@@ -275,7 +276,7 @@ void CActorCondition::UpdateCondition()
 
 			NET_Packet			np;
 			HDS.Write_Packet	(np);
-			
+
 			CGameObject::u_EventSend(np);
 			m_object->Hit(&HDS);
 		}
@@ -321,7 +322,6 @@ void CActorCondition::AffectDamage_InjuriousMaterial()
 	}//while
 }
 
-#include "characterphysicssupport.h"
 float CActorCondition::GetInjuriousMaterialDamage()
 {
 	u16 mat_injurios = m_object->character_physics_support()->movement()->injurious_material_idx();
@@ -486,11 +486,20 @@ void CActorCondition::reinit	()
 	inherited::reinit	();
 	m_bLimping					= false;
 	m_fSatiety					= 1.f;
+
+	// сброс обморока
+	m_bFainted				= false;
+	m_iLastAlcoholTime		= 0;
 }
 
 void CActorCondition::ChangeAlcohol	(float value)
 {
 	m_fAlcohol += value;
+	// обновление времени последнего употребления
+	if (value > 0) {
+		m_iLastAlcoholTime = Device.dwTimeGlobal;
+		Msg("[DEBUG] Actor drank alcohol: value=%.2f, total=%.2f, time=%llu", value, m_fAlcohol, m_iLastAlcoholTime);
+	}
 }
 
 void CActorCondition::ChangeSatiety(float value)
@@ -509,8 +518,6 @@ void CActorCondition::UpdateTutorialThresholds()
 	static float _cRadiation		= pSettings->r_float("tutorial_conditions_thresholds","radiation");
 	static float _cWpnCondition		= pSettings->r_float("tutorial_conditions_thresholds","weapon_jammed");
 	static float _cPsyHealthThr		= pSettings->r_float("tutorial_conditions_thresholds","psy_health");
-
-
 
 	bool b = true;
 	if(b && !m_condition_flags.test(eCriticalPowerReached) && GetPower()<_cPowerThr){
