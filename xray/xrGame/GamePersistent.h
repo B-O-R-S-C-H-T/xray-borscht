@@ -3,6 +3,7 @@
 #pragma once
 
 #include "../xrEngine/IGame_Persistent.h"
+
 class CMainMenu;
 class CUICursor;
 class CParticlesObject;
@@ -45,6 +46,9 @@ class CGamePersistent:
 
 	void				WeathersUpdate			();
 	void				UpdateDof				();
+
+	bool				m_skip_logo_intro = false;  // флаг для пропуска промо-роликов издателя при запуске движка
+	bool				m_skip_game_intro = false;  // флаг для пропуска стартовой катсцены при запуске сюжета
 
 public:
 	ui_core*			m_pUI_core;
@@ -94,4 +98,3 @@ public:
 IC CGamePersistent&		GamePersistent()		{ return *((CGamePersistent*) g_pGamePersistent);			}
 
 #endif //GamePersistentH
-

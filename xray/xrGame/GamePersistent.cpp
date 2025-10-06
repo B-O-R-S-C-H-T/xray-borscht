@@ -1,30 +1,31 @@
 #include "pch_script.h"
+
 #include "gamepersistent.h"
-#include "../xrEngine/fmesh.h"
-#include "../xrEngine/xr_ioconsole.h"
-#include "../xrEngine/gamemtllib.h"
+
 #include "../Include/xrRender/Kinematics.h"
-#include "profiler.h"
+#include "../xrEngine/fmesh.h"
+#include "../xrEngine/gamemtllib.h"
+#include "../xrEngine/xrSASH.h"
+#include "../xrEngine/xr_ioconsole.h"
+#include "ActorEffector.h"
 #include "MainMenu.h"
+#include "ParticlesObject.h"
 #include "UICursor.h"
+#include "actor.h"
 #include "game_base_space.h"
 #include "level.h"
-#include "ParticlesObject.h"
-#include "actor.h"
-#include "game_base_space.h"
+#include "profiler.h"
+#include "spectator.h"
 #include "stalker_animation_data_storage.h"
 #include "stalker_velocity_holder.h"
-#include "ActorEffector.h"
-#include "actor.h"
-#include "spectator.h"
-#include "../xrEngine/xrSASH.h"
 #ifndef MASTER_GOLD
-#	include "custommonster.h"
+#include "custommonster.h"
 #endif // MASTER_GOLD
 #ifndef _EDITOR
-#	include "ai_debug.h"
+#include "ai_debug.h"
 #endif // _EDITOR
 #include "../xrEngine/Environment.h"
+#include "UI/UIGameTutorial.h"
 
 #ifdef DEBUG_MEMORY_MANAGER
 	static	void *	ode_alloc	(size_t size)								{ return Memory.mem_alloc(size,"ODE");			}
@@ -36,8 +37,7 @@
 	static	void	ode_free	(void *ptr, size_t size)					{ return xr_free(ptr);				}
 #endif // DEBUG_MEMORY_MANAGER
 
-CGamePersistent::CGamePersistent(void)
-{
+CGamePersistent::CGamePersistent(void) {
 	m_bPickableDOF				= false;
 	m_game_params.m_e_game_type	= eGameIDNoGame;
 	ambient_effect_next_time	= 0;
@@ -52,7 +52,6 @@ CGamePersistent::CGamePersistent(void)
 
 	ZeroMemory					(ambient_sound_next_time, sizeof(ambient_sound_next_time));
 	
-
 	m_pUI_core					= NULL;
 	m_pMainMenu					= NULL;
 	m_intro						= NULL;
@@ -61,15 +60,13 @@ CGamePersistent::CGamePersistent(void)
 	m_frame_counter				= 0;
 	m_last_stats_frame			= u32(-2);
 #endif
-	// 
+
 	dSetAllocHandler			(ode_alloc		);
 	dSetReallocHandler			(ode_realloc	);
 	dSetFreeHandler				(ode_free		);
 
-	// 
 	BOOL	bDemoMode	= (0!=strstr(Core.Params,"-demomode "));
-	if (bDemoMode)
-	{
+	if (bDemoMode) {
 		string256	fname;
 		LPCSTR		name	=	strstr(Core.Params,"-demomode ") + 10;
 		sscanf				(name,"%s",fname);
@@ -87,36 +84,40 @@ CGamePersistent::CGamePersistent(void)
 	eQuickLoad				= Engine.Event.Handler_Attach("Game:QuickLoad",this);
 	Fvector3* DofValue		= Console->GetFVectorPtr("r2_dof");
 	SetBaseDof				(*DofValue);
+
+	std::string_view params(Core.Params);
+	m_skip_logo_intro = (params.find("-nointro")	 != std::string_view::npos);
+	m_skip_game_intro = (params.find("-nogameintro") != std::string_view::npos);
 }
 
-CGamePersistent::~CGamePersistent(void)
-{	
+CGamePersistent::~CGamePersistent(void) {	
 	FS.r_close					(pDemoFile);
 	Device.seqFrame.Remove		(this);
 	Engine.Event.Handler_Detach	(eDemoStart,this);
 	Engine.Event.Handler_Detach	(eQuickLoad,this);
 }
 
-void CGamePersistent::RegisterModel(IRenderVisual* V)
-{
+void CGamePersistent::RegisterModel(IRenderVisual* V) {
 	// Check types
-	switch (V->getType()){
-	case MT_SKELETON_ANIM:
-	case MT_SKELETON_RIGID:{
-		u16 def_idx		= GMLib.GetMaterialIdx("default_object");
-		R_ASSERT2		(GMLib.GetMaterialByIdx(def_idx)->Flags.is(SGameMtl::flDynamic),"'default_object' - must be dynamic");
-		IKinematics* K	= smart_cast<IKinematics*>(V); VERIFY(K);
-		int cnt = K->LL_BoneCount();
-		for (u16 k=0; k<cnt; k++){
-			CBoneData& bd	= K->LL_GetData(k); 
-			if (*(bd.game_mtl_name)){
-				bd.game_mtl_idx	= GMLib.GetMaterialIdx(*bd.game_mtl_name);
-				R_ASSERT2(GMLib.GetMaterialByIdx(bd.game_mtl_idx)->Flags.is(SGameMtl::flDynamic),"Required dynamic game material");
-			}else{
-				bd.game_mtl_idx	= def_idx;
+	switch (V->getType()) {
+		case MT_SKELETON_ANIM:
+		case MT_SKELETON_RIGID:
+		{
+			u16 def_idx = GMLib.GetMaterialIdx("default_object");
+			R_ASSERT2(GMLib.GetMaterialByIdx(def_idx)->Flags.is(SGameMtl::flDynamic), "'default_object' - must be dynamic");
+			IKinematics* K = smart_cast<IKinematics*>(V);
+			VERIFY(K);
+			int cnt = K->LL_BoneCount();
+			for (u16 k = 0; k < cnt; k++) {
+				CBoneData& bd = K->LL_GetData(k);
+				if (*(bd.game_mtl_name)) {
+					bd.game_mtl_idx = GMLib.GetMaterialIdx(*bd.game_mtl_name);
+					R_ASSERT2(GMLib.GetMaterialByIdx(bd.game_mtl_idx)->Flags.is(SGameMtl::flDynamic), "Required dynamic game material");
+				} else {
+					bd.game_mtl_idx = def_idx;
+				}
 			}
-		}
-	}break;
+		} break;
 	}
 }
 
@@ -288,7 +289,7 @@ void CGamePersistent::WeathersUpdate()
 				{
 					ref_sound& snd					= ch.get_rnd_sound();
 
-					Fvector	pos;
+					Fvector				pos{};
 					float	angle		= ::Random.randF(PI_MUL_2);
 					pos.x				= _cos(angle);
 					pos.y				= 0;
@@ -340,7 +341,8 @@ void CGamePersistent::WeathersUpdate()
 					ambient_effect_wind_on			= true;
 										
 					ambient_particles				= CParticlesObject::Create(eff->particles.c_str(),FALSE,false);
-					Fvector pos; pos.add			(Device.vCameraPosition,eff->offset); 
+					Fvector							pos{};
+					pos.add(Device.vCameraPosition, eff->offset); 
 					ambient_particles->play_at_pos	(pos);
 					if (eff->sound._handle())		eff->sound.play_at_pos(0,pos);
 
@@ -421,31 +423,25 @@ void CGamePersistent::WeathersUpdate()
 	}
 }
 
-#include "UI/UIGameTutorial.h"
-
-void CGamePersistent::start_logo_intro		()
-{
-	if ((0!=strstr(Core.Params,"-nointro")) || g_SASH.IsRunning())
-	{
-		m_intro_event			= 0;
-		Console->Show			();
-		Console->Execute		("main_menu on");
+void CGamePersistent::start_logo_intro() {
+	if (m_skip_logo_intro || g_SASH.IsRunning()) {
+		m_intro_event = 0;
+		Console->Show();
+		Console->Execute("main_menu on");
 		return;
 	}
-	if (Device.dwPrecacheFrame==0)
-	{
-		m_intro_event.bind		(this,&CGamePersistent::update_logo_intro);
-		if (!g_dedicated_server && 0==xr_strlen(m_game_params.m_game_or_spawn) && NULL==g_pGameLevel)
-		{
-			VERIFY				(NULL==m_intro);
-			m_intro				= xr_new<CUISequencer>();
-			m_intro->Start		("intro_logo");
-			Console->Hide		();
+	if (Device.dwPrecacheFrame == 0) {
+		m_intro_event.bind(this, &CGamePersistent::update_logo_intro);
+		if (!g_dedicated_server && 0 == xr_strlen(m_game_params.m_game_or_spawn) && NULL == g_pGameLevel) {
+			VERIFY(NULL == m_intro);
+			m_intro = xr_new<CUISequencer>();
+			m_intro->Start("intro_logo");
+			Console->Hide();
 		}
 	}
 }
-void CGamePersistent::update_logo_intro			()
-{
+
+void CGamePersistent::update_logo_intro() {
 	if(m_intro && (false==m_intro->IsActive())){
 		m_intro_event			= 0;
 		xr_delete				(m_intro);
@@ -453,33 +449,32 @@ void CGamePersistent::update_logo_intro			()
 	}
 }
 
-void CGamePersistent::start_game_intro		()
-{
-	if ((0!=strstr(Core.Params,"-nointro")) || g_SASH.IsRunning())
-	{
-		m_intro_event			= 0;
+void CGamePersistent::start_game_intro() {
+	if (m_skip_game_intro || g_SASH.IsRunning()) {
+		m_intro_event = 0;
 		return;
 	}
 
-	if (g_pGameLevel && g_pGameLevel->bReady && Device.dwPrecacheFrame<=2){
-		m_intro_event.bind		(this,&CGamePersistent::update_game_intro);
-		if (0==stricmp(m_game_params.m_new_or_load,"new")){
-			VERIFY				(NULL==m_intro);
-			m_intro				= xr_new<CUISequencer>();
-			m_intro->Start		("intro_game");
+	if (g_pGameLevel && g_pGameLevel->bReady && Device.dwPrecacheFrame <= 2) {
+		m_intro_event.bind(this, &CGamePersistent::update_game_intro);
+		if (0 == stricmp(m_game_params.m_new_or_load, "new")) {
+			VERIFY(NULL == m_intro);
+			m_intro = xr_new<CUISequencer>();
+			m_intro->Start("intro_game");
 #ifdef DEBUG
-			Log("Intro start",Device.dwFrame);
+			Log("Starting game intro sequence...", Device.dwFrame);
 #endif // #ifdef DEBUG
 		}
 	}
 }
-void CGamePersistent::update_game_intro			()
-{
+
+void CGamePersistent::update_game_intro() {
 	if(m_intro && (false==m_intro->IsActive())){
 		xr_delete				(m_intro);
 		m_intro_event			= 0;
 	}
 }
+
 #include "holder_custom.h"
 extern CUISequencer * g_tutorial;
 extern CUISequencer * g_tutorial2;
@@ -735,7 +730,6 @@ void CGamePersistent::RestoreEffectorDOF()
 {
 	SetEffectorDOF			(m_dof[3]);
 }
-#include "hudmanager.h"
 
 //	m_dof		[4];	// 0-dest 1-current 2-from 3-original
 void CGamePersistent::UpdateDof()
@@ -756,7 +750,7 @@ void CGamePersistent::UpdateDof()
 						return;
 
 	float td			= Device.fTimeDelta;
-	Fvector				diff;
+	Fvector				diff{};
 	diff.sub			(m_dof[0], m_dof[2]);
 	diff.mul			(td/0.2f); //0.2 sec
 	m_dof[1].add		(diff);
