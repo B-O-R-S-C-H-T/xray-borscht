@@ -758,7 +758,14 @@ void CActor::RecoverFromFaintCallback(CBlend* B) {
 	actor->m_bFainted			  = FALSE;
 	actor->mstate_real |= mcAnyMove;
 	actor->set_input_external_handler(0);
-	Msg("[DEBUG] Recovery faint animation finished.");
+
+	CCameraFirstEye* cam = smart_cast<CCameraFirstEye*>(actor->cameras[eacFirstEye]);
+	if (cam) {
+		cam->StartInterpolation(0.5f);
+		Msg("[DEBUG] Recovery faint animation finished. Starting camera interpolation...");
+	} else {
+		Msg("[DEBUG] Failed to start camera interpolation!");
+	}
 }
 
 void CActor::SwitchOutBorder(bool new_border_state) {
@@ -871,22 +878,31 @@ void CActor::UpdateCL() {
 	cam_Update(float(Device.dwTimeDelta) / 1000.0f, currentFOV());
 
 	if ((!g_Alive() || m_bFainted || m_bRecoveringFromFaint) && cam_active == eacFirstEye) {
-		IKinematics* K = smart_cast<IKinematics*>(Visual());
+		CCameraBase* cam = cameras[eacFirstEye];
+		Fvector		 pos, dir, norm;
+		cam->GetBoneBasedPosition(pos, dir, norm);
+		cam->vPosition	= pos;
+		cam->vDirection = dir;
+		cam->vNormal	= norm;
+
+		IKinematics* K	= smart_cast<IKinematics*>(Visual());
 		K->CalculateBones_Invalidate();	// иначе лагает анимация :(
 		K->CalculateBones(TRUE);		// 
-		u16 head = m_head;
-		Fmatrix mHead = K->LL_GetTransform(head);
+
+		u16		head	 = m_head;
+		Fmatrix mHead	 = K->LL_GetTransform(head);
 		Fvector head_pos = mHead.c;
 		XFORM().transform_tiny(head_pos);
-		Fvector eye_pos = mHead.c;
+		Fvector eye_pos  = mHead.c;
 		mHead.transform_tiny(eye_pos, m_fEyeOffset);
 		XFORM().transform_tiny(eye_pos);
-		Fvector dir = Fvector().sub(eye_pos, head_pos);
-		float dist = dir.magnitude();
+
+		Fvector face_dir = Fvector().sub(eye_pos, head_pos);
+		float	dist	 = face_dir.magnitude();
 		if (dist > EPS_L) {
-			dir.normalize();
+			face_dir.normalize();
 			collide::rq_result rq;
-			float h_w, h_h;
+			float			   h_w, h_h;
 			viewport_size(dist, *cameras[eacFirstEye], h_w, h_h);
 			h_w /= 2.f;
 			h_h /= 2.f;
@@ -900,9 +916,9 @@ void CActor::UpdateCL() {
 				Fvector corner_pos{};
 				corner_pos.mad(eye_pos, cameras[eacFirstEye]->Right(), offsets[i].x);
 				corner_pos.mad(corner_pos, cameras[eacFirstEye]->Up(), offsets[i].y);
-				Fvector corner_dir = Fvector().sub(corner_pos, head_pos);
-				float corner_dist = corner_dir.magnitude();
-				bool corner_hit = false;
+				Fvector corner_dir	= Fvector().sub(corner_pos, head_pos);
+				float	corner_dist = corner_dir.magnitude();
+				bool	corner_hit	= false;
 				if (corner_dist > EPS_L) {
 					corner_dir.normalize();
 					if (Level().ObjectSpace.RayPick(head_pos, corner_dir, corner_dist, collide::rqtBoth, rq, this)) {
@@ -922,8 +938,8 @@ void CActor::UpdateCL() {
 	}
 	if (pWeapon) {
 		if (pWeapon->IsZoomed()) {
-			float full_fire_disp = pWeapon->GetFireDispersion(true);
-			CEffectorZoomInertion* S = smart_cast<CEffectorZoomInertion*>(Cameras().GetCamEffector(eCEZoom));
+			float				   full_fire_disp = pWeapon->GetFireDispersion(true);
+			CEffectorZoomInertion* S			  = smart_cast<CEffectorZoomInertion*>(Cameras().GetCamEffector(eCEZoom));
 			if (S)
 				S->SetParams(full_fire_disp);
 			SetZoomAimingMode(true);

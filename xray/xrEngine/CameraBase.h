@@ -11,8 +11,7 @@
 // refs
 class CObject;
 
-class ENGINE_API	CCameraBase
-{
+class ENGINE_API	CCameraBase {
 protected:
 	CObject*		parent;
 
@@ -37,14 +36,15 @@ public:
 	float			f_fov;
 	float			f_aspect;
 
-IC 	Fvector			Position				()	const { return vPosition;	}
-IC 	Fvector			Direction				()	const { return vDirection;}
-IC 	Fvector			Up						()	const { return vNormal;	}
-IC 	Fvector			Right					()	const { return Fvector().crossproduct( vNormal, vDirection ); }
-IC 	float			Fov						()	const { return f_fov; }
-IC 	float			Aspect					()	const { return f_aspect; }
+IC 	Fvector			Position		()	const { return vPosition;	}
+IC 	Fvector			Direction		()	const { return vDirection;}
+IC 	Fvector			Up				()	const { return vNormal;	}
+IC 	Fvector			Right			()	const { return Fvector().crossproduct( vNormal, vDirection ); }
+IC 	float			Fov				()	const { return f_fov; }
+IC 	float			Aspect			()	const { return f_aspect; }
 
 	int				tag;
+
 public:
 					CCameraBase		( CObject* p, u32 flags );
 	virtual			~CCameraBase	( );
@@ -56,7 +56,7 @@ public:
 	virtual void	Update			( Fvector& point, Fvector& noise_dangle )	{;}
 	virtual void	Get				( Fvector& P, Fvector& D, Fvector& N )		{P.set(vPosition);D.set(vDirection);N.set(vNormal);}
 	virtual void	Set				( const Fvector& P, const Fvector& D, const Fvector& N ){vPosition.set(P);vDirection.set(D);vNormal.set(N);}
-	virtual void	Set				( float Y, float P, float R )				{yaw=Y;pitch=P;roll=R;}
+	virtual void	Set				( float Y, float P, float R )				{yaw=Y; pitch=P; roll=R;}
 	
 	virtual float	GetWorldYaw		( )	{ return 0; };
 	virtual float	GetWorldPitch	( )	{ return 0; };
@@ -64,8 +64,10 @@ public:
 	virtual float	CheckLimYaw		( );
 	virtual float	CheckLimPitch	( );
 	virtual float	CheckLimRoll	( );
-};
 
+	virtual void	GetBoneBasedPosition(Fvector& pos, Fvector& dir, Fvector& norm) const {}
+	virtual void	StartInterpolation	(float duration) {}
+};
 
 template<typename T>
 IC void viewport_size( float _viewport_near, const T &cam_info, float& h_w, float& h_h)
@@ -76,7 +78,5 @@ IC void viewport_size( float _viewport_near, const T &cam_info, float& h_w, floa
 	VERIFY( aspect>EPS );
 	h_w = h_h/aspect;
 }
-
-
 
 #endif // !defined(AFX_CAMERABASE_H__B11F8AE1_1213_11D4_B4E3_4854E82A090D__INCLUDED_)

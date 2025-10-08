@@ -8,7 +8,12 @@
 #include "../xrEngine/xr_object.h"
 #include "actor.h"
 
-CCameraFirstEye::CCameraFirstEye(CObject* p, u32 flags) : CCameraBase(p, flags), lookat_active(false) {}
+CCameraFirstEye::CCameraFirstEye(CObject* p, u32 flags) : CCameraBase(p, flags) {
+	lookat_active	  = false;
+	m_bInterpolating  = false;
+	m_fInterpElapsed  = 0.0f;
+	m_fInterpDuration = 0.0f;
+}
 
 CCameraFirstEye::~CCameraFirstEye() {}
 
@@ -51,35 +56,13 @@ void CCameraFirstEye::UpdateLookat() {
 void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle) {
 	CActor* actor = smart_cast<CActor*>(parent);
 	if (actor && (!actor->g_Alive() || actor->m_bFainted || actor->m_bRecoveringFromFaint)) { // режим смерти или обморока
-		IKinematics* V = smart_cast<IKinematics*>(actor->Visual());
-		if (!V)
-			return;
-		V->CalculateBones();
-		u16		head	  = actor->GetHeadBoneID();
-		Fmatrix mHead	  = V->LL_GetTransform(head);
-		Fvector eye_local = actor->m_fEyeOffset;
-		Fvector eye_world;
-		mHead.transform_tiny(eye_world, eye_local);
-		Fmatrix actor_xform = actor->XFORM();
-		actor_xform.transform_tiny(eye_world);
-		vPosition.set(eye_world);
-
-		Fvector dir_local{};
-		dir_local.set(0, 0, 1);
-		Fvector dir_world;
-		mHead.transform_dir(dir_world, dir_local);
-		actor_xform.transform_dir(dir_world);
-		vDirection.set(dir_world);
-
-		Fvector up_local{};
-		up_local.set(1, 0, 0);
-		Fvector up_world;
-		mHead.transform_dir(up_world, up_local);
-		actor_xform.transform_dir(up_world);
-		vNormal.set(up_world);
-
+		Fvector pos, dir, norm;
+		GetBoneBasedPosition(pos, dir, norm);
+		vPosition  = pos;
+		vDirection = dir;
+		vNormal	   = norm;
 	} else { // нормальный режим
-		vPosition.set		(point);
+		vPosition.set(point);
 
 		Fmatrix mR{}, R{};
 		Fmatrix rX{}, rY{}, rZ{};
@@ -96,8 +79,30 @@ void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle) {
 		mR.transpose();
 		mR.mulB_43(R);
 
-		vDirection.set		(mR.k);
-		vNormal.set			(mR.j);
+		vDirection.set(mR.k);
+		vNormal.set(mR.j);
+	}
+
+	// интерполяция
+	if (m_bInterpolating) {
+		Fvector target_pos	= vPosition;
+		Fvector target_dir	= vDirection;
+		Fvector target_norm = vNormal;
+
+		float	t			= m_fInterpElapsed / m_fInterpDuration;
+		clamp(t, 0.0f, 1.0f);
+
+		vPosition.lerp(m_vInterpStartPos, target_pos, t);
+		vDirection.lerp(m_vInterpStartDir, target_dir, t);
+		vDirection.normalize_safe();
+		vNormal.lerp(m_vInterpStartNorm, target_norm, t);
+		vNormal.normalize_safe();
+
+		m_fInterpElapsed += Device.fTimeDelta;
+		if (m_fInterpElapsed >= m_fInterpDuration) {
+			m_bInterpolating = false;
+			Msg("[DEBUG] Camera interpolation finished in CCameraFirstEye.");
+		}
 	}
 
 	if (m_Flags.is(flRelativeLink)) {
@@ -106,15 +111,56 @@ void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle) {
 	}
 }
 
-void CCameraFirstEye::Move( int cmd, float val, float factor )
-{
-	if (bClampPitch)
-	{
+void CCameraFirstEye::GetBoneBasedPosition(Fvector& pos, Fvector& dir, Fvector& norm) const {
+	CActor* actor = smart_cast<CActor*>(parent);
+	if (!actor || actor->GetHeadBoneID() == u16(-1)) {
+		pos	 = vPosition;
+		dir	 = vDirection;
+		norm = vNormal;
+		return;
+	}
+
+	IKinematics* K = smart_cast<IKinematics*>(actor->Visual());
+	if (!K)
+		return;
+
+	K->CalculateBones(TRUE);
+
+	Fmatrix mHead	 = K->LL_GetTransform(actor->GetHeadBoneID());
+	Fvector head_pos = mHead.c;
+	parent->XFORM().transform_tiny(head_pos);
+
+	Fvector eye_pos = mHead.c;
+	mHead.transform_tiny(eye_pos, actor->m_fEyeOffset);
+	parent->XFORM().transform_tiny(eye_pos);
+
+	dir.sub(eye_pos, head_pos);
+	dir.normalize_safe();
+
+	Fvector up_local = {1, 0, 0}; // именно такой порядок!
+	mHead.transform_dir(norm, up_local);
+	parent->XFORM().transform_dir(norm);
+	norm.normalize_safe();
+
+	pos = eye_pos;
+}
+
+void CCameraFirstEye::StartInterpolation(float duration) {
+	m_fInterpDuration = duration;
+	m_fInterpElapsed = 0.0f;
+
+	GetBoneBasedPosition(m_vInterpStartPos, m_vInterpStartDir, m_vInterpStartNorm);
+
+	m_bInterpolating = true;
+}
+
+void CCameraFirstEye::Move( int cmd, float val, float factor ) {
+	if (bClampPitch) {
 		while (pitch < lim_pitch[0])
 			pitch += PI_MUL_2;
 		while (pitch > lim_pitch[1])
 			pitch -= PI_MUL_2;
-	};
+	}
 	switch (cmd){
 	case kDOWN:		pitch	-= val?val:(rot_speed.y*Device.fTimeDelta/factor);	break;
 	case kUP:		pitch	+= val?val:(rot_speed.y*Device.fTimeDelta/factor);	break;
@@ -125,8 +171,7 @@ void CCameraFirstEye::Move( int cmd, float val, float factor )
 	if (bClampPitch)	clamp(pitch,lim_pitch[0],lim_pitch[1]);
 }
 
-void CCameraFirstEye::OnActivate( CCameraBase* old_cam )
-{
+void CCameraFirstEye::OnActivate( CCameraBase* old_cam ) {
 	if (old_cam&&(m_Flags.is(flRelativeLink)==old_cam->m_Flags.is(flRelativeLink)))
 		yaw = (old_cam)->yaw;
 	if (yaw > PI_MUL_2) yaw -= PI_MUL_2;

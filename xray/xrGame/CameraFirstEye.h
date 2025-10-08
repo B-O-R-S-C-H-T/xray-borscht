@@ -3,8 +3,7 @@
 
 #include "../xrEngine/CameraBase.h"
 
-class CCameraFirstEye : public CCameraBase
-{
+class CCameraFirstEye : public CCameraBase {
 	typedef CCameraBase inherited;
 	Fvector			lookat_point;
 	bool			lookat_active;
@@ -23,6 +22,18 @@ public:
 	virtual float	GetWorldYaw		( )	{ return -yaw;	};
 	virtual float	GetWorldPitch	( )	{ return pitch; };
 			void	LookAtPoint		(Fvector p){lookat_point=p;lookat_active=true;}
+
+private:
+			bool	m_bInterpolating;
+			float	m_fInterpElapsed;
+			float	m_fInterpDuration;
+			Fvector	m_vInterpStartPos;
+			Fvector	m_vInterpStartDir;
+			Fvector	m_vInterpStartNorm;
+
+public:
+			void	GetBoneBasedPosition(Fvector& pos, Fvector& dir, Fvector& norm) const override;
+			void	StartInterpolation(float duration) override;
 };
 
 #endif // __CAMERA_FE_H__
