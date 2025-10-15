@@ -2,10 +2,18 @@
 #ifndef SHToolsInterfaceH
 #define SHToolsInterfaceH
 
+#ifndef NO_VCL
 #include "ElTree.hpp"
 #include "MxMenus.hpp"
 #include "ElPgCtl.hpp"
-#include "../xrEprops/PropertiesList.h"
+#include "../xrEProps/PropertiesList.h"
+#endif
+
+#ifdef NO_VCL
+// затычка
+typedef void* TElTabSheet;
+typedef void* TElTreeItem;
+#endif
 
 // refs
 

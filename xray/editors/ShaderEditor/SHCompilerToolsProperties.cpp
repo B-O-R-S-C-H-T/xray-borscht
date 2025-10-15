@@ -4,11 +4,14 @@
 
 #include "SHCompilerTools.h"
 #include "../xrEProps/folderlib.h"
+#ifndef NO_VCL
 #include "../xrEProps/ItemList.h"
+#endif
 //------------------------------------------------------------------------------
 
 void CSHCompilerTools::FillItemList()
 {
+#if 0
 	// store folders
 	RStrVec folders;
 	Ext.m_Items->GetFolders(folders);
@@ -22,6 +25,7 @@ void CSHCompilerTools::FillItemList()
         LHelper().CreateItem(items,**s_it,0);
     // assign items
 	Ext.m_Items->AssignItems(items,false,true);
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -48,8 +52,10 @@ void CSHCompilerTools::RealUpdateProperties()
         PHelper().CreateFlag32	(items, "Flags\\Cast shadow",	&L.m_Flags,   	Shader_xrLC::flLIGHT_CastShadow);
 //.		PHelper().CreateFlag32	(items, "Flags\\Sharp",			&L.m_Flags,   	Shader_xrLC::flLIGHT_Sharp);
     }
+#if 0
     Ext.m_ItemProps->AssignItems		(items);
     Ext.m_ItemProps->SetModifiedEvent	(fastdelegate::bind<TOnModifiedEvent>(this,&CSHCompilerTools::Modified));
+#endif
 }
 //---------------------------------------------------------------------------
 

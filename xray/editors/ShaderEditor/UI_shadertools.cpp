@@ -6,14 +6,20 @@
 #include "UI_ShaderTools.h"
 #include "../xrEProps/ChoseForm.h"
 #include "../ECore/Editor/ui_main.h"
+#ifndef NO_VCL
 #include "leftbar.h"
+#endif
+#ifndef NO_VCL
 #include "../xrEProps/PropertiesList.h"
+#endif
 #include "../../Layers/xrRender/blenders/Blender.h"
-#include "GameMtlLib.h"
+#include "../../xrEngine/GameMtlLib.h"
+#ifndef NO_VCL
 #include "../xrEProps/ItemList.h"
+#endif
 
 //------------------------------------------------------------------------------
-CShaderTool*&	STools=(CShaderTool*)Tools;
+CShaderTool*&	STools=(CShaderTool*&)Tools;
 //------------------------------------------------------------------------------
 
 CShaderTool::CShaderTool()
@@ -59,7 +65,7 @@ bool CShaderTool::IsModified()
 
 void CShaderTool::Modified()
 {
-	Current()->Modified();
+	if(Current()) Current()->Modified();
 }
 //---------------------------------------------------------------------------
 
@@ -84,11 +90,12 @@ bool CShaderTool::OnCreate()
     EFS.LockFile		(fn);
 
     // create props
+#if 0
     m_Items				= TItemList::CreateForm		("Items",				fraLeftBar->paItemList,		alClient,TItemList::ilEditMenu|TItemList::ilDragAllowed|TItemList::ilFolderStore);
 	m_Items->SetOnItemsFocusedEvent(fastdelegate::bind<TOnILItemsFocused>(this,&CShaderTool::OnItemFocused));
     m_ItemProps 		= TProperties::CreateForm	("Item Properties",		fraLeftBar->paShaderProps,	alClient);
     m_PreviewProps  	= TProperties::CreateForm	("Preview Properties",	fraLeftBar->paPreviewProps,	alClient);
-
+#endif
     // create tools
     RegisterTools		();
 
@@ -111,10 +118,12 @@ void CShaderTool::OnDestroy()
     FS.update_path		(fn,_game_data_,SNDENV_FILENAME);
     EFS.UnlockFile		(fn);
 
+#if 0
 	// destroy props
     TItemList::DestroyForm	(m_Items);
 	TProperties::DestroyForm(m_ItemProps);
     TProperties::DestroyForm(m_PreviewProps);
+#endif
 	//
 	for (ToolsPairIt it=m_Tools.begin(); it!=m_Tools.end(); it++)
     	it->second->OnDestroy();
@@ -122,7 +131,7 @@ void CShaderTool::OnDestroy()
 	UnregisterTools		();
 }
 
-#include "igame_persistent.h"
+#include "../../xrEngine/IGame_Persistent.h"
 
 void CShaderTool::RenderEnvironment()
 {
@@ -136,7 +145,7 @@ void CShaderTool::RenderEnvironment()
 void CShaderTool::Render()
 {
     PrepareLighting		();
-	Current()->OnRender	();
+	if(Current()) Current()->OnRender	();
 //    if (psDeviceFlags.is(rsEnvironment)) g_pGamePersistent->Environment().RenderLast	();
     inherited::Render	();
 }
@@ -147,12 +156,12 @@ void CShaderTool::OnFrame()
     	RealUpdateList();
 	if (m_Flags.is(flRefreshProps)) 
     	RealUpdateProperties();
-	Current()->OnFrame();
+	if(Current()) Current()->OnFrame();
 }
 
 void CShaderTool::ZoomObject(BOOL bOnlySel)
 {
-	Current()->ZoomObject(bOnlySel);
+	if(Current()) Current()->ZoomObject(bOnlySel);
 }
 
 void CShaderTool::PrepareLighting()
@@ -201,17 +210,19 @@ void CShaderTool::OnDeviceDestroy()
 
 void CShaderTool::OnShowHint(AStringVec& ss)
 {
-	Current()->OnShowHint(ss);
+	if(Current()) Current()->OnShowHint(ss);
 }
 
 void CShaderTool::ApplyChanges()
 {
-	Current()->ApplyChanges();
+	if(Current()) Current()->ApplyChanges();
 }
 
 void CShaderTool::ShowProperties(LPCSTR focused_item)
 {
+#if 0
 	m_ItemProps->ShowProperties();
+#endif
 }
 
 LPCSTR CShaderTool::CurrentToolsName()
@@ -252,19 +263,24 @@ bool CShaderTool::Save(LPCSTR name, bool bInternal)
 
 void CShaderTool::Reload()
 {
+    if (Current()) {
+
 	if (!Current()->IfModified()) return;
     if (ELog.DlgMsg(mtConfirmation,"Reload current items?")==mrYes)
         Current()->Reload();
-}
 
+	}
+}
+/*
 #include "SHEngineTools.h"
 #include "SHGameMtlTools.h"
 #include "SHGameMtlPairTools.h"
 #include "SHCompilerTools.h"
 #include "SHSoundEnvTools.h"
-
+*/
 void CShaderTool::RegisterTools()
 {
+#if 0
 	for (int k=aeFirstTool; k<aeMaxTools; k++){	
     	ISHTools* tools = 0;
 		switch(k){
@@ -277,6 +293,7 @@ void CShaderTool::RegisterTools()
         R_ASSERT(tools);
 		m_Tools.insert(mk_pair(k,tools));
     }
+#endif
 }
 
 void CShaderTool::UnregisterTools()
@@ -315,18 +332,20 @@ bool CShaderTool::RayPick(const Fvector& start, const Fvector& dir, float& dist,
 
 void CShaderTool::RealUpdateProperties()
 {
-    Current()->RealUpdateProperties();
+    if (Current()) Current()->RealUpdateProperties();
 	m_Flags.set(flRefreshProps,FALSE);
 }
 
 void CShaderTool::RealUpdateList()
 {
-    Current()->RealUpdateList();
+    if (Current()) Current()->RealUpdateList();
 	m_Flags.set(flRefreshList,FALSE);
 }
 
-void __fastcall CShaderTool::OnItemFocused(ListItemsVec& items)
+void CShaderTool::OnItemFocused(ListItemsVec& items)
 {
+    if (!Current()) return;
+
 	LPCSTR name				= 0;
     Current()->m_CurrentItem= 0;
     

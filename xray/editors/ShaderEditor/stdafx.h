@@ -6,9 +6,18 @@
 
 #pragma once
 
-#pragma warn -pck
+#ifndef __BORLANDC__
+#include "framework.h"
+#include "../../Include/builder_types.h"
+#endif
 
+#ifdef __BORLANDC__
+#pragma warn -pck
+#endif
+
+#ifdef __BORLANDC__
 #define sqrtf(a) sqrt(a)
+#endif
 
 #define smart_cast dynamic_cast
 
@@ -23,13 +32,18 @@
 #define         RENDER  R_R1
 
 // Std C++ headers
+#ifdef __BORLANDC__
 #include <fastmath.h>
+#endif
 #include <io.h>
 #include <fcntl.h>
 #include <sys\stat.h>
 #include <process.h>
+#ifdef __BORLANDC__
 #include <utime.h>
+#endif
 
+#ifdef __BORLANDC__
 // iseful macros
 // MSC names for functions
 #ifdef _eof
@@ -56,7 +70,7 @@ __inline float modff(float a, float *b){
     return float(y);
 }
 __inline float expf	(float val)                           	{ return ::exp(val);}
-
+#endif
 
 #ifdef	_ECOREB
     #define ECORE_API		__declspec(dllexport)
@@ -75,7 +89,7 @@ __inline float expf	(float val)                           	{ return ::exp(val);}
 #define clMsg 			Msg
 
 // core
-#include <xrCore.h>
+#include <xrCore/xrCore.h>
 
 #ifdef _EDITOR
 	class PropValue;
@@ -88,35 +102,35 @@ __inline float expf	(float val)                           	{ return ::exp(val);}
 
 #include "../../xrCDB/xrCDB.h"
 #include "../../xrSound/Sound.h"
-#include "PSystem.h"
+#include "../../xrEngine/PSystem.h"
 
 // DirectX headers
 #include <d3d9.h>
-#include <d3dx9.h>
+#include <d3dx/d3dx9.h>
 #include "..\..\Layers\xrRender\xrD3dDefs.h"
 #include <dinput.h>
 #include <dsound.h>
 
 // some user components
-#include "fmesh.h"
-#include "_d3d_extensions.h"
+#include "../../xrEngine/fmesh.h"
+#include "../../xrEngine/_d3d_extensions.h"
 
 #include "../ECore/Editor/D3DX_Wrapper.h"
 
 DEFINE_VECTOR		(AnsiString,AStringVec,AStringIt);
 DEFINE_VECTOR		(AnsiString*,LPAStringVec,LPAStringIt);
 
-#include "../../xrServerEntities/xrEProps.h"
-#include "Log.h"
+#include <xrServerEntities/xrEProps.h>
+#include <xrCore/log.h>
 #include "../ECore/Editor/engine.h"
-#include "defines.h"
+#include <xrEngine/defines.h>
 
-struct str_pred : public std::binary_function<char*, char*, bool>
+struct str_pred
 {
     IC bool operator()(LPCSTR x, LPCSTR y) const
     {	return strcmp(x,y)<0;	}
 };
-struct astr_pred : public std::binary_function<const AnsiString&, const AnsiString&, bool>
+struct astr_pred
 {
     IC bool operator()(const AnsiString& x, const AnsiString& y) const
     {	return x<y;	}
@@ -124,7 +138,7 @@ struct astr_pred : public std::binary_function<const AnsiString&, const AnsiStri
 
 #ifdef _EDITOR
 	#include "../ECore/Editor/device.h"
-	#include "properties.h"
+	#include "../../xrEngine/properties.h"
 	#include "../ECore/Editor/render.h"
 	DEFINE_VECTOR(FVF::L,FLvertexVec,FLvertexIt);
 	DEFINE_VECTOR(FVF::TL,FTLvertexVec,FTLvertexIt);

@@ -6,8 +6,10 @@
 #include "SHCompilerTools.h"
 #include "ui_shadermain.h"
 #include "../xrEProps/folderlib.h"
+#ifndef NO_VCL
 #include "leftbar.h"
 #include "../xrEProps/ItemList.h"
+#endif
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
@@ -24,10 +26,11 @@ void CSHCompilerTools::OnActivate()
 {
     // fill items
     FillItemList   				();
+#if 0
     Ext.m_Items->SetOnModifiedEvent		(fastdelegate::bind<TOnModifiedEvent>(this,&CSHCompilerTools::Modified));
     Ext.m_Items->SetOnItemRenameEvent	(fastdelegate::bind<TOnItemRename>(this,&CSHCompilerTools::OnRenameItem));
     Ext.m_Items->SetOnItemRemoveEvent	(fastdelegate::bind<TOnItemRemove>(this,&CSHCompilerTools::OnRemoveItem));
-
+#endif
     inherited::OnActivate		();
 }
 void CSHCompilerTools::OnDeactivate()
@@ -104,7 +107,7 @@ LPCSTR CSHCompilerTools::AppendItem(LPCSTR folder_name, LPCSTR parent_name)
 {
 	Shader_xrLC* parent 	= FindItem(parent_name);
     AnsiString pref			= parent_name?AnsiString(parent_name):AnsiString(folder_name)+"shader";
-    m_LastSelection			= FHelper.GenerateName(pref.c_str(),2,fastdelegate::bind<TFindObjectByName>(this,&CSHCompilerTools::ItemExist),false,true);
+    m_LastSelection			= FHelper.GenerateName(pref.c_str(),2,TFindObjectByName(this,&CSHCompilerTools::ItemExist),false,true);
     Shader_xrLC* S 			= m_Library.Append(parent);
     strcpy					(S->Name,m_LastSelection.c_str());
     ExecCommand				(COMMAND_UPDATE_LIST);

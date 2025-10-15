@@ -2,7 +2,7 @@
 #ifndef SHCompilerToolsH
 #define SHCompilerToolsH
 
-#include "Shader_xrLC.h"
+#include "..\..\xrEngine\Shader_xrLC.h"
 #include "SHToolsInterface.h"
 
 // refs
@@ -10,7 +10,7 @@ class PropValue;
 
 class CSHCompilerTools: public ISHTools
 {
-	void __stdcall 			ItemExist			(LPCSTR name, bool& res){res = !!FindItem(name);}
+	void                    ItemExist			(LPCSTR name, bool& res){res = !!FindItem(name);}
 	Shader_xrLC*			FindItem			(LPCSTR name);
     Shader_xrLC_LIB			m_Library;
 

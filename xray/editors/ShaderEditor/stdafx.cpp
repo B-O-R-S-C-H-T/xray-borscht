@@ -3,6 +3,8 @@
 
 // external dependencies
 
+#ifdef __BORLANDC__
+
 #ifndef _ECOREB
 #	pragma comment(lib,"xrECoreB.lib")
 #endif
@@ -23,4 +25,6 @@
 
 #pragma comment(lib,"oggB.lib")
 #pragma comment(lib,"theoraB.lib")
+
+#endif
 
