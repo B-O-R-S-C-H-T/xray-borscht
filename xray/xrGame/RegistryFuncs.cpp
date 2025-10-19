@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "RegistryFuncs.h"
 
-#define REGISTRY_BASE	HKEY_LOCAL_MACHINE
+#define REGISTRY_BASE	HKEY_CURRENT_USER
 
 #ifdef DEMO_BUILD
 	#define REGISTRY_PATH	"Software\\GSC Game World\\STALKER-STCS_DBG\\"
@@ -18,13 +18,13 @@ bool	ReadRegistryValue(LPCSTR rKeyName, DWORD rKeyType, void* value )
 
 	if (res != ERROR_SUCCESS)
 	{
-		Msg ("! Unable to find %s in registry", REGISTRY_PATH);
+		//Msg ("! Unable to find %s in registry", REGISTRY_PATH);
 		return false;
 	}
 
 	if (!hKey) 
 	{
-		Msg ("! Unable to find %s entry in registry", REGISTRY_PATH); 
+		//Msg ("! Unable to find %s entry in registry", REGISTRY_PATH); 
 		return false;
 	}
 
@@ -52,7 +52,7 @@ bool	ReadRegistryValue(LPCSTR rKeyName, DWORD rKeyType, void* value )
 
 	if (res != ERROR_SUCCESS)
 	{
-		Msg ("! Unable to find %s entry in registry", rKeyName); 
+		//Msg ("! Unable to find %s entry in registry", rKeyName); 
 		return false;
 	}
 	
@@ -69,13 +69,13 @@ bool	WriteRegistryValue	(LPCSTR rKeyName, DWORD rKeyType, const void* value)
 
 	if (res != ERROR_SUCCESS)
 	{
-		Msg ("! Unable to find %s in registry", REGISTRY_PATH);
+		//Msg ("! Unable to find %s in registry", REGISTRY_PATH);
 		return false;
 	}
 
 	if (!hKey) 
 	{
-		Msg ("! Unable to find %s entry in registry", REGISTRY_PATH); 
+		//Msg ("! Unable to find %s entry in registry", REGISTRY_PATH); 
 		return false;
 	}
 
