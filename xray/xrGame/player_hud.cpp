@@ -11,6 +11,7 @@
 player_hud* g_player_hud = NULL;
 Fvector _ancor_pos;
 Fvector _wpn_root_pos;
+static const Fvector zero_vector { 0.f, 0.f, 0.f };
 
 float CalcMotionSpeed(const shared_str& anim_name)
 {
@@ -34,56 +35,48 @@ player_hud_motion* player_hud_motion_container::find_motion(const shared_str& na
 	return NULL;
 }
 
-void player_hud_motion_container::load(IKinematicsAnimated* model, const shared_str& sect)
-{
-	CInifile::Sect& _sect		= pSettings->r_section(sect);
-	CInifile::SectCIt _b		= _sect.Data.begin();
-	CInifile::SectCIt _e		= _sect.Data.end();
-	player_hud_motion* pm		= NULL;
-	
-	string512					buff;
-	MotionID					motion_ID;
+void player_hud_motion_container::load(IKinematicsAnimated* model, const shared_str& sect) {
+	m_anims.clear();	// на всякий случай
 
+	CInifile::Sect& _sect = pSettings->r_section(sect);
+	CInifile::SectCIt _b = _sect.Data.begin();
+	CInifile::SectCIt _e = _sect.Data.end();
+	player_hud_motion* pm = NULL;
+	string512 buff;
+	MotionID motion_ID;
 	for(;_b!=_e;++_b)
 	{
 		if(strstr(_b->first.c_str(), "anm_")==_b->first.c_str())
 		{
-			const shared_str& anm	= _b->second;
-			m_anims.resize			(m_anims.size()+1);
-			pm						= &m_anims.back();
+			const shared_str& anm = _b->second;
+			m_anims.emplace_back();
+			pm = &m_anims.back();
 			//base and alias name
-			pm->m_alias_name		= _b->first;
-			
+			pm->m_alias_name = _b->first;
 			if(_GetItemCount(anm.c_str())==1)
 			{
-				pm->m_base_name			= anm;
-				pm->m_additional_name	= anm;
+				pm->m_base_name = anm;
+				pm->m_additional_name = anm;
 			}else
 			{
 				R_ASSERT2(_GetItemCount(anm.c_str())==2, anm.c_str());
-				string512				str_item;
+				string512 str_item;
 				_GetItem(anm.c_str(),0,str_item);
-				pm->m_base_name			= str_item;
-
+				pm->m_base_name = str_item;
 				_GetItem(anm.c_str(),1,str_item);
-				pm->m_additional_name	= str_item;
+				pm->m_additional_name = str_item;
 			}
-
 			//and load all motions for it
-
 			for(u32 i=0; i<=8; ++i)
 			{
 				if(i==0)
-					strcpy_s				(buff,pm->m_base_name.c_str());		
+					strcpy_s (buff,pm->m_base_name.c_str());
 				else
-					sprintf				(buff,"%s%d",pm->m_base_name.c_str(),i);		
-
-				motion_ID				= model->ID_Cycle_Safe(buff);
+					sprintf (buff,"%s%d",pm->m_base_name.c_str(),i);
+				motion_ID = model->ID_Cycle_Safe(buff);
 				if(motion_ID.valid())
 				{
-					pm->m_animations.resize			(pm->m_animations.size()+1);
-					pm->m_animations.back().mid		= motion_ID;
-					pm->m_animations.back().name	= buff;
+					pm->m_animations.emplace_back(motion_descr{motion_ID, buff});
 #ifdef DEBUG
 					Msg(" alias=[%s] base=[%s] name=[%s]",pm->m_alias_name.c_str(), pm->m_base_name.c_str(), buff);
 #endif // #ifdef DEBUG
@@ -396,15 +389,13 @@ u32 attachable_hud_item::anim_play(const shared_str& anm_name_b, BOOL bMixIn, co
 	return ret;
 }
 
-
-player_hud::player_hud()
-{
-	m_model					= NULL;
-	m_attached_items[0]		= NULL;
-	m_attached_items[1]		= NULL;
-	m_transform.identity	();
+player_hud::player_hud() {
+	m_model				= NULL;
+	m_attached_items[0] = NULL;
+	m_attached_items[1] = NULL;
+	m_transform.identity();
+	m_attach_offset.identity();
 }
-
 
 player_hud::~player_hud()
 {
@@ -420,6 +411,10 @@ player_hud::~player_hud()
 		xr_delete				(a);
 	}
 	m_pool.clear				();
+}
+
+void attachable_hud_item::reload_hand_motions(IKinematicsAnimated* hands_model) {
+	m_hand_motions.load(hands_model, m_sect_name);
 }
 
 void player_hud::load(const shared_str& player_hud_sect)
@@ -447,18 +442,26 @@ void player_hud::load(const shared_str& player_hud_sect)
 			m_ancors.push_back		(m_model->dcast_PKinematics()->LL_BoneID(_bone));
 		}
 	}
-	if(!b_reload)
+
+	if(b_reload)
 	{
-		m_model->PlayCycle("hand_idle_doun");
-	}else
-	{
+		// перезагрузка анимаций для приаттаченых предметов с новой моделью рук
+		for(u32 i = 0; i < 2; ++i)
+		{
+			if(m_attached_items[i])
+			{
+				m_attached_items[i]->reload_hand_motions(m_model);
+			}
+		}
+
 		if(m_attached_items[1])
 			m_attached_items[1]->m_parent_hud_item->on_a_hud_attach();
 
 		if(m_attached_items[0])
 			m_attached_items[0]->m_parent_hud_item->on_a_hud_attach();
 	}
-	m_model->dcast_PKinematics()->CalculateBones_Invalidate	();
+	m_model->PlayCycle("hand_idle_doun");	// присутствует только в файле "Грозы"!
+	m_model->dcast_PKinematics()->CalculateBones_Invalidate();
 	m_model->dcast_PKinematics()->CalculateBones(TRUE);
 }
 
@@ -529,26 +532,25 @@ u32 player_hud::motion_length(const MotionID& M, const CMotionDef*& md, float sp
 	}
 	return					0;
 }
+
 const Fvector& player_hud::attach_rot() const
 {
-	if(m_attached_items[0])
+	if (m_attached_items[0])
 		return m_attached_items[0]->hands_attach_rot();
-	else
-	if(m_attached_items[1])
+	else if (m_attached_items[1])
 		return m_attached_items[1]->hands_attach_rot();
 	else
-		return Fvector().set(0,0,0);
+		return zero_vector;
 }
 
 const Fvector& player_hud::attach_pos() const
 {
-	if(m_attached_items[0])
+	if (m_attached_items[0])
 		return m_attached_items[0]->hands_attach_pos();
-	else
-	if(m_attached_items[1])
+	else if (m_attached_items[1])
 		return m_attached_items[1]->hands_attach_pos();
 	else
-		return Fvector().set(0,0,0);
+		return zero_vector;
 }
 
 void player_hud::update(const Fmatrix& cam_trans)
@@ -624,14 +626,15 @@ void player_hud::update_inertion(Fmatrix& trans)
 		static Fvector						st_last_dir={0,0,0};
 
 		// calc difference
-		Fvector								diff_dir;
+		Fvector								diff_dir{};
 		diff_dir.sub						(xform.k, st_last_dir);
 
 		// clamp by PI_DIV_2
-		Fvector last;						last.normalize_safe(st_last_dir);
+		Fvector last{};
+		last.normalize_safe(st_last_dir);
 		float dot							= last.dotproduct(xform.k);
 		if (dot<EPS){
-			Fvector v0;
+			Fvector v0{};
 			v0.crossproduct					(st_last_dir,xform.k);
 			st_last_dir.crossproduct		(xform.k,v0);
 			diff_dir.sub					(xform.k, st_last_dir);

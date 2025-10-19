@@ -9,30 +9,31 @@ class player_hud;
 class CHudItem;
 class CMotionDef;
 
-struct motion_descr
-{
+struct motion_descr {
 	MotionID		mid;
 	shared_str		name;
 };
 
-struct player_hud_motion
-{
+struct player_hud_motion {
 	shared_str				m_alias_name;
 	shared_str				m_base_name;
 	shared_str				m_additional_name;
 	xr_vector<motion_descr>	m_animations;
 };
 
-struct player_hud_motion_container
-{
+struct player_hud_motion_container {
 	xr_vector<player_hud_motion>	m_anims;
 	player_hud_motion*				find_motion(const shared_str& name);
 	void		load				(IKinematicsAnimated* model, const shared_str& sect);
 };
 
-struct hud_item_measures
-{
-	enum{e_fire_point=(1<<0), e_fire_point2=(1<<1), e_shell_point=(1<<2), e_16x9_mode_now=(1<<3)};
+struct hud_item_measures {
+	enum {
+		e_fire_point	= (1 << 0),
+		e_fire_point2	= (1 << 1),
+		e_shell_point	= (1 << 2),
+		e_16x9_mode_now = (1 << 3)
+	};
 	Flags8							m_prop_flags;
 
 	Fvector							m_item_attach[2];//pos,rot
@@ -51,22 +52,26 @@ struct hud_item_measures
 	void load						(const shared_str& sect_name, IKinematics* K);
 };
 
-struct attachable_hud_item
-{
-	player_hud*						m_parent;
-	CHudItem*						m_parent_hud_item;
-	shared_str						m_sect_name;
-	IKinematics*					m_model;
-	u16								m_attach_place_idx;
-	hud_item_measures				m_measures;
+struct attachable_hud_item {
+	player_hud*					m_parent;
+	CHudItem*					m_parent_hud_item;
+	shared_str					m_sect_name;
+	IKinematics*				m_model;
+	u16							m_attach_place_idx;
+	hud_item_measures			m_measures;
 
 	//runtime positioning
-	Fmatrix							m_attach_offset;
-	Fmatrix							m_item_transform;
+	Fmatrix						m_attach_offset;
+	Fmatrix						m_item_transform;
 
-	player_hud_motion_container		m_hand_motions;
-			
-			attachable_hud_item		(player_hud* pparent):m_parent(pparent),m_upd_firedeps_frame(u32(-1)),m_parent_hud_item(NULL){}
+	player_hud_motion_container m_hand_motions;
+
+	attachable_hud_item(player_hud* pparent)
+		: m_parent(pparent), m_upd_firedeps_frame(u32(-1)), m_parent_hud_item(NULL), m_model(NULL), m_attach_place_idx(0), m_measures{} {
+		m_attach_offset.identity();
+		m_item_transform.identity();
+	}
+
 			~attachable_hud_item	();
 	void load						(const shared_str& sect_name);
 	void update						(bool bForce);
@@ -87,15 +92,15 @@ struct attachable_hud_item
 	Fvector&						hands_offset_pos();
 	Fvector&						hands_offset_rot();
 
-//props
+	//props
 	u32								m_upd_firedeps_frame;
 	void		tune				(Ivector values);
 	u32			anim_play			(const shared_str& anim_name, BOOL bMixIn, const CMotionDef*& md, u8& rnd);
 
+	void							reload_hand_motions(IKinematicsAnimated* hands_model);
 };
 
-class player_hud
-{
+class player_hud {
 public: 
 					player_hud			();
 					~player_hud			();
@@ -121,11 +126,13 @@ public:
 	void			tune				(Ivector values);
 	u32				motion_length		(const MotionID& M, const CMotionDef*& md, float speed);
 	u32				motion_length		(const shared_str& anim_name, const shared_str& hud_name, const CMotionDef*& md);
-	void			OnMovementChanged	(ACTOR_DEFS::EMoveCommand cmd)	;
+	void			OnMovementChanged	(ACTOR_DEFS::EMoveCommand cmd);
+
 private:
 	void			update_inertion		(Fmatrix& trans);
 	void			update_additional	(Fmatrix& trans);
 	bool			inertion_allowed	();
+
 private:
 	const Fvector&	attach_rot			() const;
 	const Fvector&	attach_pos			() const;
@@ -139,7 +146,6 @@ private:
 	xr_vector<u16>						m_ancors;
 	attachable_hud_item*				m_attached_items[2];
 	xr_vector<attachable_hud_item*>		m_pool;
-
 };
 
 extern player_hud* g_player_hud;
