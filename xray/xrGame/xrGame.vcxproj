@@ -4500,7 +4500,9 @@
     <ClCompile Include="ElectricBall.cpp" />
     <ClCompile Include="ElevatorState.cpp" />
     <ClCompile Include="EliteDetector.cpp" />
-    <ClCompile Include="embedded_editor\controls\imgui_ext.cpp" />
+    <ClCompile Include="embedded_editor\controls\imgui_ext.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor.cpp" />
     <ClCompile Include="embedded_editor\embedded_editor_ae.cpp" />
     <ClCompile Include="embedded_editor\embedded_editor_details.cpp" />

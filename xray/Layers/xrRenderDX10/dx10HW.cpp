@@ -3,7 +3,6 @@
 
 #include "stdafx.h"
 
-
 #pragma warning(disable:4995)
 #include <d3dx/d3dx9.h>
 #pragma warning(default:4995)
@@ -15,8 +14,8 @@
 #include "StateManager\dx10StateCache.h"
 
 #include <d3dx/d3dx11core.h>
-#include <imgui.h>
-#include "imgui_impl_dx11.h"
+
+#include "../xrRender/imgui_setup.h"
 
 #ifndef _EDITOR
 void	fill_vid_mode_list			(CHW* _hw);
@@ -152,8 +151,6 @@ void CHW::CreateDevice( HWND m_hWnd, bool move_window )
 		ID3D11Device **ppDevice
 		);
 
-
-
 	_D3D11CreateDeviceAndSwapChain *CreateDeviceAndSwapChain = 
 		(_D3D11CreateDeviceAndSwapChain*)
 		GetProcAddress(hD3D,"D3D11CreateDeviceAndSwapChain");
@@ -264,7 +261,6 @@ void CHW::CreateDevice( HWND m_hWnd, bool move_window )
 		}
 		fDepth  = selectDepthStencil(fTarget);
 	}
-	
 
 	if ((D3DFMT_UNKNOWN==fTarget) || (D3DFMT_UNKNOWN==fTarget))	{
 		Msg					("Failed to initialize graphics hardware.\nPlease try to restart the game.");
@@ -272,7 +268,6 @@ void CHW::CreateDevice( HWND m_hWnd, bool move_window )
 		MessageBox			(NULL,"Failed to initialize graphics hardware.\nPlease try to restart the game.","Error!",MB_OK|MB_ICONERROR);
 		TerminateProcess	(GetCurrentProcess(),0);
 	}
-
 	*/
 	
 	// Set up the presentation parameters
@@ -345,7 +340,6 @@ void CHW::CreateDevice( HWND m_hWnd, bool move_window )
 		                                    &pDevice,
 											&FeatureLevel,		
 											&pContext);
-
 	/*
 	if (FAILED(R))	{
 		R	= HW.pD3D->CreateDevice(	DevAdapter,
@@ -419,12 +413,14 @@ void CHW::CreateDevice( HWND m_hWnd, bool move_window )
 	fill_vid_mode_list							(this);
 #endif
 
-	ImGui_ImplDX11_Init(m_hWnd, pDevice, pContext);
+	Device.m_pRender->ImGuiBackendInit();
+	imgui_build_fonts();
+	ImGui_ImplWin32_Init(m_hWnd);
 }
 
 void CHW::DestroyDevice()
 {
-	ImGui_ImplDX11_Shutdown();
+	Device.m_pRender->ImGuiBackendShutdown();
 
 	//	Destroy state managers
 	StateManager.Reset();
@@ -455,7 +451,6 @@ void CHW::DestroyDevice()
 	_SHOW_REF				("DeviceREF:",HW.pDevice);
 	_RELEASE				(HW.pDevice);
 
-
 	DestroyD3D				();
 
 #ifndef _EDITOR
@@ -468,7 +463,7 @@ void CHW::DestroyDevice()
 //////////////////////////////////////////////////////////////////////
 void CHW::Reset (HWND hwnd)
 {
-	ImGui_ImplDX11_InvalidateDeviceObjects();
+	Device.m_pRender->ImGuiBackendInvalidateDeviceObjects();
 
 	DXGI_SWAP_CHAIN_DESC &cd = m_ChainDesc;
 
@@ -491,7 +486,6 @@ void CHW::Reset (HWND hwnd)
 		desc.RefreshRate = selectRefresh( desc.Width, desc.Height, desc.Format);
 
 	CHK_DX(m_pSwapChain->ResizeTarget(&desc));
-
 
 #ifdef DEBUG
 	//	_RELEASE			(dwDebugSB);
@@ -530,15 +524,12 @@ void CHW::Reset (HWND hwnd)
 	R_CHK				(pDevice->GetDepthStencilSurface	(&pBaseZB));
 */
 
-
 //#ifdef DEBUG
 //	R_CHK				(pDevice->CreateStateBlock			(D3DSBT_ALL,&dwDebugSB));
 //#endif
 
 	updateWindowProps	(hwnd);
-
-
-		/*
+/*
 #ifdef DEBUG
 	_RELEASE			(dwDebugSB);
 #endif
@@ -573,9 +564,8 @@ void CHW::Reset (HWND hwnd)
 #ifndef _EDITOR
 	updateWindowProps	(hwnd);
 #endif
-	*/
-
-	ImGui_ImplDX11_CreateDeviceObjects();
+*/
+	Device.m_pRender->ImGuiBackendCreateDeviceObjects();
 }
 
 D3DFORMAT CHW::selectDepthStencil	(D3DFORMAT fTarget)
@@ -940,8 +930,6 @@ void fill_vid_mode_list(CHW* _hw)
 		_tmp.back()					= xr_strdup(str);
 	}
 	
-
-
 //	_tmp.push_back				(NULL);
 //	_tmp.back()					= xr_strdup("1024x768");
 

@@ -60,6 +60,19 @@ public:
 	virtual void	SetCacheXform(Fmatrix &mView, Fmatrix &mProject) = 0;
 	virtual void	OnAssetsChanged() = 0;
 
+	enum RenderAPI {
+		API_DX9,
+		API_DX11
+	};
+
+	virtual RenderAPI				  GetRenderAPI() const								= 0;
+	virtual void					  ImGuiBackendInit()								= 0;
+	virtual void					  ImGuiBackendShutdown()							= 0;
+	virtual void					  ImGuiBackendInvalidateDeviceObjects()				= 0;
+	virtual void					  ImGuiBackendCreateDeviceObjects()					= 0;
+	virtual void					  ImGuiBackendNewFrame()							= 0;
+	virtual void					  ImGuiBackendRenderDrawData(ImDrawData* draw_data) = 0;
+
 	virtual const xr_vector<Shader*>& GetShaders() = 0;
 };
 

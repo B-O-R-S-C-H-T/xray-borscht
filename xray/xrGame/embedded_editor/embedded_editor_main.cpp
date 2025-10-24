@@ -186,8 +186,9 @@ bool Editor_KeyPress(int key)
         io.AddInputCharacter('0' + key - DIK_NUMPAD0);
         break;
     default:
-        if (key < 512)
-            io.KeysDown[key] = true;
+        if (key >= 0 && key < ImGuiKey_NamedKey_END) {
+            io.AddKeyEvent(static_cast<ImGuiKey>(key), true);
+        }
         if (key == DIK_SPACE && (pInput->iGetAsyncKeyState(DIK_RWIN) || pInput->iGetAsyncKeyState(DIK_LWIN)))
             ActivateKeyboardLayout((HKL)HKL_NEXT, 0);
         else {
@@ -250,8 +251,9 @@ bool Editor_KeyRelease(int key)
         io.MouseDown[2] = false;
         break;
     default:
-        if (key < 512)
-            io.KeysDown[key] = false;
+        if (key >= 0 && key < ImGuiKey_NamedKey_END) {
+            io.AddKeyEvent(static_cast<ImGuiKey>(key), false);
+        }
     }
     return true;
 }

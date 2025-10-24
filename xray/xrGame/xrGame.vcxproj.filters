@@ -2578,20 +2578,20 @@
     <Filter Include="Core\Client\Objects\items &amp; weapons\Devices\Dosimeter">
       <UniqueIdentifier>{d4cb7526-88b0-43ed-b57e-59efcee31875}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Embedded editor">
-      <UniqueIdentifier>{9e7da499-55df-4d00-b59f-3338b00484de}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Embedded editor\render">
-      <UniqueIdentifier>{4dcf3546-414e-4284-b013-52fa2ab1c26d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Embedded editor\controls">
-      <UniqueIdentifier>{8b2a7209-3d11-4e8f-95df-61f221d68681}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Include">
       <UniqueIdentifier>{3b8b78c7-f43f-455e-84b2-a5441bb3f447}</UniqueIdentifier>
     </Filter>
     <Filter Include="Core\Client\Objects\physics\Pendulum">
       <UniqueIdentifier>{0b478ece-4d47-4f0f-b04a-94bcce2c697e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Embedded Editor">
+      <UniqueIdentifier>{9e7da499-55df-4d00-b59f-3338b00484de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Embedded Editor\render">
+      <UniqueIdentifier>{4dcf3546-414e-4284-b013-52fa2ab1c26d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Embedded Editor\controls">
+      <UniqueIdentifier>{8b2a7209-3d11-4e8f-95df-61f221d68681}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -7471,55 +7471,55 @@
       <Filter>Core\Client\Objects\base\GameObject</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor_main.h">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor_weather.h">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor_prop.h">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor_logic.h">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor_helper.h">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor_ae.h">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor_stats.h">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor_ui.h">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor_map.h">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor_hud.h">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor_le.h">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor_se.h">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\render\editor_render.h">
-      <Filter>Embedded editor\render</Filter>
+      <Filter>Embedded Editor\render</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\render\editor_render_ai_map.h">
-      <Filter>Embedded editor\render</Filter>
+      <Filter>Embedded Editor\render</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\render\editor_render_spawn_element.h">
-      <Filter>Embedded editor\render</Filter>
+      <Filter>Embedded Editor\render</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\controls\imgui_ext.h">
-      <Filter>Embedded editor\controls</Filter>
+      <Filter>Embedded Editor\controls</Filter>
     </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor.h">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClInclude>
     <ClInclude Include="objects\physics\Pendulum.h">
       <Filter>Core\Client\Objects\physics\Pendulum</Filter>
@@ -11169,70 +11169,70 @@
       <Filter>Core\Client\Objects\base\GameObject</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_main.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_weather.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_prop.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_logic.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_helper.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_ae.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_postprocess.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_stats.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_ui.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_map.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_hud.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_le.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_se.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\render\editor_render.cpp">
-      <Filter>Embedded editor\render</Filter>
+      <Filter>Embedded Editor\render</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\render\editor_render_ai_map.cpp">
-      <Filter>Embedded editor\render</Filter>
+      <Filter>Embedded Editor\render</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\render\editor_render_spawn_element.cpp">
-      <Filter>Embedded editor\render</Filter>
+      <Filter>Embedded Editor\render</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\controls\imgui_ext.cpp">
-      <Filter>Embedded editor\controls</Filter>
+      <Filter>Embedded Editor\controls</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_details.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_envmod.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="..\Include\ai_sounds.cpp">
       <Filter>Include</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\infoportions.cpp">
-      <Filter>Embedded editor</Filter>
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="objects\physics\Pendulum.cpp">
       <Filter>Core\Client\Objects\physics\Pendulum</Filter>

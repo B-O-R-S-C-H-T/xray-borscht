@@ -3,15 +3,13 @@
 
 #include "stdafx.h"
 
-
 #pragma warning(disable:4995)
 #include <d3dx/d3dx9.h>
 #pragma warning(default:4995)
 #include "HW.h"
 #ifndef _EDITOR
-#include "../../xrEngine/XR_IOConsole.h"
-#include <imgui.h>
-#include "../xrRenderDX9/imgui_impl_dx9.h"
+	#include "../../xrEngine/XR_IOConsole.h"
+	#include "imgui_setup.h"
 #endif
 
 #ifndef _EDITOR
@@ -52,7 +50,7 @@ CHW::~CHW()
 void CHW::Reset		(HWND hwnd)
 {
 #ifndef _EDITOR
-	ImGui_ImplDX9_InvalidateDeviceObjects();
+	Device.m_pRender->ImGuiBackendInvalidateDeviceObjects();
 #endif
 
 #ifdef DEBUG
@@ -96,7 +94,7 @@ void CHW::Reset		(HWND hwnd)
 #endif
 
 #ifndef _EDITOR
-	ImGui_ImplDX9_CreateDeviceObjects();
+	Device.m_pRender->ImGuiBackendCreateDeviceObjects();
 #endif
 }
 
@@ -119,7 +117,6 @@ void CHW::CreateD3D	()
 	if (!g_dedicated_server)
 #endif    
 		_name			= "d3d9.dll";
-
 
 	hD3D            			= LoadLibrary(_name);
 	R_ASSERT2	           	 	(hD3D,"Can't find 'd3d9.dll'\nPlease install latest version of DirectX before running this program");
@@ -170,7 +167,7 @@ D3DFORMAT CHW::selectDepthStencil	(D3DFORMAT fTarget)
 void	CHW::DestroyDevice	()
 {
 #ifndef _EDITOR
-	ImGui_ImplDX9_Shutdown();
+	Device.m_pRender->ImGuiBackendShutdown();
 #endif
 
 	_SHOW_REF				("refCount:pBaseZB",pBaseZB);
@@ -238,7 +235,7 @@ void	CHW::selectResolution	(u32 &dwWidth, u32 &dwHeight, BOOL bWindowed)
 
 }
 
-void		CHW::CreateDevice		(HWND m_hWnd, bool move_window)
+void CHW::CreateDevice(HWND m_hWnd, bool move_window)
 {
 	m_move_window			= move_window;
 	CreateD3D				();
@@ -276,7 +273,6 @@ void		CHW::CreateDevice		(HWND m_hWnd, bool move_window)
 		}
 	}
 #endif	//	MASTER_GOLD
-
 
 	// Display the name of video board
 	D3DADAPTER_IDENTIFIER9	adapterID;
@@ -430,10 +426,10 @@ void		CHW::CreateDevice		(HWND m_hWnd, bool move_window)
 #ifndef _EDITOR
 	updateWindowProps							(m_hWnd);
 	fill_vid_mode_list							(this);
-#endif
 
-#ifndef _EDITOR
-	ImGui_ImplDX9_Init(m_hWnd, pDevice);
+	Device.m_pRender->ImGuiBackendInit();
+	imgui_build_fonts();
+	ImGui_ImplWin32_Init(m_hWnd);
 #endif
 }
 

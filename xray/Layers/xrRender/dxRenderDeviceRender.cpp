@@ -1,5 +1,10 @@
 #include "stdafx.h"
+
 #include "dxRenderDeviceRender.h"
+
+#include <backends/imgui_impl_dx9.h>
+#include <backends/imgui_impl_dx11.h>
+#include <backends/imgui_impl_win32.h>
 
 #include "ResourceManager.h"
 
@@ -385,6 +390,64 @@ void  dxRenderDeviceRender::OnAssetsChanged()
 {
 	Resources->m_textures_description.UnLoad();
 	Resources->m_textures_description.Load();
+}
+
+// USE_DX10 недоступно нигде, кроме xrRender_R3, поэтому пришлось сделать такой селектор,
+// чтобы не было путаницы с подхватыванием dx9 бэкенда из dx11 рендерера.
+IRenderDeviceRender::RenderAPI dxRenderDeviceRender::GetRenderAPI() const {
+#ifdef USE_DX10
+	return IRenderDeviceRender::API_DX11;
+#else
+	return IRenderDeviceRender::API_DX9;
+#endif
+}
+
+void dxRenderDeviceRender::ImGuiBackendInit() {
+#ifdef USE_DX10
+	ImGui_ImplDX11_Init(HW.pDevice, HW.pContext);
+#else
+	ImGui_ImplDX9_Init(HW.pDevice);
+#endif
+}
+
+void dxRenderDeviceRender::ImGuiBackendShutdown() {
+#ifdef USE_DX10
+	ImGui_ImplDX11_Shutdown();
+#else
+	ImGui_ImplDX9_Shutdown();
+#endif
+}
+
+void dxRenderDeviceRender::ImGuiBackendInvalidateDeviceObjects() {
+#ifdef USE_DX10
+	ImGui_ImplDX11_InvalidateDeviceObjects();
+#else
+	ImGui_ImplDX9_InvalidateDeviceObjects();
+#endif
+}
+
+void dxRenderDeviceRender::ImGuiBackendCreateDeviceObjects() {
+#ifdef USE_DX10
+	ImGui_ImplDX11_CreateDeviceObjects();
+#else
+	ImGui_ImplDX9_CreateDeviceObjects();
+#endif
+}
+
+void dxRenderDeviceRender::ImGuiBackendNewFrame() {
+#ifdef USE_DX10
+	ImGui_ImplDX11_NewFrame();
+#else
+	ImGui_ImplDX9_NewFrame();
+#endif
+}
+
+void dxRenderDeviceRender::ImGuiBackendRenderDrawData(ImDrawData* draw_data) {
+#ifdef USE_DX10
+	ImGui_ImplDX11_RenderDrawData(draw_data);
+#else
+	ImGui_ImplDX9_RenderDrawData(draw_data);
+#endif
 }
 
 const xr_vector<Shader*>& dxRenderDeviceRender::GetShaders()

@@ -1,22 +1,24 @@
-#include "stdafx.h"
-#include "imgui_ext.h"
-#include <imgui.h>
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include "imgui_ext.h"
 #include <imgui_internal.h>
+#include <ctype.h>
 
 bool ImGui_ListBox(const char* label, int* current_item, bool (*items_getter)(void*, int, const char**), void* data,
     int items_count, const ImVec2& size_arg)
 {
-    if (!ImGui::ListBoxHeader(label, size_arg))
+    if (!ImGui::BeginListBox(label, size_arg))
         return false;
 
     // Assume all items have even height (= 1 line of text). If you need items of different or variable sizes you can
     // create a custom version of ListBox() in your code without using the clipper.
     bool value_changed = false;
-    ImGuiListClipper clipper(items_count, ImGui::GetTextLineHeightWithSpacing()); // We know exactly our line height
-                                                                                  // here so we pass it as a minor
-                                                                                  // optimization, but generally you
-                                                                                  // don't need to.
+    ImGuiListClipper clipper;
+    clipper.Begin(items_count, ImGui::GetTextLineHeightWithSpacing()); // We know exactly our line height
+                                                                       // here so we pass it as a minor
+                                                                       // optimization, but generally you
+                                                                       // don't need to.
     while (clipper.Step())
         for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
             const bool item_selected = (i == *current_item);
@@ -31,7 +33,7 @@ bool ImGui_ListBox(const char* label, int* current_item, bool (*items_getter)(vo
             }
             ImGui::PopID();
         }
-    ImGui::ListBoxFooter();
+    ImGui::EndListBox();
     return value_changed;
 }
 
@@ -74,8 +76,7 @@ int compare_naturally(const void* a_ptr, const void* b_ptr)
 
 namespace ImGui {
 
-bool Plot2(const char* label, const PlotSource* data, int dataCount, float currentTime, float totalTime,
-    ImVec2 graphSize, ChangedData* changes)
+bool ImGui::Plot2(const char* label, const PlotSource* data, int dataCount, float currentTime, float totalTime, ImVec2 graphSize, ChangedData* changes)
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
@@ -94,7 +95,7 @@ bool Plot2(const char* label, const PlotSource* data, int dataCount, float curre
     ItemSize(total_bb, style.FramePadding.y);
     if (!ItemAdd(total_bb, id, &frame_bb))
         return false;
-    const bool hovered = ItemHoverable(inner_bb, id);
+    const bool hovered = ItemHoverable(inner_bb, id, ImGuiItemFlags_None);
     if (hovered) {
         if (g.IO.MouseClicked[0]) {
             SetActiveID(id, window);
@@ -227,7 +228,8 @@ bool Plot2(const char* label, const PlotSource* data, int dataCount, float curre
 
     return changed;
 }
-}
+
+} // namespace ImGui
 
 bool ImGui_ColoredCheckBox(const char* label, bool* v, ImU32 color)
 {

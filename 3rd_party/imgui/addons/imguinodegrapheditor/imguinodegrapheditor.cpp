@@ -1,15 +1,16 @@
 //- Common Code For All Addons needed just to ease inclusion as separate files in user code ----------------------
-#include "../../imgui.h"
 #undef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
+#include "../../imgui.h"
 #include "../../imgui_internal.h"
 //-----------------------------------------------------------------------------------------------------------------
 
 #include <stdlib.h> // qsort
 
-
 #if !defined(alloca)
-#   ifdef _WIN32
+#	if defined(__GLIBC__) || defined(__sun) || defined(__APPLE__) || defined(__NEWLIB__)
+#		include <alloca.h>     // alloca (glibc uses <alloca.h>. Note that Cygwin may have _WIN32 defined, so the order matters here)
+#	elif defined(_WIN32)
 #       include <malloc.h>     // alloca
 #       if !defined(alloca)
 #           define alloca _alloca  // for clang with MS Codegen
@@ -83,11 +84,15 @@ inline static void GetVerticalGradientTopAndBottomColors(ImU32 c,float fillColor
     const int A = (unsigned char) (c>>IM_COL32_A_SHIFT);
 
     int r = R+fcgi, g = G+fcgi, b = B+fcgi;
-    if (r>255) r=255;if (g>255) g=255;if (b>255) b=255;
+    if (r>255) r=255;
+    if (g>255) g=255;
+    if (b>255) b=255;
     if (negative) bc = IM_COL32(r,g,b,A); else tc = IM_COL32(r,g,b,A);
 
     r = R-fcgi; g = G-fcgi; b = B-fcgi;
-    if (r<0) r=0;if (g<0) g=0;if (b<0) b=0;
+    if (r<0) r=0;
+    if (g<0) g=0;
+    if (b<0) b=0;
     if (negative) tc = IM_COL32(r,g,b,A); else bc = IM_COL32(r,g,b,A);
 
     // Old legacy code (to remove)... [However here we lerp alpha too...]
@@ -227,7 +232,7 @@ static void ImDrawListPathFillWithVerticalGradientAndStroke(ImDrawList *dl, cons
     if ((strokeColor& IM_COL32_A_MASK)!= 0 && strokeThickness>0) dl->AddPolyline(dl->_Path.Data, dl->_Path.Size, strokeColor, strokeClosed, strokeThickness);
     dl->PathClear();
 }
-static void ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColorTop, const ImU32 &fillColorBottom, const ImU32 &strokeColor, float rounding = 0.0f, int rounding_corners = 0x0F,float strokeThickness = 1.0f) {
+static void ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColorTop, const ImU32 &fillColorBottom, const ImU32 &strokeColor, float rounding = 0.0f, int rounding_corners = ImDrawFlags_RoundCornersAll,float strokeThickness = 1.0f) {
     if (!dl || (((fillColorTop & IM_COL32_A_MASK) == 0) && ((fillColorBottom & IM_COL32_A_MASK) == 0) && ((strokeColor & IM_COL32_A_MASK) == 0)))  return;
     if (rounding==0.f || rounding_corners==0) {
         dl->AddRectFilledMultiColor(a,b,fillColorTop,fillColorTop,fillColorBottom,fillColorBottom); // Huge speedup!
@@ -242,7 +247,7 @@ static void ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &
         ImDrawListPathFillWithVerticalGradientAndStroke(dl,fillColorTop,fillColorBottom,strokeColor,true,strokeThickness,a.y,b.y);
     }
 }
-static void ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColor, float fillColorGradientDeltaIn0_05, const ImU32 &strokeColor, float rounding = 0.0f, int rounding_corners = 0x0F,float strokeThickness = 1.0f)   {
+static void ImDrawListAddRectWithVerticalGradient(ImDrawList *dl, const ImVec2 &a, const ImVec2 &b, const ImU32 &fillColor, float fillColorGradientDeltaIn0_05, const ImU32 &strokeColor, float rounding = 0.0f, int rounding_corners = ImDrawFlags_RoundCornersAll,float strokeThickness = 1.0f)   {
     ImU32 fillColorTop,fillColorBottom;GetVerticalGradientTopAndBottomColors(fillColor,fillColorGradientDeltaIn0_05,fillColorTop,fillColorBottom);
     ImDrawListAddRectWithVerticalGradient(dl,a,b,fillColorTop,fillColorBottom,strokeColor,rounding,rounding_corners,strokeThickness);
 }
@@ -543,7 +548,7 @@ void NodeGraphEditor::render()
                         menuNode=node;
                         open_context_menu=true;
                     }
-                    else if (io.MouseReleased[2] || ImGui::IsKeyPressed(io.KeyMap[ImGuiKey_Home]) || io.MouseDoubleClicked[0]) node_to_center_view_around = node;
+                    else if (io.MouseReleased[2] || ImGui::IsKeyPressed(ImGuiKey_Home) || io.MouseDoubleClicked[0]) node_to_center_view_around = node;
                 }
                 ImGui::PopID();
             }
@@ -643,9 +648,6 @@ void NodeGraphEditor::render()
         }
 #       endif //NO_IMGUIHELPER_SERIALIZATION
 
-		if (leftPaneCallback)
-			leftPaneCallback(*this);
-
         ImGui::EndChild();
 
         // horizontal splitter
@@ -720,43 +722,30 @@ void NodeGraphEditor::render()
             ImGuiContext& g = *GImGui;
             ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-            // New: to ensure font scaling in subchilds of the nodes too, we MUST track g.Font->Scale,
-            // instead of ImGui::GetCurrentWindow()->FontWindowScale.
-	    // Note that this change could break io.FontAllowUserScaling==true (To test, but it didn't work as expacted anyway)
-            float oldFontScaleToReset = g.Font->Scale;      // We'll clean up at the bottom
-            float fontScaleStored = oldFontWindowScale ? oldFontWindowScale : oldFontScaleToReset;
-            float& fontScaleToTrack = g.Font->Scale;
+            const float windowFontScaleToReset = window->FontWindowScale;
+            if (windowFontScale!=0.f) SetWindowFontScale(windowFontScale);
 
             if (!io.FontAllowUserScaling)   {
-                // Set the correct font scale (3 lines)
-                fontScaleToTrack = fontScaleStored;
-                g.FontBaseSize = io.FontGlobalScale * g.Font->Scale * g.Font->FontSize;
-                g.FontSize = window->CalcFontSize();
-
-                if (io.KeyCtrl && ImGui::GetCurrentWindow()==GImGui->HoveredWindow && (io.MouseWheel || io.MouseClicked[2]))   {
+                if (io.KeyCtrl && ImGui::GetCurrentWindow()==GImGui->HoveredWindow && (io.MouseWheel || io.MouseClicked[2]) && windowFontScale>0.f)   {
                     // Zoom / Scale window
-                    float new_font_scale = ImClamp(fontScaleToTrack + g.IO.MouseWheel * 0.075f, 0.50f, 2.50f);
-                    if (io.MouseClicked[2]) new_font_scale = 1.f;   // MMB = RESET ZOOM
-                    float scale = new_font_scale/fontScaleToTrack;
-                    if (scale!=1)	{
-                        scrolling=scrolling*scale;
-                        // Set the correct font scale (3 lines), and store it
-                        fontScaleStored = fontScaleToTrack = new_font_scale;
-                        g.FontBaseSize = io.FontGlobalScale * g.Font->Scale * g.Font->FontSize;
-                        g.FontSize = window->CalcFontSize();
-                    }
+                    float newWindowFontScale = ImClamp(windowFontScale + g.IO.MouseWheel * 0.075f, 0.50f, 2.50f);
+                    if (io.MouseClicked[2]) newWindowFontScale = 1.f;   // MMB = RESET ZOOM
+                    float scalingDelta = newWindowFontScale/windowFontScale;
+                    scrolling=scrolling*scalingDelta;
+                    windowFontScale=newWindowFontScale;
+                    SetWindowFontScale(windowFontScale);
                 }
             }
 
             // fixes zooming just a bit
             bool nodesHaveZeroSize = false;
-            const float currentFontWindowScale = !io.FontAllowUserScaling ? fontScaleStored : ImGui::GetCurrentWindow()->FontWindowScale;
-            if (oldFontWindowScale==0.f) {
-                oldFontWindowScale = currentFontWindowScale;
+            const float currentFontWindowScale = window->FontWindowScale;
+            if (windowFontScale==0.f) {
+                windowFontScale = currentFontWindowScale;
                 nodesHaveZeroSize = true;   // at start or after clear()
                 scrolling = ImGui::GetWindowSize()*.5f;
             }
-            else if (oldFontWindowScale!=currentFontWindowScale) {
+            else if (windowFontScale!=currentFontWindowScale) {
                 nodesHaveZeroSize = true;
                 for (int i=0,isz=nodes.size();i<isz;i++)    {
                     Node* node = nodes[i];
@@ -764,8 +753,10 @@ void NodeGraphEditor::render()
                 }
                 // These two lines makes the scaling work around the mouse position AFAICS
                 if (io.FontAllowUserScaling)	{
+                    // UNTESTED BRANCH!
                     const ImVec2 delta = (io.MousePos-ImGui::GetCursorScreenPos());//-ImGui::GetWindowSize()*.5f));
-                    scrolling+=(delta*currentFontWindowScale-delta*oldFontWindowScale)/currentFontWindowScale;
+                    scrolling+=(delta*currentFontWindowScale-delta*windowFontScale)/currentFontWindowScale;
+                    // Code removed
                     /*ImGuiWindow* window = ImGui::GetCurrentWindow();
         float scale = currentFontWindowScale / oldFontWindowScale;
         ImVec2 oldWindowSize = window->Size/scale;
@@ -773,7 +764,7 @@ void NodeGraphEditor::render()
         */
                     //------------------------------------------------------------------------
                 }
-                oldFontWindowScale = currentFontWindowScale;
+                windowFontScale = currentFontWindowScale;
                 maxConnectorNameWidth = 0.f;
             }
 
@@ -840,7 +831,9 @@ void NodeGraphEditor::render()
 
             const bool isLMBClicked = ImGui::IsMouseClicked(0);
             const bool isLMBDoubleClicked = ImGui::IsMouseDoubleClicked(0);
-            const bool isMouseDraggingForMovingNodes = isMouseHoveringWindow && ImGui::IsMouseDragging(0, 8.0f);	// This is not enough for a node to be actually moved
+            // Note that this alone is not enough for a node to be actually moved:
+            const bool isMouseDraggingForMovingNodes = isMouseHoveringWindow && //ImGui::IsMouseDragging(0, 8.0f);  // Hey: IsMouseDragging(...) in this case does not work anymore! It can still move nodes, but it does not allow rectangle selection anymore. Why?
+                    io.MouseDown[0];    // Very bad fallback that works but is much less robust...
 
             // Display links variable (their display code have been moved down)
             const bool cantDragAnything = isMouseDraggingForScrolling || mouseRectangularSelectionForNodesStarted;
@@ -893,7 +886,7 @@ void NodeGraphEditor::render()
 
                 bool nodeInEditMode = false;
                 ImGui::BeginGroup(); // Lock horizontal position
-                ImGui::SetNextTreeNodeOpen(node->isOpen,ImGuiCond_Always);
+                ImGui::SetNextItemOpen(node->isOpen,ImGuiCond_Always);
 
                 ImU32 titleTextColorU32 = 0, titleBgColorU32 = 0;float titleBgGradient = -1.f;
                 node->getDefaultTitleBarColors(titleTextColorU32,titleBgColorU32,titleBgGradient);
@@ -1128,7 +1121,7 @@ void NodeGraphEditor::render()
                         if (jn->isSelected) jn->Pos = jn->Pos + mouseDeltaPos;
                     }
                     isSomeNodeMoving=true;
-                }
+                }                
 
                 const ImU32& node_bg_color = (node_hovered_in_list == node || node_hovered_in_scene == node) ? style.color_node_hovered :
                                                                                                                (activeNode == node ? style.color_node_active :
@@ -1145,15 +1138,15 @@ void NodeGraphEditor::render()
                     float fillGradientFactor = node->overrideTitleBgColorGradient>=0.f ? node->overrideTitleBgColorGradient : titleBgGradient>=0.f ? titleBgGradient : style.color_node_title_background_gradient;//0.15f;
                     if (node->isSelected) fillGradientFactor = -fillGradientFactor; // or if (node==activeNode)
                     if (fillGradientFactor!=0.f)    {
-                        if (node->isOpen) ImGui::NGE_Draw::ImDrawListAddRectWithVerticalGradient(draw_list,node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor,fillGradientFactor,IM_COL32_BLACK_TRANS,style.node_rounding,1|2);
+                        if (node->isOpen) ImGui::NGE_Draw::ImDrawListAddRectWithVerticalGradient(draw_list,node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor,fillGradientFactor,IM_COL32_BLACK_TRANS,style.node_rounding,ImDrawFlags_RoundCornersTop);
                         else ImGui::NGE_Draw::ImDrawListAddRectWithVerticalGradient(draw_list,node_rect_min, node_rect_max, nodeTitleBgColor,fillGradientFactor,IM_COL32_BLACK_TRANS, style.node_rounding);
                     }
                     else {
-                        if (node->isOpen) draw_list->AddRectFilled(node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor, style.node_rounding,1|2);
+                        if (node->isOpen) draw_list->AddRectFilled(node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor, style.node_rounding,ImDrawFlags_RoundCornersTop);
                         else draw_list->AddRectFilled(node_rect_min, node_rect_max, nodeTitleBgColor, style.node_rounding);
                     }
 #                   else // SKIP_VERTICAL_GRADIENT
-                    if (node->isOpen) draw_list->AddRectFilled(node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor, style.node_rounding,1|2);
+                    if (node->isOpen) draw_list->AddRectFilled(node_rect_min, ImVec2(node_rect_max.x,node_rect_min.y+nodeTitleBarBgHeight), nodeTitleBgColor, style.node_rounding,ImDrawFlags_RoundCornersTop);
                     else draw_list->AddRectFilled(node_rect_min, node_rect_max, nodeTitleBgColor, style.node_rounding);
 #                   undef SKIP_VERTICAL_GRADIENT
 #                   endif // SKIP_VERTICAL_GRADIENT
@@ -1166,7 +1159,7 @@ void NodeGraphEditor::render()
                                                                                            ((node_hovered_in_list == node || node_hovered_in_scene == node) ? style.color_node_frame_hovered :
                                                                                                                                                               style.color_node_frame));
                 const float lineThickness = ((activeNode == node) ? 3.0f : (node->isSelected ? 2.0f : 1.f))*currentFontWindowScale;
-                draw_list->AddRect(node_rect_min, node_rect_max, node_frame_color, style.node_rounding,0x0F,lineThickness);    // Frame
+                draw_list->AddRect(node_rect_min, node_rect_max, node_frame_color, style.node_rounding,ImDrawFlags_RoundCornersAll,lineThickness);    // Frame
 
                 // Line below node name
                 if (node->isOpen) {
@@ -1383,7 +1376,7 @@ void NodeGraphEditor::render()
                         //if (io.MouseDelta.x!=0.f || io.MouseDelta.y!=0.f)   fprintf(stderr,"%d) MP{%1.0f,%1.0f} p1{%1.0f,%1.0f} p2{%1.0f,%1.0f} distanceSquared=%1.4f hoveredLinkDistSqrThres=%1.4f\n",link_idx,io.MousePos.x,io.MousePos.y,p1.x,p1.y,p2.x,p2.y,distanceSquared,hoveredLinkDistSqrThres);
                     }
 
-                    draw_list->AddBezierCurve(p1,cp1,cp2,p2,style.color_link,(nearestLinkId!=link_idx) ? link_line_width : (link_line_width*2.f), style.link_num_segments);
+                    draw_list->AddBezierCubic(p1,cp1,cp2,p2,style.color_link,(nearestLinkId!=link_idx) ? link_line_width : (link_line_width*2.f), style.link_num_segments);
                 }
                 if (nearestLinkId!=-1 && io.MouseReleased[0]) {
                     //fprintf(stderr,"Removing link at: %d\n",nearestLinkId);
@@ -1396,12 +1389,12 @@ void NodeGraphEditor::render()
                 if (dragNode.inputSlotIdx!=-1)  {   // Dragging from the output slot of dragNode
                     ImVec2 p1 = offset + dragNode.node->GetOutputSlotPos(dragNode.inputSlotIdx,currentFontWindowScale);
                     const ImVec2& p2 = io.MousePos;//offset + node_out->GetInputSlotPos(link.OutputSlot);
-                    draw_list->AddBezierCurve(p1, p1+link_cp, p2-link_cp, p2, style.color_link, link_line_width, style.link_num_segments);
+                    draw_list->AddBezierCubic(p1, p1+link_cp, p2-link_cp, p2, style.color_link, link_line_width, style.link_num_segments);
                 }
                 else if (dragNode.outputSlotIdx!=-1)  {  // Dragging from the input slot of dragNode
                     const ImVec2& p1 = io.MousePos;//
                     ImVec2 p2 = offset + dragNode.node->GetInputSlotPos(dragNode.outputSlotIdx,currentFontWindowScale);
-                    draw_list->AddBezierCurve(p1, p1+link_cp, p2-link_cp, p2, style.color_link, link_line_width, style.link_num_segments);
+                    draw_list->AddBezierCubic(p1, p1+link_cp, p2-link_cp, p2, style.color_link, link_line_width, style.link_num_segments);
                 }
             }
 
@@ -1440,7 +1433,7 @@ void NodeGraphEditor::render()
 
 
             // Open context menu
-            if (!open_context_menu && (node_hovered_in_scene || node_hovered_in_list) && ((ImGui::IsKeyReleased(io.KeyMap[ImGuiKey_Delete]) && !ImGui::GetIO().WantTextInput) || mustDeleteANodeSoon)) {
+            if (!open_context_menu && (node_hovered_in_scene || node_hovered_in_list) && ((ImGui::IsKeyReleased(ImGuiKey_Delete) && !ImGui::GetIO().WantTextInput) || mustDeleteANodeSoon)) {
                 // Delete selected node directly:
                 menuNode = node_hovered_in_scene ? node_hovered_in_scene : node_hovered_in_list ? node_hovered_in_list : NULL;
                 if (menuNode==node_to_fire_edit_callback) node_to_fire_edit_callback = NULL;
@@ -1486,7 +1479,7 @@ void NodeGraphEditor::render()
                     if (absSelection.Min.y>absSelection.Max.y)  {float tmp = absSelection.Min.y;absSelection.Min.y=absSelection.Max.y;absSelection.Max.y=tmp;}
 
                     draw_list->AddRectFilled(absSelection.Min, absSelection.Max, style.color_mouse_rectangular_selection, 0.f);
-                    draw_list->AddRect(absSelection.Min, absSelection.Max, style.color_mouse_rectangular_selection_frame, 0.f,0x0F,4.0f*currentFontWindowScale);    // Frame
+                    draw_list->AddRect(absSelection.Min, absSelection.Max, style.color_mouse_rectangular_selection_frame, 0.f,ImDrawFlags_RoundCornersAll,4.0f*currentFontWindowScale);    // Frame
                 }
                 else if (mouseRectangularSelectionForNodesStarted) {
                     // Note: merging this if branch into the main node loop would save a second loop for selecting nodes [Possible opt]
@@ -1595,19 +1588,17 @@ void NodeGraphEditor::render()
             // TODO: We can probably adjust the or-group better, using the new flags/methods, in next line
             if (isMouseDraggingForScrolling && (ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) || ImGui::IsWindowFocused() || IsWindowFocused(ImGuiFocusedFlags_RootWindow))) {
                 scrolling = scrolling - io.MouseDelta;
-                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+                ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
                 // This must be fixed somehow: ImGui::GetIO().WantCaptureMouse == false, because g.ActiveID == 0
                 //        fprintf(stderr,"g.ActiveId=%d\n",g.ActiveId);     // This is the inner cause
                 //        ImGui::GetIO().WantCaptureMouse = true; // does nothing
                 //        g.ActiveId = window->MoveId;            // makes WantCaptureMouse and WantCaptureKeyboard toggle like crazy every frame
             }
-            else if (isSomeNodeMoving) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+            else if (isSomeNodeMoving) ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
             if (!io.FontAllowUserScaling)   {
-                // Reset the font scale (3 lines)
-                fontScaleToTrack = oldFontScaleToReset;
-                g.FontBaseSize = io.FontGlobalScale * g.Font->Scale * g.Font->FontSize;
-                g.FontSize = window->CalcFontSize();
+                // Reset the font scale
+                SetWindowFontScale(windowFontScaleToReset);
             }
         }
         ImGui::EndChild();  // scrolling_region
@@ -1876,7 +1867,7 @@ template < int IMGUINODE_MAX_SLOTS > inline static int ProcessSlotNamesSeparated
         }
         if (tmp && Count<IMGUINODE_MAX_SLOTS)    {
             length = (int) strlen(tmp);if (length>=IMGUINODE_MAX_SLOT_NAME_LENGTH) length=IMGUINODE_MAX_SLOT_NAME_LENGTH-1;
-            strncpy(Names[Count],tmp, length);
+            strncpy(Names[Count],tmp, length);  // In release mode I get the warning: 'specified bound depends on the length of the source argument [-Wstringop-overflow=]'. How can I fix it?
             Names[Count][length] = '\0';
             ++Count;
         }
@@ -2247,30 +2238,24 @@ bool FieldInfo::render(int nodeWidth)   {
     switch (f.type) {
     case FT_DOUBLE: {
         precisionStr[precisionLastCharIndex]='f';
-        const float minValue = (float) f.minValue;
-        const float maxValue = (float) f.maxValue;
+        const double minValue = (double) f.minValue;
+        const double maxValue = (double) f.maxValue;
+        const ImGuiDataType_ dataType = ImGuiDataType_Double;
         const double rtd = f.needsRadiansToDegs ? GetRadiansToDegs<double>() : 1.f;
         const double dtr = f.needsRadiansToDegs ? GetDegsToRadians<double>() : 1.f;
         double* pField = (double*)f.pdata;
-        float value[4] = {0,0,0,0};
+        double value[4] = {0,0,0,0};
         for (int vl=0;vl<f.numArrayElements;vl++) {
-            value[vl] = (float) ((*(pField+vl))*rtd);
+            value[vl] = (double) ((*(pField+vl))*rtd);
         }
         if (NodeGraphEditor::UseSlidersInsteadOfDragControls)   {
-            switch (f.numArrayElements)    {
-            case 2: changed = ImGui::SliderFloat2(label,value,minValue,maxValue,precisionStr);break;
-            case 3: changed = ImGui::SliderFloat3(label,value,minValue,maxValue,precisionStr);break;
-            case 4: changed = ImGui::SliderFloat4(label,value,minValue,maxValue,precisionStr);break;
-            default: changed = ImGui::SliderFloat(label,value,minValue,maxValue,precisionStr);break;
-            }
+            if (f.numArrayElements>1) changed = ImGui::SliderScalarN(label,dataType,value,f.numArrayElements,&minValue,&maxValue,precisionStr);
+            else changed = ImGui::SliderScalar(label,dataType,value,&minValue,&maxValue,precisionStr);
         }
         else {
-            switch (f.numArrayElements)    {
-            case 2: changed = ImGui::DragFloat2(label,value,dragSpeed,minValue,maxValue,precisionStr);break;
-            case 3: changed = ImGui::DragFloat3(label,value,dragSpeed,minValue,maxValue,precisionStr);break;
-            case 4: changed = ImGui::DragFloat4(label,value,dragSpeed,minValue,maxValue,precisionStr);break;
-            default: changed = ImGui::DragFloat(label,value,dragSpeed,minValue,maxValue,precisionStr);break;
-            }
+            if (dragSpeed<1.f) dragSpeed = 1.f;
+            if (f.numArrayElements>1) changed = ImGui::DragScalarN(label,dataType,value,f.numArrayElements,dragSpeed,&minValue,&maxValue,precisionStr);
+            else changed = ImGui::DragScalar(label,dataType,value,dragSpeed,&minValue,&maxValue,precisionStr);
         }
         if (changed)    {
             for (int vl=0;vl<f.numArrayElements;vl++) {
@@ -2315,69 +2300,43 @@ bool FieldInfo::render(int nodeWidth)   {
     }
         break;
     case FT_UNSIGNED: {
-        strcpy(precisionStr,"%1.0f");
-        const int minValue = (int) f.minValue;
-        const int maxValue = (int) f.maxValue;
-        unsigned* pField = (unsigned*) f.pdata;
-        int value[4] = {0,0,0,0};
-        for (int vl=0;vl<f.numArrayElements;vl++) {
-            value[vl] = (int) *(pField+vl);
-        }
+        strcpy(precisionStr,"%u");
+        const ImGuiDataType_ dataType = ImGuiDataType_U32;
+        const unsigned int minValue = (unsigned int) f.minValue;
+        const unsigned int maxValue = (unsigned int) f.maxValue;
+        unsigned int* pField = (unsigned int*) f.pdata;
+        unsigned int value[4] = {0,0,0,0};  // TODO: Probably we can remove this hack now that Dear ImGui supports all types
+        for (int vl=0;vl<f.numArrayElements;vl++) {value[vl] = (unsigned int) *(pField+vl);}
         if (NodeGraphEditor::UseSlidersInsteadOfDragControls)   {
-            switch (f.numArrayElements)    {
-            case 2: changed = ImGui::SliderInt2(label,value,minValue,maxValue,precisionStr);break;
-            case 3: changed = ImGui::SliderInt3(label,value,minValue,maxValue,precisionStr);break;
-            case 4: changed = ImGui::SliderInt4(label,value,minValue,maxValue,precisionStr);break;
-            default: changed = ImGui::SliderInt(label,value,minValue,maxValue,precisionStr);break;
-            }
+            if (f.numArrayElements>1) changed = ImGui::SliderScalarN(label,dataType,value,f.numArrayElements,&minValue,&maxValue,precisionStr);
+            else changed = ImGui::SliderScalar(label,dataType,value,&minValue,&maxValue,precisionStr);
         }
         else {
             if (dragSpeed<1.f) dragSpeed = 1.f;
-            switch (f.numArrayElements)    {
-            case 2: changed = ImGui::DragInt2(label,value,dragSpeed,minValue,maxValue,precisionStr);break;
-            case 3: changed = ImGui::DragInt3(label,value,dragSpeed,minValue,maxValue,precisionStr);break;
-            case 4: changed = ImGui::DragInt4(label,value,dragSpeed,minValue,maxValue,precisionStr);break;
-            default: changed = ImGui::DragInt(label,value,dragSpeed,minValue,maxValue,precisionStr);break;
-            }
+            if (f.numArrayElements>1) changed = ImGui::DragScalarN(label,dataType,value,f.numArrayElements,dragSpeed,&minValue,&maxValue,precisionStr);
+            else changed = ImGui::DragScalar(label,dataType,value,dragSpeed,&minValue,&maxValue,precisionStr);
         }
-        if (changed)    {
-            for (int vl=0;vl<f.numArrayElements;vl++) {
-                *(pField+vl) = (unsigned) value[vl];
-            }
-        }
+        if (changed)    {for (int vl=0;vl<f.numArrayElements;vl++) {*(pField+vl) = (unsigned int) value[vl];}}
     }
         break;
     case FT_INT: {
-        strcpy(precisionStr,"%1.0f");
+        strcpy(precisionStr,"%d");
         const int minValue = (int) f.minValue;
         const int maxValue = (int) f.maxValue;
+        const ImGuiDataType_ dataType = ImGuiDataType_S32;
         int* pField = (int*) f.pdata;
-        int value[4] = {0,0,0,0};
-        for (int vl=0;vl<f.numArrayElements;vl++) {
-            value[vl] = (int) *(pField+vl);
-        }
+        int value[4] = {0,0,0,0};  // TODO: Probably we can remove this hack now that Dear ImGui supports all types
+        for (int vl=0;vl<f.numArrayElements;vl++) {value[vl] = (int) *(pField+vl);}
         if (NodeGraphEditor::UseSlidersInsteadOfDragControls)   {
-            switch (f.numArrayElements)    {
-            case 2: changed = ImGui::SliderInt2(label,value,minValue,maxValue,precisionStr);break;
-            case 3: changed = ImGui::SliderInt3(label,value,minValue,maxValue,precisionStr);break;
-            case 4: changed = ImGui::SliderInt4(label,value,minValue,maxValue,precisionStr);break;
-            default: changed = ImGui::SliderInt(label,value,minValue,maxValue,precisionStr);break;
-            }
+            if (f.numArrayElements>1) changed = ImGui::SliderScalarN(label,dataType,value,f.numArrayElements,&minValue,&maxValue,precisionStr);
+            else changed = ImGui::SliderScalar(label,dataType,value,&minValue,&maxValue,precisionStr);
         }
         else {
             if (dragSpeed<1.f) dragSpeed = 1.f;
-            switch (f.numArrayElements)    {
-            case 2: changed = ImGui::DragInt2(label,value,dragSpeed,minValue,maxValue,precisionStr);break;
-            case 3: changed = ImGui::DragInt3(label,value,dragSpeed,minValue,maxValue,precisionStr);break;
-            case 4: changed = ImGui::DragInt4(label,value,dragSpeed,minValue,maxValue,precisionStr);break;
-            default: changed = ImGui::DragInt(label,value,dragSpeed,minValue,maxValue,precisionStr);break;
-            }
+            if (f.numArrayElements>1) changed = ImGui::DragScalarN(label,dataType,value,f.numArrayElements,dragSpeed,&minValue,&maxValue,precisionStr);
+            else changed = ImGui::DragScalar(label,dataType,value,dragSpeed,&minValue,&maxValue,precisionStr);
         }
-        if (changed)    {
-            for (int vl=0;vl<f.numArrayElements;vl++) {
-                *(pField+vl) = (int) value[vl];
-            }
-        }
+        if (changed)    {for (int vl=0;vl<f.numArrayElements;vl++) {*(pField+vl) = (int) value[vl];}}
     }
         break;
     case FT_BOOL:   {
@@ -2437,6 +2396,7 @@ bool FieldInfo::render(int nodeWidth)   {
         float* pColor = (float*) f.pdata;
         if (f.numArrayElements==3) changed|=ImGui::ColorEdit3(label,pColor);//,ImGuiColorEditFlags_NoAlpha);
         else changed|=ImGui::ColorEdit4(label,pColor);//,ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreview);
+        break;
     }
     case FT_CUSTOM: {
         if (f.renderFieldDelegate) changed = f.renderFieldDelegate(f);
@@ -2634,7 +2594,7 @@ bool NodeGraphEditor::load(ImGuiHelper::Deserializer& d, const char ** pOptional
 	nodes[i]->onLoaded();
     }
     maxConnectorNameWidth = 0;
-    oldFontWindowScale = 0;
+    windowFontScale = 0;
     //--------------------------------------------
     if (pOptionalBufferStart) *pOptionalBufferStart = amount;
     setModified(false);
@@ -2654,9 +2614,9 @@ bool NodeGraphEditor::load(ImGuiHelper::Deserializer& d, const char ** pOptional
 
 #ifndef IMGUINODEGRAPHEDITOR_NOTESTDEMO
 
-#ifndef NO_IMGUIFILESYSTEM
+/*#ifndef NO_IMGUIFILESYSTEM
 #include "../imguifilesystem/imguifilesystem.h"
-#endif //NO_IMGUIFILESYSTEM
+#endif //NO_IMGUIFILESYSTEM */
 
 namespace ImGui	{
 
@@ -2686,16 +2646,6 @@ class ColorNode : public Node {
     static const int TYPE = MNT_COLOR_NODE;
 
     ImVec4 Color;       // field
-
-    // Support static method for enumIndex (the signature is the same used by ImGui::Combo(...))
-    static bool GetTextFromEnumIndex(void* ,int value,const char** pTxt) {
-        if (!pTxt) return false;
-        static const char* values[] = {"APPLE","LEMON","ORANGE"};
-        static int numValues = (int)(sizeof(values)/sizeof(values[0]));
-        if (value>=0 && value<numValues) *pTxt = values[value];
-        else *pTxt = "UNKNOWN";
-        return true;
-    }
 
     virtual const char* getTooltip() const {return "ColorNode tooltip.";}
     virtual const char* getInfo() const {return "ColorNode info.\n\nThis is supposed to display some info about this node.";}
@@ -2737,7 +2687,7 @@ class CombineNode : public Node {
     CombineNode() : Base() {}
     static const int TYPE = MNT_COMBINE_NODE;
 
-    float fraction;
+    float fraction; // field
 
     virtual const char* getTooltip() const {return "CombineNode tooltip.";}
     virtual const char* getInfo() const {return "CombineNode info.\n\nThis is supposed to display some info about this node.";}
@@ -2905,7 +2855,7 @@ class TextureNode : public Node {
     virtual ~TextureNode() {if (textureID) {ImImpl_FreeTexture(textureID);}}
     static const int TYPE = MNT_TEXTURE_NODE;
     static const int TextBufferSize =
-#   ifndef NO_IMGUIFILESYSTEM
+#   ifdef IMGUI_FILESYSTEM_H_
     ImGuiFs::MAX_PATH_BYTES;
 #   else
     2049;
@@ -2915,9 +2865,9 @@ class TextureNode : public Node {
     char imagePath[TextBufferSize];				// field 1 (= the only one that is copied/serialized/handled by the Node)
     char lastValidImagePath[TextBufferSize];    // The path for which "textureID" was created
     bool startBrowseDialogNextFrame;
-#   ifndef NO_IMGUIFILESYSTEM
+#   ifdef IMGUI_FILESYSTEM_H_
     ImGuiFs::Dialog dlg;
-#   endif //NO_IMGUIFILESYSTEM
+#   endif //IMGUI_FILESYSTEM_H_
 
     virtual const char* getTooltip() const {return "TextureNode tooltip.";}
     virtual const char* getInfo() const {return "TextureNode info.\n\nThis is supposed to display some info about this node.";}
@@ -2942,11 +2892,11 @@ class TextureNode : public Node {
 
 	// 3) init fields ( this uses the node->fields variable; otherwise we should have overridden other virtual methods (to render and serialize) )
 	FieldInfo* f=NULL;
-#	ifndef NO_IMGUIFILESYSTEM
+#	ifdef IMGUI_FILESYSTEM_H_
 	f=&node->fields.addFieldTextEditAndBrowseButton(&node->imagePath[0],TextBufferSize,"Image Path:","A valid image path: press RETURN to validate or browse manually.",ImGuiInputTextFlags_EnterReturnsTrue,(void*) node);
-#	else	//NO_IMGUIFILESYSTEM
+#	else	//IMGUI_FILESYSTEM_H_
 	f=&node->fields.addFieldTextEdit(&node->imagePath[0],TextBufferSize,"Image Path:","A valid image path: press RETURN to validate or browse manually.",ImGuiInputTextFlags_EnterReturnsTrue,(void*) node);
-#	endif //NO_IMGUIFILESYSTEM
+#	endif //IMGUI_FILESYSTEM_H_
     f->editedFieldDelegate = &ThisClass::StaticEditFieldCallback;   // we set an "edited callback" to this node field. It is fired soon (as opposed to other "outer" edited callbacks), but we have chosen: ImGuiInputTextFlags_EnterReturnsTrue.
 	node->startBrowseDialogNextFrame = false;
 
@@ -2964,14 +2914,14 @@ class TextureNode : public Node {
     protected:
     bool render(float nodeWidth)   {
 	const bool changed = Base::render(nodeWidth);
-#	ifndef NO_IMGUIFILESYSTEM
+#	ifdef IMGUI_FILESYSTEM_H_
 	const char* filePath = dlg.chooseFileDialog(startBrowseDialogNextFrame,dlg.getLastDirectory(),".jpg;.jpeg;.png;.gif;.tga;.bmp");
 	if (strlen(filePath)>0) {
 	    //fprintf(stderr,"Browsed..: %s\n",filePath);
 	    strcpy(imagePath,filePath);
 	    processPath(imagePath);
 	}
-#	endif //NO_IMGUIFILESYSTEM
+#	endif //IMGUI_FILESYSTEM_H_
 	startBrowseDialogNextFrame = false;
 	//----------------------------------------------------
 	// draw textureID:
@@ -3000,7 +2950,7 @@ class TextureNode : public Node {
     void onEditField(FieldInfo& /*f*/,int widgetIndex) {
         //fprintf(stderr,"TextureNode::onEditField(\"%s\",%i);\n",f.label,widgetIndex);
         if (widgetIndex==1)         startBrowseDialogNextFrame = true;  // browsing button pressed
-        else if (widgetIndex==0)    processPath(imagePath);             // text edited (= "return" pressed in out case)
+        else if (widgetIndex==0)    processPath(imagePath);             // text edited (= "return" pressed in our case)
     }
     static void StaticEditFieldCallback(FieldInfo& f,int widgetIndex) {
         reinterpret_cast<ThisClass*>(f.userData)->onEditField(f,widgetIndex);

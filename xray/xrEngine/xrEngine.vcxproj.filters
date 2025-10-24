@@ -148,6 +148,12 @@
     <Filter Include="OpenAutomate">
       <UniqueIdentifier>{276c0b84-ec71-4936-8261-a686d10644b6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RenderRef\Execution &amp; 3D\Device\imgui">
+      <UniqueIdentifier>{7eb57f67-a880-4d03-848e-8cc8e4df30e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{608911d4-539a-4e00-9e5b-a7a4e3778b13}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="_d3d_extensions.h">
@@ -432,6 +438,18 @@
     <ClInclude Include="xrSASH.h">
       <Filter>OpenAutomate</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\3rd_party\imgui\backends\imgui_impl_dx9.h">
+      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd_party\imgui\backends\imgui_impl_dx11.h">
+      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rd_party\imgui\backends\imgui_impl_win32.h">
+      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Layers\xrRender\imgui_setup.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="defines.cpp">
@@ -715,6 +733,18 @@
     </ClCompile>
     <ClCompile Include="XR_IOConsole_control.cpp">
       <Filter>Engine\Console</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rd_party\imgui\backends\imgui_impl_dx9.cpp">
+      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rd_party\imgui\backends\imgui_impl_dx11.cpp">
+      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
+      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Layers\xrRender\imgui_setup.cpp">
+      <Filter>imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -34,8 +34,8 @@ void ShowHudEditor(bool& show)
             ImGui::Separator();
         showSeparator = true;
         ImGui::Text("Item 0");
-        ImGui::InputFloat3("item_position 0", (float*)&item->m_measures.m_item_attach[0], 3);
-        ImGui::InputFloat3("item_orientation 0", (float*)&item->m_measures.m_item_attach[1], 3);
+        ImGui::InputFloat3("item_position 0", (float*)&item->m_measures.m_item_attach[0], "%.3f");
+        ImGui::InputFloat3("item_orientation 0", (float*)&item->m_measures.m_item_attach[1], "%.3f");
         ImGuizmo::SetID(0);
         ImGuizmo::Manipulate(
             (float*)&Device.mView, (float*)&Device.mProject, mode, ImGuizmo::LOCAL, (float*)&item->m_item_transform);
@@ -58,8 +58,8 @@ void ShowHudEditor(bool& show)
         if (showSeparator)
             ImGui::Separator();
         ImGui::Text("Item 1");
-        ImGui::InputFloat3("item_position 1", (float*)&item->m_measures.m_item_attach[0], 3);
-        ImGui::InputFloat3("item_orientation 1", (float*)&item->m_measures.m_item_attach[1], 3);
+        ImGui::InputFloat3("item_position 1", (float*)&item->m_measures.m_item_attach[0], "%.3f");
+        ImGui::InputFloat3("item_orientation 1", (float*)&item->m_measures.m_item_attach[1], "%.3f");
         ImGuizmo::SetID(1);
         ImGuizmo::Manipulate(
             (float*)&Device.mView, (float*)&Device.mProject, mode, ImGuizmo::LOCAL, (float*)&item->m_attach_offset);

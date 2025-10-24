@@ -8,7 +8,6 @@
 #ifndef IMGUI_API
 #include <imgui.h>
 #endif //IMGUI_API
-#define NO_IMGUIFILESYSTEM
 
 /*
  *   // Basic usage:
@@ -269,7 +268,6 @@ class Node
     inline int getNumInputSlots() const {return InputsCount;}
     inline int getNumOutputSlots() const {return OutputsCount;}
     inline void setOpen(bool flag) {isOpen=flag;}    
-	inline const ImVec2 GetPos(float currentFontWindowScale = 1.f) const { return ImVec2(Pos.x*currentFontWindowScale, Pos.y*currentFontWindowScale); }
 
     protected:
     FieldInfoVector fields; // I guess you can just skip these at all and implement virtual methods... but it was supposed to be useful...
@@ -279,7 +277,7 @@ class Node
         bool nodeEdited = false;
         for (int i=0,isz=fields.size();i<isz;i++)   {
             FieldInfo& f = fields[i];
-            nodeEdited|=f.render(nodeWidth);
+            nodeEdited|=f.render(static_cast<int>(nodeWidth));
         }
         return nodeEdited;
     }
@@ -331,6 +329,7 @@ class Node
 
     inline ImVec2 GetInputSlotPos(int slot_no,float currentFontWindowScale=1.f) const   { return ImVec2(Pos.x*currentFontWindowScale,           Pos.y*currentFontWindowScale + Size.y * ((float)slot_no+1) / ((float)InputsCount+1)); }
     inline ImVec2 GetOutputSlotPos(int slot_no,float currentFontWindowScale=1.f) const  { return ImVec2(Pos.x*currentFontWindowScale + Size.x,  Pos.y*currentFontWindowScale + Size.y * ((float)slot_no+1) / ((float)OutputsCount+1)); }
+    inline const ImVec2 GetPos(float currentFontWindowScale=1.f) const {return ImVec2(Pos.x*currentFontWindowScale,Pos.y*currentFontWindowScale);}
 
     friend struct NodeLink;
     friend class NodeGraphEditor;
@@ -360,7 +359,7 @@ struct NodeLink
         OutputNode = output_node; OutputSlot = output_slot;
     }
 
-    friend struct NodeGraphEditor;
+    friend class NodeGraphEditor;
 };
 
 class NodeGraphEditor
@@ -384,7 +383,7 @@ class NodeGraphEditor
     bool allowOnlyOneLinkPerInputSlot;  // multiple links can still be connected to single output slots
     bool avoidCircularLinkLoopsInOut;   // however multiple paths from a node to another are still allowed (only in-out circuits are prevented)
     //bool isAContextMenuOpen;            // to fix a bug
-    float oldFontWindowScale;           // to fix zooming (CTRL+mouseWheel)    
+    float windowFontScale;           // to fix zooming (CTRL+mouseWheel)
     float maxConnectorNameWidth;        //used to enlarge node culling space to include connector names
     int nodeListFilterComboIndex;
 
@@ -403,12 +402,8 @@ class NodeGraphEditor
 
     typedef void (*NodeCallback)(Node*& node,NodeState state,NodeGraphEditor& editor);
     typedef void (*LinkCallback)(const NodeLink& link,LinkState state,NodeGraphEditor& editor);
-	typedef void(*LeftPaneCallback)(NodeGraphEditor& editor);
-	typedef void(*SaveCallback)(NodeGraphEditor& editor);
     LinkCallback linkCallback;// called after a link is added and before it's deleted
     NodeCallback nodeCallback;// called after a node is added, after it's edited and before it's deleted
-	LeftPaneCallback leftPaneCallback;// called in left pane render
-	SaveCallback saveCallback;// called after button "Save" is pressed
     float nodeEditedTimeThreshold; // time in seconds that must elapse after the last "editing touch" before the NS_EDITED callback is called
 
     public:
@@ -444,7 +439,7 @@ class NodeGraphEditor
         ImU32 color_mouse_rectangular_selection;
         ImU32 color_mouse_rectangular_selection_frame;
         Style() {
-            color_background =          ImColor(21, 21, 21, 200);
+            color_background =          ImColor(60,60,70,200);
             color_grid =                ImColor(200,200,200,40);
             grid_line_width =           1.f;
             grid_size =                 64.f;
@@ -460,20 +455,20 @@ class NodeGraphEditor
             node_rounding =             4.f;
             node_window_padding =       ImVec2(8.f,8.f);
 
-            color_node_input_slots =    ImColor(47, 241, 74, 150);
-            color_node_output_slots =   ImColor(0, 231, 49, 150);
+            color_node_input_slots =    ImColor(150,150,150,150);
+            color_node_output_slots =   ImColor(150,150,150,150);
             node_slots_radius =         5.f;
 
-            color_link =                ImColor(93, 193, 72);
+            color_link =                ImColor(200,200,100);
             link_line_width =           3.f;
             link_control_point_distance = 50.f;
             link_num_segments =         0;
 
-            color_node_title =          ImColor(255, 255, 255, 255);
+            color_node_title = ImGui::GetStyle().Colors[ImGuiCol_Text];
             color_node_title_background = 0;//ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TitleBgActive]);
             color_node_title_background_gradient = 0.f;   // in [0,0.5f] used only if available (performance is better when 0)
-            color_node_input_slots_names = ImColor(49, 255, 43, 191);
-			color_node_output_slots_names = ImColor(143, 255, 128, 191);
+            color_node_input_slots_names = ImGui::GetStyle().Colors[ImGuiCol_Text];color_node_input_slots_names.w=0.75f;
+            color_node_output_slots_names = ImGui::GetStyle().Colors[ImGuiCol_Text];color_node_output_slots_names.w=0.75f;
 
             color_mouse_rectangular_selection =         ImColor(255,0,0,45);
             color_mouse_rectangular_selection_frame =   ImColor(45,0,0,175);
@@ -523,11 +518,7 @@ class NodeGraphEditor
         activeNode = dragNode.node = sourceCopyNode = NULL;
         allowOnlyOneLinkPerInputSlot = _allowOnlyOneLinkPerInputSlot;
         avoidCircularLinkLoopsInOut = _avoidCircularLinkLoopsInOut;
-		nodeCallback = NULL;
-		linkCallback = NULL;
-		leftPaneCallback = nullptr;
-		saveCallback = nullptr;
-		nodeEditedTimeThreshold = 1.5f;
+        nodeCallback = NULL;linkCallback=NULL;nodeEditedTimeThreshold=1.5f;
         user_ptr = NULL;
         show_left_pane = true;
         show_top_pane = true;
@@ -540,7 +531,7 @@ class NodeGraphEditor
         inited = init_in_ctr;
         //colorEditMode = ImGuiColorEditMode_RGB;
         //isAContextMenuOpen = false;
-        oldFontWindowScale = 0.f;
+        windowFontScale = 0.f;
         nodesBaseWidth = 120.f;
         maxConnectorNameWidth = 0;
         nodeListFilterComboIndex = 0;
@@ -574,7 +565,7 @@ class NodeGraphEditor
                 sourceCopyNode = NULL;
         }
         activeNode = dragNode.node = NULL;
-        oldFontWindowScale = 0.f;
+        windowFontScale = 0.f;
         for (int i=0,isz=availableNodesInfo.size();i<isz;i++) {availableNodesInfo[i].curNumInstances=0;}
         nodeListFilterComboIndex = 0;
     }
@@ -693,9 +684,7 @@ class NodeGraphEditor
     // It should be better not to add/delete node/links in the callbacks... (but all is untested here)
     void setNodeCallback(NodeCallback cb) {nodeCallback=cb;}
     void setLinkCallback(LinkCallback cb) {linkCallback=cb;}
-    void setNodeEditedCallbackTimeThreshold(int seconds) {nodeEditedTimeThreshold=seconds;}
-	void setLeftPaneCallback(LeftPaneCallback cb) { leftPaneCallback = cb; }
-	void setSaveCallback(SaveCallback cb) { saveCallback = cb; }
+    void setNodeEditedCallbackTimeThreshold(int seconds) {nodeEditedTimeThreshold=static_cast<float>(seconds);}
 
 //-------------------------------------------------------------------------------
 #       if (defined(IMGUIHELPER_H_) && !defined(NO_IMGUIHELPER_SERIALIZATION))

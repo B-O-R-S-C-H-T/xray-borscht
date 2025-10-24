@@ -1,12 +1,11 @@
 #include "stdafx.h"
 
-//#include "resourcemanager.h"
 #include "../Include/xrRender/DrawUtils.h"
-//#include "xr_effgamma.h"
 #include "render.h"
 #include "dedicated_server_only.h"
+#include "../Layers/xrRender/imgui_setup.h"
 
-void	SetupGPU(IRenderDeviceRender *pRender)
+void SetupGPU(IRenderDeviceRender *pRender)
 {
 	// Command line
 	char *lpCmdLine		= Core.Params;
@@ -170,6 +169,9 @@ PROTECT_API void CRenderDevice::Create	()
 
 	fFOV				= 90.f;
 	fASPECT				= 1.f;
+
+	imgui_create_context();
+
 	m_pRender->Create	(
 		m_hWnd,
 		dwWidth,

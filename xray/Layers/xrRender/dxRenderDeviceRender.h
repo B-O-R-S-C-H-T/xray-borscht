@@ -2,7 +2,6 @@
 #define dxRenderDeviceRender_included
 #pragma once
 
-
 #ifndef _EDITOR
 	#define DEV dxRenderDeviceRender::Instance().Resources
 #else
@@ -69,6 +68,14 @@ public:
 	virtual void	SetCacheXform(Fmatrix &mView, Fmatrix &mProject);
 	virtual void	OnAssetsChanged();
 
+	virtual IRenderDeviceRender::RenderAPI GetRenderAPI() const override;
+	virtual void						   ImGuiBackendInit() override;
+	virtual void						   ImGuiBackendShutdown() override;
+	virtual void						   ImGuiBackendInvalidateDeviceObjects() override;
+	virtual void						   ImGuiBackendCreateDeviceObjects() override;
+	virtual void						   ImGuiBackendNewFrame() override;
+	virtual void						   ImGuiBackendRenderDrawData(ImDrawData* draw_data) override;
+
 	virtual const xr_vector<Shader*>& GetShaders();
 
 public:
@@ -77,7 +84,6 @@ public:
 	ref_shader			m_SelectionShader;
 
 private:
-
 	CGammaControl		m_Gamma;
 };
 

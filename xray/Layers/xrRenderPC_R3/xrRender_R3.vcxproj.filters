@@ -747,7 +747,13 @@
     <ClInclude Include="..\..\..\3rd_party\NvMender2003\remove_isolated_verts.h">
       <Filter>Models\Editor\NvMender2003</Filter>
     </ClInclude>
-    <ClInclude Include="..\xrRenderDX10\imgui_impl_dx11.h">
+    <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.h">
+      <Filter>imgui_render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx11.h">
+      <Filter>imgui_render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xrRender\imgui_setup.h">
       <Filter>imgui_render</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1373,7 +1379,13 @@
     <ClCompile Include="..\..\..\3rd_party\NvMender2003\NVMeshMender.cpp">
       <Filter>Models\Editor\NvMender2003</Filter>
     </ClCompile>
-    <ClCompile Include="..\xrRenderDX10\imgui_impl_dx11.cpp">
+    <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
+      <Filter>imgui_render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx11.cpp">
+      <Filter>imgui_render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xrRender\imgui_setup.cpp">
       <Filter>imgui_render</Filter>
     </ClCompile>
   </ItemGroup>

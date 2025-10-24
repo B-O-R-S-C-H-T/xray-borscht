@@ -18,8 +18,7 @@
 #include "../xrCore/FS_impl.h"
 #include "xrSash.h"
 #include "igame_persistent.h"
-#include <imgui.h>
-#include <addons/ImGuizmo/ImGuizmo.h>
+#include "../Layers/xrRender/imgui_setup.h"
 
 ENGINE_API CRenderDevice Device;
 ENGINE_API BOOL g_bRendering = FALSE; 
@@ -104,8 +103,6 @@ void CRenderDevice::Clear	()
 }
 
 extern void CheckPrivilegySlowdown();
-//#include "resourcemanager.h"
-
 void CRenderDevice::End		(void)
 {
 #ifndef DEDICATED_SERVER
@@ -159,8 +156,11 @@ void CRenderDevice::End		(void)
 		g_SASH.DisplayFrame(Device.fTimeGlobal);
 
 	extern BOOL g_appLoaded;
-	if (g_appLoaded)
+	if (g_appLoaded) {
 		ImGui::Render();
+		ImDrawData* draw_data = ImGui::GetDrawData();
+		Device.m_pRender->ImGuiBackendRenderDrawData(draw_data);
+	}
 
 	m_pRender->End();
 	//RCache.OnFrameEnd	();
@@ -241,28 +241,14 @@ void ImGui_NewFrame()
 		QueryPerformanceCounter((LARGE_INTEGER *)&g_Time);
 	}
 	// Setup time step
-	INT64 current_time;
-	QueryPerformanceCounter((LARGE_INTEGER *)&current_time);
+	INT64 current_time = 0;
+	QueryPerformanceCounter((LARGE_INTEGER*)&current_time);
 	io.DeltaTime = (float)(current_time - g_Time) / g_TicksPerSecond;
 	g_Time = current_time;
 
-	// Read keyboard modifiers inputs
-	//io.KeyCtrl = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
-	//io.KeyShift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
-	//io.KeyAlt =  (GetKeyState(VK_MENU) & 0x8000) != 0;
-	//io.KeySuper = false;
-	// io.KeysDown : filled by WM_KEYDOWN/WM_KEYUP events
-	// io.MousePos : filled by WM_MOUSEMOVE events
-	// io.MouseDown : filled by WM_*BUTTON* events
-	// io.MouseWheel : filled by WM_MOUSEWHEEL events
-
-	// Hide OS mouse cursor if ImGui is drawing it
-	//if (io.MouseDrawCursor)
-	//	SetCursor(NULL);
-
-	// Start the frame
+	ImGui_ImplWin32_NewFrame();
+	Device.m_pRender->ImGuiBackendNewFrame();
 	ImGui::NewFrame();
-	ImGuizmo::BeginFrame();
 }
 
 void CRenderDevice::on_idle		()
@@ -322,20 +308,20 @@ void CRenderDevice::on_idle		()
 #ifndef DEDICATED_SERVER
 	Statistic.RenderTOTAL_Real.FrameStart	();
 	Statistic.RenderTOTAL_Real.Begin		();
-	if (b_is_Active)							{
-		if (Begin())				{
+	if (b_is_Active) {
+		if (Begin()) {
 
-			seqRender.Process						(rp_Render);
-			if (psDeviceFlags.test(rsCameraPos) || psDeviceFlags.test(rsStatistic) || Statistic.errors.size())	
-				Statistic.Show						();
+			seqRender.Process(rp_Render);
+			if (psDeviceFlags.test(rsCameraPos) || psDeviceFlags.test(rsStatistic) || Statistic.errors.size())
+				Statistic.Show();
 			//	TEST!!!
-			//Statistic.RenderTOTAL_Real.End			();
+			//Statistic.RenderTOTAL_Real.End();
 			//	Present goes here
-			End										();
+			End();
 		}
 	}
-	Statistic.RenderTOTAL_Real.End			();
-	Statistic.RenderTOTAL_Real.FrameEnd	();
+	Statistic.RenderTOTAL_Real.End();
+	Statistic.RenderTOTAL_Real.FrameEnd();
 	Statistic.RenderTOTAL.accum	= Statistic.RenderTOTAL_Real.accum;
 #endif // #ifndef DEDICATED_SERVER
 	// *** Suspend threads
@@ -343,7 +329,7 @@ void CRenderDevice::on_idle		()
 	// Release end point - allow thread to wait for startup point
 	mt_csEnter.Enter						();
 	mt_csLeave.Leave						();
-	
+
 	ImGui::EndFrame();
 
 	// Ensure, that second thread gets chance to execute anyway
@@ -558,7 +544,7 @@ void CRenderDevice::Pause(BOOL bOn, BOOL bTimer, BOOL bSound, LPCSTR reason)
 BOOL CRenderDevice::Paused()
 {
 	return g_pauseMngr.Paused();
-};
+}
 
 void CRenderDevice::OnWM_Activate(WPARAM wParam, LPARAM lParam)
 {

@@ -116,6 +116,7 @@ public:
         }
         return -1;
     }
+    ImVec2 getPos() const { return GetPos(); }
 
 protected:
     void getDefaultTitleBarColors(ImU32& defaultTitleTextColorOut, ImU32& defaultTitleBgColorOut,
@@ -1412,7 +1413,7 @@ void ShowLogicEditor(bool& show)
 
         nge->show_style_editor = true;
         nge->show_load_save_buttons = true;
-        nge->setLeftPaneCallback(LeftPaneCallback);
+        //nge->setLeftPaneCallback(LeftPaneCallback);   // удалено в последней версии imguinodegrapheditor
     }
 
     void colorizeNodes(ImGui::NodeGraphEditor & nge, const xr_string& activeSection);
@@ -1494,7 +1495,7 @@ Connection addSignal(Connection src, const xr_string& sig, ImGui::NodeGraphEdito
     if (sig.empty())
         return src;
 
-    ImVec2 pos = src.Node->GetPos();
+    ImVec2 pos = src.Node->getPos();
     pos.x += 50.0f;
     XrayNode* node = nullptr;
     if (event == "on_signal") {
@@ -1514,7 +1515,7 @@ Connection addCond(Connection src, const xr_string& cond, ImGui::NodeGraphEditor
     if (cond.empty())
         return src;
 
-    ImVec2 pos = src.Node->GetPos();
+    ImVec2 pos = src.Node->getPos();
     LPCSTR s = cond.c_str();
     while (s && *s != '\0') {
         LPCSTR next = strpbrk(s + 1, "+-=!");
@@ -1561,7 +1562,7 @@ Connection addCond(Connection src, const xr_string& cond, ImGui::NodeGraphEditor
 
 Connection addSolver(Connection src, ImGui::NodeGraphEditor* nge)
 {
-    ImVec2 pos = src.Node->GetPos();
+    ImVec2 pos = src.Node->getPos();
     pos.x += 50.0f;
     XrayNode* solver = (XrayNode*)nge->addNode(MNT_SOLVER_NODE, pos);
     nge->addLink(src.Node, src.Pin, solver, 0);
@@ -1572,7 +1573,7 @@ Connection addEffect(Connection src, const xr_string& effect, ImGui::NodeGraphEd
 {
     if (effect.empty())
         return src;
-    ImVec2 pos = src.Node->GetPos();
+    ImVec2 pos = src.Node->getPos();
     LPCSTR s = effect.c_str();
     while (s && *s != '\0') {
         LPCSTR next = strpbrk(s + 1, "+-=");
