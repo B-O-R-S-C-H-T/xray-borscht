@@ -2,7 +2,8 @@
 #pragma hdrstop
 
 #include "IM_Tree.h"
-#include "imgui.h"
+
+#include <imgui.h>
 
 IM_Tree::ImTreeNode* IM_Tree::GetNode(LPCSTR path, bool must_exist)
 {

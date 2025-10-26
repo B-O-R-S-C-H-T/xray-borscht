@@ -3,8 +3,9 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "imgui.h"
 #include "IM_Log.h"
+
+#include <imgui.h>
 //---------------------------------------------------------------------------
 
 void IM_Log::Clear()
@@ -45,7 +46,7 @@ void IM_Log::Render()
         return;
     }
 
-    ImGui::BeginChild("log", ImVec2(0, -(ImGui::GetItemsLineHeightWithSpacing() + 5)));
+    ImGui::BeginChild("log", ImVec2(0, -(ImGui::GetTextLineHeightWithSpacing() + 5)));
 
     xr_list<Message>::iterator it, end;
     for(it = msgs.begin(), end = msgs.end(); it != end; it++)
@@ -71,7 +72,7 @@ void IM_Log::Render()
 
     if(has_new_messages)
     {
-    	ImGui::SetScrollY(ImGui::GetItemsLineHeightWithSpacing() * msgs.size());
+    	ImGui::SetScrollY(ImGui::GetTextLineHeightWithSpacing() * msgs.size());
     	has_new_messages = false;
     }
 

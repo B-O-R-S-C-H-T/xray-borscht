@@ -1,10 +1,11 @@
 #ifndef IM_PropertyTreeH
 #define IM_PropertyTreeH
 
-#include "IM_Window.h"
-#include "IM_Canvas.h"
-#include <xrServerEntities/xrEProps.h>
 #include <xrServerEntities/PropertiesListTypes.h>
+#include <xrServerEntities/xrEProps.h>
+
+#include "IM_Canvas.h"
+#include "IM_Window.h"
 
 namespace Eltree
 {

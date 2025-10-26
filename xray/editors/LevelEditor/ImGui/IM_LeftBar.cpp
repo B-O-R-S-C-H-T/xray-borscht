@@ -2,16 +2,18 @@
 #pragma hdrstop
 
 #include "IM_LeftBar.h"
-#include "../ECore/ImGui/utf8.h"
-#include "../ECore/ImGui/imgui.h"
 
+#include <imgui.h>
+#include <imgui_user.h>
+
+#include "../ECore/ImGui/utf8.h"
+#include "../Edit/CustomObject.h"
 #include "../Edit/UI_LevelMain.h"
 #include "../Edit/UI_LevelTools.h"
 #include "../Edit/scene.h"
-#include "../Edit/CustomObject.h"
 #ifndef NO_VCL
-#include "FrmDBXPacker.h"
 #include "FormAbout.h"
+#include "FrmDBXPacker.h"
 #endif
 
 void IM_LeftBar::OnAdd()

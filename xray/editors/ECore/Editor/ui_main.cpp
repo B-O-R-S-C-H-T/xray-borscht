@@ -3,54 +3,25 @@
 #include "stdafx.h"
 #pragma hdrstop
 
+#include "UI_Main.h"
+
+#include <Layers/xrRender/D3DUtils.h>
+#include <Layers/xrRender/PSLibrary.h>
 #include <xrEngine/xr_input.h>
+
+#include "SoundManager.h"
 #include "UI_ToolsCustom.h"
 
-#include "UI_Main.h"
-#include <Layers/xrRender/D3DUtils.h>
-#include "SoundManager.h"
-#include <Layers/xrRender/PSLibrary.h>
-
 #ifndef NO_VCL
+#include "../../xrEProps/ChoseForm.h"
 #include "ImageEditor.h"
 #include "SoundEditor.h"
-#include "../../xrEProps/ChoseForm.h"
 #endif
 #include <utils/ETools/ETools.h>
 
-#include "..\ImGui\imgui.h"
-#include "..\ImGui\imgui_impl_dx9.h"
-#include "..\ImGui\IM_Window.h"
-#include "..\ImGui\IM_Log.h"
-
-#include "..\ImGui\ImGuizmo.h"
-
-static void ImGui_Init(HWND hwnd, IDirect3DDevice9 *d3ddevice)
-{
-	ImGui::CreateContext();
-    ImGui_ImplDX9_Init(hwnd, d3ddevice);
-
-    // load font
-    ImGuiIO &io = ImGui::GetIO();
-    ImFontAtlas &fonts 	= *io.Fonts;
-
-	const char* font_name = "extras\\Anonymous Pro.ttf";
-	if(FileExists(font_name))
-	{
-		ImFont *font = fonts.AddFontFromFileTTF(font_name, 14, NULL, fonts.GetGlyphRangesCyrillic());
-		fonts.AddFontFromFileTTF(font_name, 24, NULL, fonts.GetGlyphRangesCyrillic());
-
-		io.FontDefault = font;
-	}
-	else
-		ELog.Msg(mtError, "Cannot find font file '%s'!", font_name);
-}
-
-static void ImGui_Shutdown(void)
-{
-	ImGui_ImplDX9_Shutdown();
-    ImGui::DestroyContext();
-}
+#include "../../Layers/xrRender/imgui_setup.h"
+#include "../ImGui/IM_Log.h"
+#include "../ImGui/IM_Window.h"
 
 TUI* 	UI			= 0;
 
@@ -97,13 +68,18 @@ TUI::~TUI()
 void TUI::OnDeviceCreate()
 {
 	DUImpl.OnDeviceCreate();
-    ImGui_Init(m_D3DWindow->Handle, HW.pDevice);
+	imgui_create_context();
+	ImGui_ImplDX9_Init(HW.pDevice);
+	imgui_build_fonts();
+	ImGui_ImplWin32_Init(m_D3DWindow->Handle);
 }
 
 void TUI::OnDeviceDestroy()
 {
 	DUImpl.OnDeviceDestroy();
-    ImGui_Shutdown();
+	ImGui_ImplDX9_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	imgui_destroy_context();
 }
 
 bool TUI::IsModified()
@@ -123,14 +99,14 @@ void TUI::UpdateSelectionRect( const Ivector2& from, const Ivector2& to ){
 	m_SelEnd.set(to);
 }
 
-bool __fastcall TUI::KeyDown (WORD Key, TShiftState Shift)
+bool __fastcall TUI::KeyDown(WORD Key, TShiftState Shift)
 {
 	if (!m_bReady) return false;
 //	m_ShiftState = Shift;
 //	Log("Dn  ",Shift.Contains(ssShift)?"1":"0");
 
-	if(Key < 256)
-		ImGui::GetIO().KeysDown[Key] = true;
+	if (Key < 256)
+		ImGui::GetIO().AddKeyEvent(ImGuiKey(Key), true);
 
 	if (ImGui::GetIO().WantCaptureKeyboard)
 	{
@@ -144,13 +120,13 @@ bool __fastcall TUI::KeyDown (WORD Key, TShiftState Shift)
 	return Tools->KeyDown(Key, Shift);
 }
 
-bool __fastcall TUI::KeyUp   (WORD Key, TShiftState Shift)
+bool __fastcall TUI::KeyUp(WORD Key, TShiftState Shift)
 {
 	if (!m_bReady) return false;
 //	m_ShiftState = Shift;
 
-	if(Key < 256)
-		ImGui::GetIO().KeysDown[Key] = false;
+	if (Key < 256)
+		ImGui::GetIO().AddKeyEvent(ImGuiKey(Key), false);
 
 	if (ImGui::GetIO().WantCaptureKeyboard)
 	{
@@ -550,11 +526,11 @@ void TUI::Redraw()
 //---------------------------------------------------------------------------
 void TUI::RealResize()
 {
-   	ImGui_Shutdown		();
+	ImGui_ImplDX9_InvalidateDeviceObjects();
     Device.Resize		(m_D3DWindow->Width,m_D3DWindow->Height); 
     m_Flags.set			(flResize,FALSE);
     ExecCommand			(COMMAND_UPDATE_PROPERTIES);
-	ImGui_Init			(m_D3DWindow->Handle, HW.pDevice);
+	ImGui_ImplDX9_CreateDeviceObjects();
 }
 void TUI::RealUpdateScene()
 {

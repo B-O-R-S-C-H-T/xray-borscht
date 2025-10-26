@@ -1,11 +1,12 @@
 #ifndef IM_ChooseFormH
 #define IM_ChooseFormH
 
-#include "IM_Window.h"
 #include <xrCore/ChooseTypes.H>
-#include "IM_Tree.h"
-#include "IM_PropertyTree.h"
+
 #include "IM_Canvas.h"
+#include "IM_PropertyTree.h"
+#include "IM_Tree.h"
+#include "IM_Window.h"
 
 typedef fastdelegate::FastDelegate<void(class IM_ChooseForm*)> IM_CFCallback;
 

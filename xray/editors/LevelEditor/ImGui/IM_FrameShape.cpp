@@ -1,14 +1,15 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "../ECore/ImGui/imgui.h"
-
 #include "IM_FrameShape.h"
-#include "../Edit/scene.h"
-#include "../Edit/EShape.h"
-#include "../Edit/ESceneShapeTools.h"
+
+#include <imgui.h>
+
 #include "../ECore/Editor/ui_main.h"
+#include "../Edit/ESceneShapeTools.h"
+#include "../Edit/EShape.h"
 #include "../Edit/UI_LevelTools.h"
+#include "../Edit/scene.h"
 
 #pragma package(smart_init)
 

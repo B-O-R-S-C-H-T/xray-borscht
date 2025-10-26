@@ -1,8 +1,10 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "imgui.h"
 #include "IM_TextEditor.h"
+
+#include <imgui.h>
+
 #include "../Editor/UI_Main.h"
 
 #pragma package(smart_init)

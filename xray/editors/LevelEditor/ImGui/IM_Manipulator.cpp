@@ -2,12 +2,14 @@
 #pragma hdrstop
 
 #include "IM_Manipulator.h"
-#include "../../ECore/ImGui/imgui.h"
-#include "../../ECore/ImGui/ImGuizmo.h"
 
-#include "../Edit/scene.h"
-#include "../Edit/UI_LevelTools.h"
+#include <imgui.h>
+#include <addons/ImGuizmo/ImGuizmo.h>
+
 #include "../Edit/CustomObject.h"
+#include "../Edit/UI_LevelTools.h"
+#include "../Edit/scene.h"
+
 IM_Manipulator imManipulator;
 
 void IM_Manipulator::Render()

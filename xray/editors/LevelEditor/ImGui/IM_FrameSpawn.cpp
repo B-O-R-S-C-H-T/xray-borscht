@@ -1,15 +1,16 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "../ECore/ImGui/imgui.h"
-#include "../ECore/ImGui/utf8.h"
-
 #include "IM_FrameSpawn.h"
-#include "../Edit/SpawnPoint.h"
-#include "../Edit/Scene.h"
-#include "../ECore/Editor/ui_main.h"
-#include "../Edit/UI_LevelTools.h"
+
+#include <imgui.h>
 #include <random>
+
+#include "../ECore/Editor/ui_main.h"
+#include "../ECore/ImGui/utf8.h"
+#include "../Edit/Scene.h"
+#include "../Edit/SpawnPoint.h"
+#include "../Edit/UI_LevelTools.h"
 
 #pragma package(smart_init)
 

@@ -1,7 +1,10 @@
 #include "stdafx.h"
+
 #include "IM_ObjectListWnd.h"
+
+#include <imgui.h>
+
 #include "../ECore/Editor/ui_main.h"
-#include "../ECore/ImGui/imgui.h"
 #include "../Edit/Scene.h"
 #include "../Edit/UI_LevelTools.h"
 #include "../Edit/customobject.h"
@@ -23,7 +26,8 @@ void IM_ObjectListWnd::Render()
             m_needRefresh = true;
         ImGui::PopItemWidth();
         ImGui::BeginChild("##items", ImVec2(0, 0), true);
-        ImGuiListClipper clipper(m_vis.size(), ImGui::GetTextLineHeightWithSpacing());
+        ImGuiListClipper clipper;
+        clipper.Begin(m_vis.size(), ImGui::GetTextLineHeightWithSpacing());
         while (clipper.Step()) {
             ImGui::Indent();
             for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
@@ -60,6 +64,8 @@ void IM_ObjectListWnd::Render()
             }
             ImGui::Unindent();
         }
+        clipper.End();
+
         ImGui::EndChild();
 
         ImGui::NextColumn();

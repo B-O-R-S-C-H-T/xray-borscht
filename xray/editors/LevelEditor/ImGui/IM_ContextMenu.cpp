@@ -1,9 +1,10 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "../ECore/ImGui/ImGui.h"
-
 #include "IM_ContextMenu.h"
+
+#include <ImGui.h>
+
 #include "../Edit/UI_LevelMain.h"
 #include "../Edit/UI_LevelTools.h"
 

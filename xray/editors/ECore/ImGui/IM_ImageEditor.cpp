@@ -1,11 +1,13 @@
 #include "stdafx.h"
 #pragma hdrstop
 
+#include "IM_ImageEditor.h"
+
+#include <Layers/xrRender/ETextureParams.h>
+#include <imgui.h>
+
 #include "../Editor/ImageManager.h"
 #include "../Editor/ui_main.h"
-#include "IM_ImageEditor.h"
-#include "imgui.h"
-#include <Layers/xrRender/ETextureParams.h>
 
 #pragma package(smart_init)
 
@@ -167,7 +169,7 @@ void IM_ImageEditor::Render()
 
     ImGui::Columns(1);
 
-    ImGui::Indent(ImGui::GetContentRegionAvailWidth() - width);
+    ImGui::Indent(ImGui::GetContentRegionAvail().x - width);
     if (ImGui::Button("OK")) {
         UpdateLib();
         m_open = false;
