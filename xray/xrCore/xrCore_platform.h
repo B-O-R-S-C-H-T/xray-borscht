@@ -21,7 +21,7 @@
 	#include <stdint.h>
 #endif
 #ifdef _EDITOR
-	//#include <mmsystem.h>
+	#include <mmsystem.h>
 #endif
 
 #define NOGDICAPMASKS
@@ -38,7 +38,7 @@
 #define NOPROFILER
 #define NOMCX
 #define NOMINMAX
-//#define DOSWIN32
+#define DOSWIN32
 #define _WIN32_DCOM
 
 #pragma warning(push)

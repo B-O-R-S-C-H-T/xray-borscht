@@ -1,5 +1,6 @@
 #pragma once
 
+#include "stdafx.h"
 #include "imgui_setup.h"
 
 void imgui_create_context() {
