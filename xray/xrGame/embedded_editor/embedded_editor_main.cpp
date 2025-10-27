@@ -19,21 +19,25 @@
 #include <dinput.h>
 #include <imgui.h>
 
-bool bShowWindow = true;
-bool show_test_window = true;
-bool show_weather_window = false;
-bool show_info_window = false;
-bool show_prop_window = false;
-bool show_restr_window = false;
-bool show_shader_window = false;
-bool show_occ_window = false;
-bool show_node_editor = false;
-bool show_ae_window = false;
-bool show_ui_editor = false;
-bool show_map_editor = false;
-bool show_hud_editor = false;
-bool show_le_editor = false;
-bool show_se_editor = false;
+bool		show_main			= false;
+bool		show_metrics		= false;
+bool		show_test_window	= false;
+bool		show_weather_window = true;
+bool		show_info_window	= false;
+bool		show_prop_window	= false;
+bool		show_restr_window	= false;
+bool		show_shader_window	= false;
+bool		show_occ_window		= false;
+bool		show_node_editor	= false;
+bool		show_ae_window		= false;
+bool		show_ui_editor		= false;
+bool		show_map_editor		= false;
+bool		show_hud_editor		= false;
+bool		show_le_editor		= false;
+bool		show_se_editor		= false;
+bool		show_stats			= false;
+extern bool isRenderAiMap;
+extern bool isRenderSpawnElement;
 
 static bool isAlt = false;
 
@@ -48,9 +52,8 @@ bool IsEditorActive() { return stage == EditorStage::Full || (stage == EditorSta
 
 bool IsEditor() { return stage != EditorStage::None; }
 
-void ShowMain()
-{
-    ImguiWnd wnd("Main");
+void ShowMain(bool& show) {
+    ImguiWnd wnd("Main", &show);
     if (wnd.Collapsed)
         return;
 
@@ -99,11 +102,60 @@ void ShowMain()
         "Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 }
 
-void ShowEditor()
-{
+void ShowEditor() {
     if (!IsEditor())
         return;
-    ShowMain();
+
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu(u8"A-Life")) {
+            ImGui::MenuItem(u8"Свойства объекта", NULL, &show_prop_window);
+            if (ImGui::MenuItem(u8"Инфопорции"))
+                switchEditor(Editors::Infoportions);
+            ImGui::MenuItem(u8"Погода", NULL, &show_weather_window);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu(u8"Шейдеры")) {
+            ImGui::MenuItem(u8"Просмотр шейдеров", NULL, &show_se_editor);
+            ImGui::Checkbox(u8"Use Diffuse", &Device.useDiffuse);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu(u8"Постэффекты")) {
+            if (ImGui::MenuItem(u8"PP Editor"))
+                switchEditor(Editors::PpList);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu(u8"Интерфейс")) {
+            ImGui::MenuItem(u8"UI Editor", NULL, &show_ui_editor);
+            ImGui::MenuItem(u8"HUD Editor", NULL, &show_hud_editor);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu(u8"Элементы уровня")) {
+            if (ImGui::MenuItem(u8"Детальные объекты"))
+                switchEditor(Editors::Details);
+            if (ImGui::MenuItem(u8"Погодные модификаторы"))
+                switchEditor(Editors::EnvModList);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu(u8"Показать")) {
+            ImGui::Checkbox(u8"ИИ-сетка", &isRenderAiMap);
+            ImGui::Checkbox(u8"Спаун-элементы", &isRenderSpawnElement);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu(u8"Статистика")) {
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("ImGui")) {
+            bool full = stage == EditorStage::Full;
+            if (ImGui::Checkbox(u8"Active", &full)) {
+                stage = full ? EditorStage::Full : EditorStage::Light;
+            }
+            ImGui::MenuItem("Old Main", NULL, &show_main);
+            ImGui::MenuItem("Metrics", NULL, &show_metrics);
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+
     if (show_test_window) {
         ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver);
         ImGui::ShowDemoWindow(&show_test_window);
@@ -135,6 +187,13 @@ void ShowEditor()
         showLeEditor(show_le_editor);
     if (show_se_editor)
         showSeEditor(show_se_editor);
+
+    if (show_main)
+        ShowMain(show_main);
+    if (show_metrics)
+        ImGui::ShowMetricsWindow(&show_metrics);
+    if (show_stats)
+        ShowStats(show_stats);
 
     drawActiveEditors();
 }
