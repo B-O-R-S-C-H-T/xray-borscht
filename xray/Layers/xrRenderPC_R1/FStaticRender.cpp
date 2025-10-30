@@ -3,6 +3,9 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
+
+#include <imgui.h>
+
 #include "../../xrEngine/igame_persistent.h"
 #include "../../xrEngine/environment.h"
 #include "../xrRender/fbasicvisual.h"
@@ -14,7 +17,6 @@
 #include "../xrRender/dxRenderDeviceRender.h"
 #include "../xrRender/dxWallMarkArray.h"
 #include "../xrRender/dxUIShader.h"
-//#include "../../xrServerEntities/smart_cast.h"
  
 using	namespace		R_dsgraph;
 
@@ -607,16 +609,14 @@ void	CRender::ApplyBlur4		(FVF::TL4uv* pv, u32 w, u32 h, float k)
 	pv->p.set(float(_w+EPS),EPS,			EPS,1.f); pv->color=_c; pv->uv[0].set(p1.x-kw,p0.y-kh);pv->uv[1].set(p1.x+kw,p0.y+kh);pv->uv[2].set(p1.x+kw,p0.y-kh);pv->uv[3].set(p1.x-kw,p0.y+kh);pv++;
 }
 
-#include "../../xrEngine/GameFont.h"
-void	CRender::Statistics	(CGameFont* _F)
+void CRender::Statistics()
 {
-	CGameFont&	F	= *_F;
-	F.OutNext	(" **** Occ-Q(%03.1f) **** ",100.f*f32(stats.o_culled)/f32(stats.o_queries?stats.o_queries:1));
-	F.OutNext	(" total  : %2d",	stats.o_queries	);	stats.o_queries = 0;
-	F.OutNext	(" culled : %2d",	stats.o_culled	);	stats.o_culled	= 0;
-	F.OutSkip	();
+	ImGui::Text(" **** Occ-Q(%03.1f) **** ", 100.f * f32(stats.o_culled) / f32(stats.o_queries ? stats.o_queries : 1));
+	ImGui::Text(" total : %2d", stats.o_queries);	stats.o_queries = 0;
+	ImGui::Text(" culled : %2d", stats.o_culled);	stats.o_culled = 0;
+	ImGui::Separator();
 #ifdef DEBUG
-	HOM.stats	();
+	HOM.stats();
 #endif
 }
 

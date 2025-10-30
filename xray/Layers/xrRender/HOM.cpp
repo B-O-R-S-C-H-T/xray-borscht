@@ -5,7 +5,6 @@
 #include "stdafx.h"
 #include "HOM.h"
 #include "occRasterizer.h"
-#include "../../xrEngine/GameFont.h"
 
 #include "dxRenderDeviceRender.h"
  
@@ -17,7 +16,7 @@ void CHOM::MT_RENDER()
 	bool b_main_menu_is_active = (g_pGamePersistent->m_pMainMenu && g_pGamePersistent->m_pMainMenu->IsActive() );
 	if (MT_frame_rendered!=Device.dwFrame && !b_main_menu_is_active)
 	{
-		CFrustum					ViewBase;
+		CFrustum					ViewBase{};
 		ViewBase.CreateFromMatrix	(Device.mFullTransform, FRUSTUM_P_LRTB + FRUSTUM_P_FAR);
 		Enable						();
 		Render						(ViewBase);
@@ -377,11 +376,11 @@ void CHOM::OnRender	()
 void CHOM::stats()
 {
 	if (m_pModel){
-		CGameFont& F		= *Statistic.Font();
-		F.OutNext			(" **** HOM-occ ****");
-		F.OutNext			("  visible:  %2d", tris_in_frame_visible);
-		F.OutNext			("  frustum:  %2d", tris_in_frame);
-		F.OutNext			("    total:  %2d", m_pModel->get_tris_count());
+		ImGui::Separator();
+		ImGui::Text(" **** HOM-occ ****");
+		ImGui::Text(" visible: %2d", tris_in_frame_visible);
+		ImGui::Text(" frustum: %2d", tris_in_frame);
+		ImGui::Text(" total:   %2d", m_pModel->get_tris_count());
 	}
 }
 #endif

@@ -8,7 +8,6 @@
 
 #include "stdafx.h"
 #include "profiler.h"
-#include "../xrEngine/gamefont.h"
 
 #ifdef PROFILE_CRITICAL_SECTIONS
 static volatile LONG					critical_section_counter = 0;
@@ -151,7 +150,7 @@ void CProfiler::clear				()
 #endif // PROFILE_CRITICAL_SECTIONS
 }
 
-void CProfiler::show_stats			(CGameFont *game_font, bool show)
+void CProfiler::show_stats(bool show)
 {
 	if (!show) {
 #ifdef PROFILE_CRITICAL_SECTIONS
@@ -166,7 +165,7 @@ void CProfiler::show_stats			(CGameFont *game_font, bool show)
 #endif // PROFILE_CRITICAL_SECTIONS
 
 	++m_call_count;
-		
+
 #ifdef PROFILE_CRITICAL_SECTIONS
 	while (InterlockedExchange(&critical_section_counter,1))
 		Sleep					(0);
@@ -225,29 +224,25 @@ void CProfiler::show_stats			(CGameFont *game_font, bool show)
 		if ((*I).second.m_update_time != Device.dwTimeGlobal)
 			(*I).second.m_time	*= .99f;
 
-		float					average = (*I).second.m_count ? (*I).second.m_total_time/float((*I).second.m_count) : 0.f;
-		if (average >= (*I).second.m_time)
-			game_font->SetColor	(color_xrgb(127,127,127));
-		else
-			game_font->SetColor	(color_xrgb(255,255,255));
+		float average          = (*I).second.m_count ? (*I).second.m_total_time / float((*I).second.m_count) : 0.f;
+		bool  is_below_average = average < (*I).second.m_time;
 
-		game_font->OutNext		(
-//			"%s.. %8.3f %8.3f %8.3f %8.3f %8.3f %8d %12.3f",
-			"%s%c%c %8.3f %8.3f %8.3f %6.1f %8d %12.3f",
-			*(*I).second.m_name,
-			white_character,
-			white_character,
-			(*I).second.m_time,
-			average,
-			(*I).second.m_max_time,
-			float((*I).second.m_call_count)/m_call_count,//float((*I).second.m_count),
-//			(*I).second.m_min_time,
-			(*I).second.m_call_count,
-			(*I).second.m_total_time
+		ImGui::PushStyleColor(ImGuiCol_Text,
+							 is_below_average ? ImVec4(0.5f, 0.5f, 0.5f, 1.0f) :	// серый
+												ImVec4(1.0f, 1.0f, 1.0f, 1.0f)		// белый
 		);
-	}
 
-	game_font->SetColor			(color_xrgb(255,255,255));
+		ImGui::Text("%s  %8.3f %8.3f %8.3f %6.1f %8d %12.3f",
+					*(*I).second.m_name,
+					(*I).second.m_time,
+					average,
+					(*I).second.m_max_time,
+					float((*I).second.m_call_count) / m_call_count,
+					(*I).second.m_call_count,
+					(*I).second.m_total_time);
+
+		ImGui::PopStyleColor();
+	}
 }
 
 void CProfiler::add_profile_portion	(const CProfileResultPortion &profile_portion)

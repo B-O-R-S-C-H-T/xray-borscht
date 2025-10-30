@@ -148,7 +148,7 @@ public:
 		void*							ppConstantTable);
 
 	// Information
-	virtual void					Statistics				(CGameFont* F);
+	virtual void					Statistics				();
 	virtual LPCSTR					getShaderPath			()									{ return "r1\\";	}
 	virtual ref_shader				getShader				(int id);
 	virtual IRender_Sector*			getSector				(int id);

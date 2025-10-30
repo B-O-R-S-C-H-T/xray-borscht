@@ -106,7 +106,7 @@ public:
 	virtual ~IGame_Persistent		();
 
 	ICF		u32						GameType			() {return m_game_params.m_e_game_type;};
-	virtual void					Statistics			(CGameFont* F)
+	virtual void					Statistics			()
 #ifndef _EDITOR
      = 0;
 #else

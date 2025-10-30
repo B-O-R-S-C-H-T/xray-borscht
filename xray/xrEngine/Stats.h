@@ -22,8 +22,6 @@ public:
 class ENGINE_API CStats: public pureRender
 {
 public:
-	CGameFont*	pFont;
-
 	float		fFPS,fRFPS,fTPS		;			// FPS, RenderFPS, TPS
 	float		fMem_calls			;
 	u32			dwMem_calls			;
@@ -101,8 +99,6 @@ public:
 public:
 					CStats			();
 					~CStats			();
-
-	IC CGameFont*	Font			(){return pFont;}
 
 private:
 	std::unique_ptr<IStatsRender, void(*)(IStatsRender*)> m_pRender;

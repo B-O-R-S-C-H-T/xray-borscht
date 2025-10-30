@@ -22,7 +22,7 @@
 bool		show_main			= false;
 bool		show_metrics		= false;
 bool		show_test_window	= false;
-bool		show_weather_window = true;
+bool		show_weather_window = false;
 bool		show_info_window	= false;
 bool		show_prop_window	= false;
 bool		show_restr_window	= false;
@@ -35,7 +35,6 @@ bool		show_map_editor		= false;
 bool		show_hud_editor		= false;
 bool		show_le_editor		= false;
 bool		show_se_editor		= false;
-bool		show_stats			= false;
 extern bool isRenderAiMap;
 extern bool isRenderSpawnElement;
 
@@ -142,6 +141,10 @@ void ShowEditor() {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu(u8"Статистика")) {
+            bool stats_enabled = psDeviceFlags.test(rsStatistic);
+            if (ImGui::Checkbox(u8"Вывод статистики", &stats_enabled)) {
+                psDeviceFlags.set(rsStatistic, stats_enabled);
+            }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("ImGui")) {
@@ -192,9 +195,6 @@ void ShowEditor() {
         ShowMain(show_main);
     if (show_metrics)
         ImGui::ShowMetricsWindow(&show_metrics);
-    if (show_stats)
-        ShowStats(show_stats);
-
     drawActiveEditors();
 }
 

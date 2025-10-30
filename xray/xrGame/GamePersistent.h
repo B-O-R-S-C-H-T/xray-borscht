@@ -76,7 +76,7 @@ public:
 
 	virtual void		RegisterModel			(IRenderVisual* V);
 	virtual	float		MtlTransparent			(u32 mtl_idx);
-	virtual	void		Statistics				(CGameFont* F);
+	virtual	void		Statistics				();
 
 	virtual bool		OnRenderPPUI_query		();
 	virtual void		OnRenderPPUI_main		();

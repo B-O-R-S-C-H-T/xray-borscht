@@ -1,4 +1,7 @@
 #include "stdafx.h"
+
+#include <imgui.h>
+
 #include "r3.h"
 #include "../xrRender/fbasicvisual.h"
 #include "../../xrEngine/xr_object.h"
@@ -322,7 +325,7 @@ void					CRender::create					()
 	o.dx10_gbuffer_opt	= ps_r2_ls_flags.test(R3FLAG_GBUFFER_OPT);
 
 	o.dx10_minmax_sm = ps_r3_minmax_sm;
-	o.dx10_minmax_sm_screenarea_threshold = 1600*1200;
+	o.dx10_minmax_sm_screenarea_threshold = 3840*2160;
 
 	if (o.dx10_minmax_sm==MMSM_AUTODETECT)
 	{
@@ -337,7 +340,7 @@ void					CRender::create					()
 			{
 				o.dx10_minmax_sm=MMSM_AUTODETECT;
 				//	Check resolution in runtime in use_minmax_sm_this_frame
-				o.dx10_minmax_sm_screenarea_threshold = 1600*1200;
+				o.dx10_minmax_sm_screenarea_threshold = 3840*2160;
 			}
 		}
 
@@ -348,7 +351,7 @@ void					CRender::create					()
 			{
 				o.dx10_minmax_sm=MMSM_AUTODETECT;
 				//	Check resolution in runtime in use_minmax_sm_this_frame
-				o.dx10_minmax_sm_screenarea_threshold = 1280*1024;
+				o.dx10_minmax_sm_screenarea_threshold = 3840*2160;
 			}
 		}
 	}
@@ -663,25 +666,23 @@ CRender::~CRender()
 {
 }
 
-#include "../../xrEngine/GameFont.h"
-void	CRender::Statistics	(CGameFont* _F)
+void CRender::Statistics()
 {
-	CGameFont&	F	= *_F;
-	F.OutNext	(" **** LT:%2d,LV:%2d **** ",stats.l_total,stats.l_visible		);	stats.l_visible = 0;
-	F.OutNext	("    S(%2d)   | (%2d)NS   ",stats.l_shadowed,stats.l_unshadowed);
-	F.OutNext	("smap use[%2d], merge[%2d], finalclip[%2d]",stats.s_used,stats.s_merged-stats.s_used,stats.s_finalclip);
-	stats.s_used = 0; stats.s_merged = 0; stats.s_finalclip = 0;
-	F.OutSkip	();
-	F.OutNext	(" **** Occ-Q(%03.1f) **** ",100.f*f32(stats.o_culled)/f32(stats.o_queries?stats.o_queries:1));
-	F.OutNext	(" total  : %2d",	stats.o_queries	);	stats.o_queries = 0;
-	F.OutNext	(" culled : %2d",	stats.o_culled	);	stats.o_culled	= 0;
-	F.OutSkip	();
-	u32	ict		= stats.ic_total + stats.ic_culled;
-	F.OutNext	(" **** iCULL(%03.1f) **** ",100.f*f32(stats.ic_culled)/f32(ict?ict:1));
-	F.OutNext	(" visible: %2d",	stats.ic_total	);	stats.ic_total	= 0;
-	F.OutNext	(" culled : %2d",	stats.ic_culled	);	stats.ic_culled	= 0;
+	ImGui::Text(" **** LT:%2d,LV:%2d **** ", stats.l_total, stats.l_visible); stats.l_visible = 0;
+	ImGui::Text(" S(%2d) | (%2d)NS ", stats.l_shadowed, stats.l_unshadowed);
+	ImGui::Text("smap use[%2d], merge[%2d], finalclip[%2d]", stats.s_used, stats.s_merged - stats.s_used, stats.s_finalclip);
+	stats.s_used      = 0; stats.s_merged    = 0; stats.s_finalclip = 0;
+	ImGui::Separator();
+	ImGui::Text(" **** Occ-Q(%03.1f) **** ", 100.f * f32(stats.o_culled) / f32(stats.o_queries ? stats.o_queries : 1));
+	ImGui::Text(" total : %2d", stats.o_queries);	stats.o_queries = 0;
+	ImGui::Text(" culled : %2d", stats.o_culled);	stats.o_culled	= 0;
+	ImGui::Separator();
+	u32 ict = stats.ic_total + stats.ic_culled;
+	ImGui::Text(" **** iCULL(%03.1f) **** ", 100.f * f32(stats.ic_culled) / f32(ict ? ict : 1));
+	ImGui::Text(" visible: %2d", stats.ic_total);	stats.ic_total	= 0;
+	ImGui::Text(" culled : %2d", stats.ic_culled);	stats.ic_culled	= 0;
 #ifdef DEBUG
-	HOM.stats	();
+	HOM.stats();
 #endif
 }
 

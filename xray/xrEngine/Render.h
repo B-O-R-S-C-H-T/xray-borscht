@@ -211,7 +211,7 @@ public:
 		void*							ppConstantTable)												= 0;
 
 	// Information
-	virtual	void					Statistics				(CGameFont* F	)							{};
+	virtual	void					Statistics				()											{};
 
 	virtual LPCSTR					getShaderPath			()											= 0;
 //	virtual ref_shader				getShader				(int id)									= 0;
@@ -221,7 +221,7 @@ public:
 	virtual IRender_Target*			getTarget				()											= 0;
 
 	// Main 
-	IC		void					set_Frustum				(CFrustum*	O	)							{ VERIFY(O);	View = O;			}
+	IC		void					set_Frustum				(CFrustum*	O	)							{ VERIFY(O); View = O;}
 	virtual void					set_Transform			(Fmatrix*	M	)							= 0;
 	virtual void					set_HUD					(BOOL 		V	)							= 0;
 	virtual BOOL					get_HUD					()											= 0;
