@@ -47,7 +47,6 @@ CProfiler::CProfiler				()
 	:m_section("")
 #endif // PROFILE_CRITICAL_SECTIONS
 {
-	m_actual							= true;
 }
 
 CProfiler::~CProfiler				()

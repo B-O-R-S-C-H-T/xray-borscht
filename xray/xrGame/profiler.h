@@ -59,11 +59,11 @@ protected:
 	typedef xr_map<shared_str,CProfileStats,pred_rstr>	TIMERS;
 
 protected:
-	PORTIONS			m_portions;
-	TIMERS				m_timers;
-	bool				m_actual;
+	PORTIONS			m_portions			{};
+	TIMERS				m_timers			{};
+	bool				m_actual			{true};
 	xrCriticalSection	m_section;
-	u32					m_call_count;
+	u32					m_call_count		{0};
 
 protected:
 			void		setup_timer			(LPCSTR timer_id, const u64 &timer_time, const u32 &call_count);
