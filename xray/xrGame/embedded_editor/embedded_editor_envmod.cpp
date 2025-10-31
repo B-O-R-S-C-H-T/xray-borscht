@@ -37,7 +37,7 @@ struct EnvModEditor : public Editor {
         if (wnd.Collapsed)
             return true;
 
-        if (ImGui::SliderFloat("##view_dist", &m_obj.far_plane, 0.001f, 10000.0f, "%.3f", 3.0f))
+        if (ImGui::SliderFloat("##view_dist", &m_obj.far_plane, 0.001f, 10000.0f, "%.3f", ImGuiSliderFlags_Logarithmic))
             m_changed = true;
         ImGui::SameLine();
         bool b = m_obj.use_flags.test(eViewDist);

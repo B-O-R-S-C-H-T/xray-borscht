@@ -222,7 +222,7 @@ void ShowWeatherEditor(bool& show)
     u64 time = Level().GetEnvironmentGameTime() / 1000;
     ImGui::Text("Time: %02d:%02d:%02d", int(time / (60 * 60) % 24), int(time / 60 % 60), int(time % 60));
     float tf = Level().GetEnvironmentTimeFactor();
-    if (ImGui::SliderFloat("Time factor", &tf, 0.0f, 1000.0f, "%.3f", 2.0f))
+    if (ImGui::SliderFloat("Time factor", &tf, 0.0f, 1000.0f, "%.3f", ImGuiSliderFlags_Logarithmic))
         Level().SetEnvironmentTimeFactor(tf);
     xr_vector<shared_str> cycles;
     int iCycle = -1;
@@ -266,9 +266,9 @@ void ShowWeatherEditor(bool& show)
         cur->on_device_create();
         changed = true;
     }
-    if (ImGui::SliderFloat("far_plane", &cur->far_plane, 0.001f, 10000.0f, "%.3f", 3.0f))
+    if (ImGui::SliderFloat("far_plane", &cur->far_plane, 0.001f, 10000.0f, "%.3f", ImGuiSliderFlags_Logarithmic))
         changed = true;
-    if (ImGui::SliderFloat("fog_distance", &cur->fog_distance, 0.0f, 10000.0f, "%.3f", 3.0f))
+    if (ImGui::SliderFloat("fog_distance", &cur->fog_distance, 0.0f, 10000.0f, "%.3f", ImGuiSliderFlags_Logarithmic))
         changed = true;
     if (ImGui::SliderFloat("fog_density", &cur->fog_density, 0.0f, 10.0f))
         changed = true;
