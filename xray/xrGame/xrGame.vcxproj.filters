@@ -7524,6 +7524,9 @@
     <ClInclude Include="objects\physics\Pendulum.h">
       <Filter>Core\Client\Objects\physics\Pendulum</Filter>
     </ClInclude>
+    <ClInclude Include="embedded_editor\input_mapping.h">
+      <Filter>Embedded Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -11239,6 +11242,9 @@
     </ClCompile>
     <ClCompile Include="ActorHolder.cpp">
       <Filter>Core\Client\Objects\actor\base</Filter>
+    </ClCompile>
+    <ClCompile Include="embedded_editor\input_mapping.cpp">
+      <Filter>Embedded Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

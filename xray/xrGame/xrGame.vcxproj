@@ -1284,6 +1284,7 @@
     <ClInclude Include="embedded_editor\embedded_editor_stats.h" />
     <ClInclude Include="embedded_editor\embedded_editor_ui.h" />
     <ClInclude Include="embedded_editor\embedded_editor_weather.h" />
+    <ClInclude Include="embedded_editor\input_mapping.h" />
     <ClInclude Include="embedded_editor\render\editor_render.h" />
     <ClInclude Include="embedded_editor\render\editor_render_ai_map.h" />
     <ClInclude Include="embedded_editor\render\editor_render_spawn_element.h" />
@@ -4573,6 +4574,10 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <ClCompile Include="embedded_editor\infoportions.cpp" />
+    <ClCompile Include="embedded_editor\input_mapping.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="embedded_editor\render\editor_render.cpp" />
     <ClCompile Include="embedded_editor\render\editor_render_ai_map.cpp" />
     <ClCompile Include="embedded_editor\render\editor_render_spawn_element.cpp" />

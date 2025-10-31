@@ -1,5 +1,11 @@
 #include "stdAfx.h"
+
 #include "embedded_editor_main.h"
+
+#include <addons/imguinodegrapheditor/imguinodegrapheditor.h>
+#include <dinput.h>
+#include <imgui.h>
+
 #include "../../xrEngine/xr_input.h"
 #include "../../xrEngine/xr_ioconsole.h"
 #include "../xr_level_controller.h"
@@ -15,9 +21,7 @@
 #include "embedded_editor_stats.h"
 #include "embedded_editor_ui.h"
 #include "embedded_editor_weather.h"
-#include <addons/imguinodegrapheditor/imguinodegrapheditor.h>
-#include <dinput.h>
-#include <imgui.h>
+#include "input_mapping.h"
 
 bool		show_main			= false;
 bool		show_metrics		= false;
@@ -245,18 +249,21 @@ bool Editor_KeyPress(int key)
         io.AddInputCharacter('0' + key - DIK_NUMPAD0);
         break;
     default:
-        if (key >= 0 && key < ImGuiKey_NamedKey_END) {
-            io.AddKeyEvent(static_cast<ImGuiKey>(key), true);
-        }
-        if (key == DIK_SPACE && (pInput->iGetAsyncKeyState(DIK_RWIN) || pInput->iGetAsyncKeyState(DIK_LWIN)))
-            ActivateKeyboardLayout((HKL)HKL_NEXT, 0);
-        else {
-            uint16_t ch[1];
-            int n = pInput->scancodeToChar(key, ch);
-            if (n > 0) {
-                wchar_t buf;
-                MultiByteToWideChar(CP_ACP, 0, (char*)ch, n, &buf, 1);
-                io.AddInputCharacter(buf);
+        {
+            ImGuiKey imguiKey = InputMapping::GetImGuiKeyFromDIK(key);
+            if (imguiKey != ImGuiKey_None)
+                io.AddKeyEvent(imguiKey, true);
+
+            if (key == DIK_SPACE && (pInput->iGetAsyncKeyState(DIK_RWIN) || pInput->iGetAsyncKeyState(DIK_LWIN)))
+                ActivateKeyboardLayout((HKL)HKL_NEXT, 0);
+            else {
+                uint16_t ch[1];
+                int n = pInput->scancodeToChar(key, ch);
+                if (n > 0) {
+                    wchar_t buf;
+                    MultiByteToWideChar(CP_ACP, 0, (char*)ch, n, &buf, 1);
+                    io.AddInputCharacter(buf);
+                }
             }
         }
     }
@@ -310,8 +317,10 @@ bool Editor_KeyRelease(int key)
         io.MouseDown[2] = false;
         break;
     default:
-        if (key >= 0 && key < ImGuiKey_NamedKey_END) {
-            io.AddKeyEvent(static_cast<ImGuiKey>(key), false);
+        {
+            ImGuiKey imguiKey = InputMapping::GetImGuiKeyFromDIK(key);
+            if (imguiKey != ImGuiKey_None)
+                io.AddKeyEvent(imguiKey, false);
         }
     }
     return true;
