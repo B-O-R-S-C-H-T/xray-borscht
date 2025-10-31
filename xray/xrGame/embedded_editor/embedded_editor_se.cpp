@@ -124,7 +124,7 @@ void showSeEditor(bool& show)
     }
     ImGui::Text("Pixel shaders(%d):", pss.size());
     if (ImGui::ListBox(
-            "", &selected,
+            "##PixelShadersList", &selected,
             [](void* data, int idx, const char** out_text) -> bool {
                 xr_vector<ref_ps>* psList = (xr_vector<ref_ps>*)data;
                 *out_text = (*psList)[idx]->cName.c_str();
@@ -162,6 +162,6 @@ void showSourceEditor()
     ImguiWnd wnd("Source", &isShowSourceEditor);
     if (wnd.Collapsed)
         return;
-    editor.Render("", ImVec2(-1.0f, -20.0f), true);
+    editor.Render("##source", ImVec2(-1.0f, -20.0f), true);
     if (ImGui::Button("Compile")) { }
 }

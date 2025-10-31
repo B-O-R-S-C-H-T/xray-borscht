@@ -18,7 +18,7 @@ struct InfoportionsEditor : public Editor {
     {
         bool show = true;
         ImGui::SetWindowSize(ImVec2(200.0f, 200.0f), ImGuiCond_FirstUseEver);
-        ImguiWnd wnd(u8"Infoportions", &show);
+        ImguiWnd wnd(u8"Инфопорции", &show);
         if (!show)
             return false;
         if (wnd.Collapsed)
@@ -30,7 +30,7 @@ struct InfoportionsEditor : public Editor {
 
         auto&& infos = g_actor->m_known_info_registry->registry().objects();
         ImGui_ListBox(
-            "", &m_cur,
+            "##infoportions", &m_cur,
             [](void* data, int idx, const char** out_text) -> bool {
                 auto infos = (KNOWN_INFO_VECTOR*)data;
                 *out_text = (*infos)[infos->size() - idx - 1].info_id.c_str();

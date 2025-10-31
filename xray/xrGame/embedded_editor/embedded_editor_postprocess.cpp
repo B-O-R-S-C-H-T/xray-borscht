@@ -275,7 +275,7 @@ struct PostprocessEditor : public Editor {
         float position = m_anim->position();
         char buf[32];
         sprintf(buf, "%%.3f/%.3f", m_anim->GetLength());
-        if (ImGui::SliderFloat("", &position, 0.0f, m_anim->GetLength(), buf))
+        if (ImGui::SliderFloat("##position", &position, 0.0f, m_anim->GetLength(), buf))
             m_anim->setPosition(position);
         ImGui::PopItemWidth();
 
@@ -397,14 +397,14 @@ struct PpListModel : public Editor {
     {
         bool show = true;
         ImGui::SetNextWindowSize(ImVec2(100, 100), ImGuiCond_FirstUseEver);
-        ImguiWnd wnd(u8"Постпроцессы", &show);
+        ImguiWnd wnd(u8"Постэффекты", &show);
         if (!show)
             return false;
         if (wnd.Collapsed)
             return true;
 
         if (ImGui_ListBox(
-                "", &m_cur,
+                "##PosteffectsList", &m_cur,
                 [](void* data, int idx, const char** out_text) -> bool {
                     auto files = (xr_vector<std::string>*)data;
                     *out_text = (*files)[idx].c_str();

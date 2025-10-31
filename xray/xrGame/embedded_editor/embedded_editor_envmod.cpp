@@ -126,7 +126,7 @@ struct EnvModListModel : public Editor {
     {
         bool show = true;
         ImGui::SetNextWindowSize(ImVec2(100, 100), ImGuiCond_FirstUseEver);
-        ImguiWnd wnd(u8"Env Mods", &show);
+        ImguiWnd wnd(u8"Локальные модификаторы погоды", &show);
         if (!show)
             return false;
         if (wnd.Collapsed)
@@ -134,7 +134,7 @@ struct EnvModListModel : public Editor {
 
         updateNames();
         if (ImGui_ListBox(
-                "", &m_cur,
+                "##EnvModsList", &m_cur,
                 [](void* data, int idx, const char** out_text) -> bool {
                     auto names = (std::vector<std::string>*)data;
                     *out_text = (*names)[idx].c_str();

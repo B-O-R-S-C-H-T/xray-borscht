@@ -179,7 +179,7 @@ void ShowMotionWindow(u16 motion)
         return;
     static int cur = -1;
     if (ImGui_ListBox(
-            "", &cur,
+            "##MotionsList", &cur,
             [](void* data, int idx, const char** out_text) -> bool {
                 xr_vector<shared_str>* anims = (xr_vector<shared_str>*)data;
                 *out_text = (*anims)[idx].c_str();
