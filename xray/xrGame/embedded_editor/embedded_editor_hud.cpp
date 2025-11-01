@@ -16,11 +16,12 @@ void ShowHudEditor(bool& show)
         first = true;
         return;
     }
-    ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());	// Затычка от вылета, появившегося после обновления imguizmo/imgui.
-															// Она не решает проблему с недоступностью манипулятора, лишь не даёт движку упасть.
+
     if (!g_player_hud)
         return;
 
+    ImGuizmo::BeginFrame();
+	ImGuizmo::SetOrthographic(false);
     ImGuiIO& io = ImGui::GetIO();
     ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
     ImGuizmo::OPERATION mode = io.KeyCtrl ? ImGuizmo::ROTATE : ImGuizmo::TRANSLATE;
