@@ -29,7 +29,8 @@ animation_selector::animation_selector				(CAI_Stalker *object) :
 	m_object			(object),
 	m_callback_called	(false),
 	m_first_time		(true),
-	m_previous_time		(flt_max)
+	m_previous_time		(flt_max),
+	m_storage			(nullptr)
 {
 	m_skeleton_animated	= smart_cast<IKinematicsAnimated*>(object->Visual());
 	VERIFY				(m_skeleton_animated);
@@ -85,7 +86,7 @@ MotionID animation_selector::select_animation		(bool &animation_movement_control
 			
 			m_previous_time		= 0.f;
 			if (!m_planner->initialized()) {
-//				Msg				("%6d no planner update, planner is not initialized, exiting", Device.dwTimeGlobal);
+//				Msg				("! %6d no planner update, planner is not initialized, exiting", Device.dwTimeGlobal);
 				return			(m_object->animation().assign_global_animation(animation_movement_controller));
 			}
 		}
@@ -94,7 +95,7 @@ MotionID animation_selector::select_animation		(bool &animation_movement_control
 		m_planner->update	();
 
 		if (!m_planner->initialized()) {
-//			Msg				("%6d planner is not initialized after update, exiting", Device.dwTimeGlobal);
+//			Msg				("! %6d planner is not initialized after update, exiting", Device.dwTimeGlobal);
 			return			(m_object->animation().assign_global_animation(animation_movement_controller));
 		}
 
@@ -108,11 +109,18 @@ MotionID animation_selector::select_animation		(bool &animation_movement_control
 		if ( !m_object->movement().current_params().cover()->is_combat_cover() )
 			return			(m_skeleton_animated->ID_Cycle( m_animation.c_str()));
 
-#ifndef MASTER_GOLD
+		//Msg("stalker [%s] in combat_cover, selecting animation: %s, cover_id: %s",
+		//	m_object->cName().c_str(), m_animation.c_str(), m_object->movement().current_params().cover()->id().c_str());
+
 		if (!psAI_Flags.test((u32)aiUseSmartCoversAnimationSlot))
 			return			(m_skeleton_animated->ID_Cycle( m_animation.c_str()));
 
-		VERIFY				( m_object->inventory().ActiveItem() );
+		if (!m_object->inventory().ActiveItem()) {
+			Msg("! stalker [%s] hud_item is nullptr (no ActiveItem) in combat_cover, animation: %s, cover: %s",
+				m_object->cName().c_str(), m_animation.c_str(), m_object->movement().current_params().cover()->id().c_str());
+			return (m_skeleton_animated->ID_Cycle(m_animation.c_str()));
+		}
+
 		CHudItem* const		hud_item = smart_cast<CHudItem*>(m_object->inventory().ActiveItem());
 		VERIFY				( hud_item );
 
@@ -130,9 +138,6 @@ MotionID animation_selector::select_animation		(bool &animation_movement_control
 		animation_id		= m_skeleton_animated->ID_Cycle_Safe( result );
 		VERIFY				(animation_id);
 		return				(animation_id);
-#else // #ifndef MASTER_GOLD
-		return				(m_skeleton_animated->ID_Cycle( m_animation.c_str()));
-#endif // #ifndef MASTER_GOLD
 	}
 
 	VERIFY				(m_animation._get());

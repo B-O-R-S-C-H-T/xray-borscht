@@ -86,27 +86,33 @@ public:
 
 animation_action const &action::animation	(MonsterSpace::EBodyState const &target_body_state) const
 {
+	//Msg("[smart_cover_transition] searching animation for body_state [%i], target_body_state");
+
 	Animations::const_iterator found = 
 		std::find_if			(m_animations.begin(), m_animations.end(), body_state_predicate(target_body_state));
-	
 	if (found == m_animations.end()) {
-#ifndef MASTER_GOLD
-		Msg						("! There is no animation which can transfer bot to body_state [%i], selecting random transition", target_body_state);
-#endif // #ifndef MASTER_GOLD
+		Msg("! [smart_cover_transition] No animation found for body_state [%i], animations count: %d, selecting random transition",
+			target_body_state, m_animations.size());
 		return					(animation());
 	}
 
 #if 0 //for testing
-	VERIFY2						(
-		found != m_animations.end(),
-		make_string("There is no animation which can transfer bot to body_state [%i]", target_body_state)
-	);
+	VERIFY2	(found != m_animations.end(), make_string("There is no animation which can transfer bot to body_state [%i]", target_body_state));
 #endif
+
+	//Msg("[smart_cover_transition] Found animation for body_state [%i]: %s", target_body_state, (*found)->animation_id().c_str());
 
 	return						(**found);
 }
 
 animation_action const	&action::animation	() const
 {
+	//Msg("[smart_cover_transition] Random animation selection!");
+
+	if (m_animations.empty()) {
+		Msg("! [smart_cover_transition] Empty animations in transition, cannot select random!");
+		VERIFY(false);
+	}
+
 	return						(*m_animations[Random.randI(m_animations.size())]);
 }
