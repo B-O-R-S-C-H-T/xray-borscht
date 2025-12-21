@@ -60,8 +60,8 @@ void occRasterizer::clear		()
 {
 	u32 size			= occ_dim*occ_dim;
 	float f				= 1.f;
-	Memory.mem_fill32	(bufFrame,0,size);
-	Memory.mem_fill32	(bufDepth,*LPDWORD(&f),size);
+	std::fill_n			(&bufFrame[0][0], size, (occTri*)nullptr);
+	std::fill_n			(&bufDepth[0][0], size, f);
 }
 
 IC BOOL shared(occTri* T1, occTri* T2)
