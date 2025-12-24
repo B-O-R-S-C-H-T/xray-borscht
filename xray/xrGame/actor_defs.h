@@ -2,8 +2,8 @@
 #include "PHSynchronize.h"
 #include "xrserver_space.h"
 
-#define ACTOR_HEIGHT		1.75f
-#define ACTOR_LOOKOUT_SPEED 2.f
+constexpr float ACTOR_HEIGHT		= 1.75f;
+constexpr float ACTOR_LOOKOUT_SPEED	= 2.f;
 
 namespace ACTOR_DEFS {
 

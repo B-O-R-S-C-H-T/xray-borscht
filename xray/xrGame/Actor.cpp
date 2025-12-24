@@ -2,8 +2,8 @@
 
 #include "Actor_Flags.h"
 #include "hudmanager.h"
-#ifdef DEBUG
 
+#ifdef DEBUG
 #include "PHDebug.h"
 #endif // DEBUG
 
@@ -55,7 +55,7 @@ BOOL					g_draw_actor_body		= FALSE;
 void					start_tutorial(LPCSTR name);
 int						g_iCorpseRemove = 1;
 ENGINE_API extern float psHUD_FOV;
-#define ARTEFACTS_UPDATE_TIME 0.100f
+constexpr float			ARTEFACTS_UPDATE_TIME = 0.100f;
 
 #ifdef DEBUG
 extern BOOL g_ShowAnimationInfo;
@@ -893,6 +893,11 @@ void CActor::UpdateCL() {
 
 	inherited::UpdateCL();
 	m_pPhysics_support->in_UpdateCL();
+
+	// отсоединить все худовые итемы во время обморока или восстановления
+	if (m_bFainted || m_bRecoveringFromFaint) {
+		g_player_hud->detach_all_items();
+	}
 
 	if (g_Alive())
 		PickupModeUpdate();

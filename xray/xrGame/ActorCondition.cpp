@@ -17,8 +17,8 @@
 #include "weapon.h"
 #include "CharacterPhysicsSupport.h"
 
-#define MAX_SATIETY					1.0f
-#define START_SATIETY				0.5f
+constexpr float MAX_SATIETY		= 1.0f;
+constexpr float START_SATIETY	= 0.5f;
 
 BOOL	GodMode	()	
 {
