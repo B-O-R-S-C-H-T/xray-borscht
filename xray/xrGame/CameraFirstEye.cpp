@@ -13,6 +13,7 @@ CCameraFirstEye::CCameraFirstEye(CObject* p, u32 flags) : CCameraBase(p, flags) 
 	m_bInterpolating  = false;
 	m_fInterpElapsed  = 0.0f;
 	m_fInterpDuration = 0.0f;
+	m_bUseBoneBased	  = false;
 }
 
 CCameraFirstEye::~CCameraFirstEye() {}
@@ -55,13 +56,13 @@ void CCameraFirstEye::UpdateLookat() {
 
 void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle) {
 	CActor* actor = smart_cast<CActor*>(parent);
-	if (actor && (!actor->g_Alive() || actor->m_bFainted || actor->m_bRecoveringFromFaint)) { // режим смерти или обморока
+	if (m_bUseBoneBased || (actor && (!actor->g_Alive() || actor->m_bFainted || actor->m_bRecoveringFromFaint))) { // костно-ориентированный режим
 		Fvector pos, dir, norm;
 		GetBoneBasedPosition(pos, dir, norm);
 		vPosition  = pos;
 		vDirection = dir;
 		vNormal	   = norm;
-	} else { // нормальный режим
+	} else { // прямое управление
 		vPosition.set(point);
 
 		Fmatrix mR{}, R{};
@@ -81,6 +82,10 @@ void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle) {
 
 		vDirection.set(mR.k);
 		vNormal.set(mR.j);
+		if (m_Flags.is(flRelativeLink)) {
+			parent->XFORM().transform_dir(vDirection);
+			parent->XFORM().transform_dir(vNormal);
+		}
 	}
 
 	// интерполяция
@@ -109,6 +114,13 @@ void CCameraFirstEye::Update(Fvector& point, Fvector& noise_dangle) {
 		parent->XFORM().transform_dir(vDirection);
 		parent->XFORM().transform_dir(vNormal);
 	}
+}
+
+void CCameraFirstEye::SetStartFromLookAt(Fvector pos, Fvector dir, Fvector norm) {
+	m_bStartFromThird = true;
+	m_vThirdPos		  = pos;
+	m_vThirdDir		  = dir;
+	m_vThirdNorm	  = norm;
 }
 
 void CCameraFirstEye::GetBoneBasedPosition(Fvector& pos, Fvector& dir, Fvector& norm) const {
@@ -148,9 +160,14 @@ void CCameraFirstEye::GetBoneBasedPosition(Fvector& pos, Fvector& dir, Fvector& 
 void CCameraFirstEye::StartInterpolation(float duration) {
 	m_fInterpDuration = duration;
 	m_fInterpElapsed = 0.0f;
-
-	GetBoneBasedPosition(m_vInterpStartPos, m_vInterpStartDir, m_vInterpStartNorm);
-
+	if (m_bStartFromThird) {
+		m_vInterpStartPos = m_vThirdPos;
+		m_vInterpStartDir = m_vThirdDir;
+		m_vInterpStartNorm = m_vThirdNorm;
+		m_bStartFromThird = false;
+	} else {
+		GetBoneBasedPosition(m_vInterpStartPos, m_vInterpStartDir, m_vInterpStartNorm);
+	}
 	m_bInterpolating = true;
 }
 

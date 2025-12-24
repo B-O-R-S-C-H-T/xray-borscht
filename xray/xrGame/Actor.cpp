@@ -734,13 +734,25 @@ void CActor::RecoverFromFaint() {
 	mstate_wishful |= mcAnyMove;
 	mstate_real |= mcAnyMove;
 
-	cam_Set(eacFirstEye);
-
 	set_input_external_handler(0);
 
 	IKinematicsAnimated* K = smart_cast<IKinematicsAnimated*>(Visual());
 	m_recovering_anim	   = K->ID_Cycle("wounded_2_out");	// некрасиво
 	if (m_recovering_anim.valid()) {
+		if (cam_active == eacLookAt) {
+			Fvector lookat_pos, lookat_dir, lookat_norm;
+			cameras[eacLookAt]->Get(lookat_pos, lookat_dir, lookat_norm);
+			cam_Set(eacFirstEye);
+			CCameraFirstEye* cam = smart_cast<CCameraFirstEye*>(cameras[eacFirstEye]);
+			if (cam) {
+				cam->SetStartFromLookAt(lookat_pos, lookat_dir, lookat_norm);
+				float anim_length = K->LL_GetRootMotion(m_recovering_anim)->GetLength();
+				cam->StartInterpolation(anim_length);
+				Msg("[DEBUG] Starting camera interpolation with duration %.2f s", anim_length);
+			} else {
+				Msg("[DEBUG] Failed to start camera interpolation!");
+			}
+		}
 		K->PlayCycle(m_recovering_anim, FALSE, CActor::RecoverFromFaintCallback, this);
 		m_bRecoveringFromFaint = true;
 		Msg("[DEBUG] Playing recovery animation...");
@@ -761,11 +773,26 @@ void CActor::RecoverFromFaintCallback(CBlend* B) {
 
 	CCameraFirstEye* cam = smart_cast<CCameraFirstEye*>(actor->cameras[eacFirstEye]);
 	if (cam) {
-		cam->StartInterpolation(0.5f);
-		Msg("[DEBUG] Recovery faint animation finished. Starting camera interpolation...");
+		// синхронизируем костные данные
+		Fvector pos, dir, norm;
+		cam->GetBoneBasedPosition(pos, dir, norm);
+		Fmatrix mR{};
+		mR.identity();
+		mR.k.normalize_safe(dir);
+		Fvector::generate_orthonormal_basis(mR.k, mR.j, mR.i);
+		Fvector xyz;
+		mR.getXYZi(xyz);
+		cam->yaw = xyz.y;
+		cam->pitch = xyz.x;
+		cam->SetUseBoneBased(false);
+		// и плавно переходим от костно-ориентированной к обычной интерполяции
+		cam->SetStartFromLookAt(pos, dir, norm);
+		cam->StartInterpolation(1.8f);	// чтобы замаскировать переход
+		Msg("[DEBUG] Recovery faint animation finished. Starting second camera interpolation for smooth transition.");
 	} else {
 		Msg("[DEBUG] Failed to start camera interpolation!");
 	}
+	Msg("[DEBUG] Recovery faint animation finished. Interpolation should end now.");
 }
 
 void CActor::SwitchOutBorder(bool new_border_state) {
@@ -1160,7 +1187,7 @@ void CActor::shedule_Update(u32 DT) {
 
 	// отрисовка модели актора
 	if (!character_physics_support()->IsRemoved())
-		setVisible(!HUDview() || (!g_Alive() || g_draw_actor_body) || m_bFainted);
+		setVisible(!HUDview() || (!g_Alive() || g_draw_actor_body) || m_bFainted || m_bRecoveringFromFaint);
 
 	// что актор видит перед собой
 	collide::rq_result& RQ = HUD().GetCurrentRayQuery();

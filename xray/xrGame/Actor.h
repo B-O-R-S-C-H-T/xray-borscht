@@ -767,6 +767,7 @@ public:
 private:
 	void					Faint(CObject* who);
 	void					RecoverFromFaint();
+	bool					m_bStartInterpFromThird; // флаг начала интерпол€ции с позиции камеры от третьего лица
 
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
