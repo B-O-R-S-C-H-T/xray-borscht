@@ -899,10 +899,10 @@ void CActor::UpdateCL() {
 		g_player_hud->detach_all_items();
 	}
 
-	if (g_Alive())
+	if (g_Alive() && !m_bFainted) {
 		PickupModeUpdate();
-
-	PickupModeUpdate_COD();
+		PickupModeUpdate_COD();
+	}
 
 	SetZoomAimingMode(false);
 	CWeapon* pWeapon = smart_cast<CWeapon*>(inventory().ActiveItem());
