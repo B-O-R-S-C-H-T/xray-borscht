@@ -1383,10 +1383,12 @@ void CCharacterPhysicsSupport::in_Die() {
 }
 
 void CCharacterPhysicsSupport::RecoverFromFaint() {
-	if (!m_pPhysicsShell || !m_pPhysicsShell->isActive())
-		return;
-
 	Msg("[DEBUG] Physics recover from faint for %s", m_EntityAlife.cName().c_str());
+
+	if (m_pPhysicsShell) {
+		m_pPhysicsShell->InterpolateGlobalTransform(&mXFORM);
+		m_EntityAlife.Position().set(mXFORM.c);
+	}
 
 	m_pPhysicsShell->Deactivate();
 	xr_delete(m_pPhysicsShell);
