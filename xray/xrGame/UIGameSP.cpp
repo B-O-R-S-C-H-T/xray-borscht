@@ -1,22 +1,23 @@
 #include "pch_script.h"
+
 #include "uigamesp.h"
-#include "actor.h"
-#include "level.h"
 
-#include "game_cl_Single.h"
 #include "xr_level_controller.h"
-#include "actorcondition.h"
-#include "../xrEngine/xr_ioconsole.h"
-#include "object_broker.h"
-#include "GameTaskManager.h"
-#include "GameTask.h"
 
+#include "../xrEngine/xr_ioconsole.h"
+#include "GameTask.h"
+#include "GameTaskManager.h"
+#include "UIDialogHolder.h"
+#include "actor.h"
+#include "actorcondition.h"
+#include "game_cl_Single.h"
+#include "level.h"
+#include "object_broker.h"
 #include "ui/UIActorMenu.h"
-#include "ui/UITradeWnd.h"
+#include "ui/UIMessageBox.h"
 #include "ui/UIPdaWnd.h"
 #include "ui/UITalkWnd.h"
-#include "ui/UIMessageBox.h"
-#include "UIDialogHolder.h"
+#include "ui/UITradeWnd.h"
 
 CUIGameSP::CUIGameSP()
 {
@@ -37,9 +38,12 @@ void CUIGameSP::shedule_Update(u32 dt)
 	inherited::shedule_Update			(dt);
 	CActor *pActor = smart_cast<CActor*>(Level().CurrentEntity());
 	if(!pActor)							return;
-	if(pActor->g_Alive())				return;
 
-	HideShownDialogs						();
+	if (!pActor->g_Alive() || pActor->m_bFainted) {
+		HideShownDialogs();
+	}
+
+	if(pActor->g_Alive())				return;
 }
 
 void CUIGameSP::HideShownDialogs()
@@ -72,6 +76,12 @@ bool CUIGameSP::IR_OnKeyboardPress(int dik)
 	if ( !pInvOwner )				return false;
 	CEntityAlive* EA			= smart_cast<CEntityAlive*>(Level().CurrentEntity());
 	if (!EA || !EA->g_Alive() )	return false;
+
+	CActor* pActor = smart_cast<CActor*>(EA);
+	// подавить ввод в режиме обморока
+	if (pActor && pActor->m_bFainted) {
+		return true;
+	}
 
 	switch ( get_binded_action(dik) )
 	{
@@ -217,7 +227,10 @@ void CUIGameSP::reset_ui()
 	UIChangeLevelWnd->Reset			();
 }
 
-CChangeLevelWnd::CChangeLevelWnd		()
+CChangeLevelWnd::CChangeLevelWnd() : m_game_vertex_id(0), m_level_vertex_id(0), m_position(Fvector().set(0.f, 0.f, 0.f)),
+									 m_angles(Fvector().set(0.f, 0.f, 0.f)), m_position_cancel(Fvector().set(0.f, 0.f, 0.f)),
+									 m_angles_cancel(Fvector().set(0.f, 0.f, 0.f)), m_b_position_cancel(false),
+									 m_b_allow_change_level(false), m_message_str(""), m_isExit(false)
 {
 	m_messageBox			= xr_new<CUIMessageBox>();	
 	m_messageBox->SetAutoDelete(true);
