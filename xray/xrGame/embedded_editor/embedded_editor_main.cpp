@@ -3,6 +3,8 @@
 #include "embedded_editor_main.h"
 
 #include <addons/imguinodegrapheditor/imguinodegrapheditor.h>
+#include <ai_space.h>
+#include "game_graph.h"
 #include <dinput.h>
 #include <imgui.h>
 
@@ -144,10 +146,33 @@ void ShowEditor() {
             ImGui::Checkbox(u8"Спаун-элементы", &isRenderSpawnElement);
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu(u8"Статистика")) {
+        if (ImGui::BeginMenu(u8"Команды")) {
             bool stats_enabled = psDeviceFlags.test(rsStatistic);
-            if (ImGui::Checkbox(u8"Вывод статистики", &stats_enabled)) {
+            if (ImGui::Checkbox(u8"rs_stats", &stats_enabled)) {
                 psDeviceFlags.set(rsStatistic, stats_enabled);
+            }
+            static bool god_on = false;
+            if (ImGui::Checkbox(u8"g_god", &god_on)) {
+                Console->Execute(god_on ? "g_god on" : "g_god off");
+            }
+            static bool unlimitedammo_on = false;
+            if (ImGui::Checkbox(u8"g_unlimitedammo", &unlimitedammo_on)) {
+                Console->Execute(unlimitedammo_on ? "g_unlimitedammo on" : "g_unlimitedammo off");
+            }
+            static bool ai_ignore_on = false;
+            if (ImGui::Checkbox(u8"ai_ignore_actor", &ai_ignore_on)) {
+                Console->Execute(ai_ignore_on ? "ai_ignore_actor on" : "ai_ignore_actor off");
+            }
+            if (ImGui::BeginMenu(u8"jump_to_level")) {
+                xr_vector<shared_str> levels = getLevels();
+                for (const auto& level : levels) {
+                    if (ImGui::MenuItem(level.c_str())) {
+                        string_path cmd;
+                        strconcat(sizeof(cmd), cmd, "jump_to_level ", level.c_str());
+                        Console->Execute(cmd);
+                    }
+                }
+                ImGui::EndMenu();
             }
             ImGui::EndMenu();
         }
@@ -376,4 +401,13 @@ void SwitchEditor(bool allowInteractive)
         io.MouseDrawCursor = false;
         break;
     }
+}
+
+xr_vector<shared_str> getLevels() {
+    xr_vector<shared_str> result;
+    const auto&			  level_map = ai().game_graph().header().levels();
+    for (const auto& it : level_map) {
+        result.push_back(it.second.name());
+    }
+    return result;
 }
