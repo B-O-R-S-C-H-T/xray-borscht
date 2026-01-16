@@ -62,3 +62,25 @@ xr_string toUtf8(const char* s)
     n = WideCharToMultiByte(CP_UTF8, 0, &buf[0], buf.size(), &result[0], result.size(), nullptr, nullptr);
     return result;
 }
+
+Fvector2 world_to_screen(const Fvector& world) {
+	Fvector4	   clip{};
+	const Fmatrix& transform = Device.mFullTransform;
+	clip.x					 = world.x * transform._11 + world.y * transform._21 + world.z * transform._31 + transform._41;
+	clip.y					 = world.x * transform._12 + world.y * transform._22 + world.z * transform._32 + transform._42;
+	clip.z					 = world.x * transform._13 + world.y * transform._23 + world.z * transform._33 + transform._43;
+	clip.w					 = world.x * transform._14 + world.y * transform._24 + world.z * transform._34 + transform._44;
+
+	if (clip.w < EPS_L)
+		return Fvector2{0.f, 0.f};
+
+	float inv_w	   = 1.f / clip.w;
+	float ndc_x	   = clip.x * inv_w;
+	float ndc_y	   = clip.y * inv_w;
+
+	float screen_x = (ndc_x + 1.f) * 0.5f * float(Device.dwWidth);
+	float screen_y = (1.f - ndc_y) * 0.5f * float(Device.dwHeight);
+
+	return Fvector2{screen_x, screen_y};
+}
+

@@ -3,14 +3,15 @@
 #include "embedded_editor_main.h"
 
 #include <addons/imguinodegrapheditor/imguinodegrapheditor.h>
-#include <ai_space.h>
-#include "game_graph.h"
 #include <dinput.h>
 #include <imgui.h>
 
 #include "../../xrEngine/xr_input.h"
 #include "../../xrEngine/xr_ioconsole.h"
 #include "../xr_level_controller.h"
+#include "actor.h"
+#include "ai_space.h"
+#include "game_graph.h"
 #include "embedded_editor.h"
 #include "embedded_editor_ae.h"
 #include "embedded_editor_helper.h"
@@ -24,6 +25,7 @@
 #include "embedded_editor_ui.h"
 #include "embedded_editor_weather.h"
 #include "input_mapping.h"
+#include "render/editor_render_way_points.h"
 
 bool		show_main			= false;
 bool		show_metrics		= false;
@@ -43,6 +45,7 @@ bool		show_le_editor		= false;
 bool		show_se_editor		= false;
 extern bool isRenderAiMap;
 extern bool isRenderSpawnElement;
+extern bool	isRenderWayPoints;
 
 static bool isAlt = false;
 
@@ -144,6 +147,7 @@ void ShowEditor() {
         if (ImGui::BeginMenu(u8"Показать")) {
             ImGui::Checkbox(u8"ИИ-сетка", &isRenderAiMap);
             ImGui::Checkbox(u8"Спаун-элементы", &isRenderSpawnElement);
+            ImGui::Checkbox(u8"Патрульные пути", &isRenderWayPoints);
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu(u8"Команды")) {
@@ -224,6 +228,9 @@ void ShowEditor() {
         ShowMain(show_main);
     if (show_metrics)
         ImGui::ShowMetricsWindow(&show_metrics);
+	if (isRenderWayPoints) {
+		showWaypointLabels();
+	}
     drawActiveEditors();
 }
 
@@ -410,4 +417,25 @@ xr_vector<shared_str> getLevels() {
         result.push_back(it.second.name());
     }
     return result;
+}
+
+void showWaypointLabels() {
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::SetNextWindowSize(io.DisplaySize);
+	ImGui::SetNextWindowBgAlpha(0.0f);
+	bool open = true;
+	ImGui::Begin("Waypoints Overlay",
+				 &open,
+				 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+					 ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoFocusOnAppearing |
+					 ImGuiWindowFlags_NoBringToFrontOnFocus);
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+	for (const auto& label : g_waypoint_labels) {
+		Fvector2 pos		= world_to_screen(label.world_pos);
+		ImVec2	 shadow_pos = ImVec2(pos.x + 1.f, pos.y + 1.f);
+		draw_list->AddText(shadow_pos, label.shadow_color, label.text.c_str(), nullptr);
+		draw_list->AddText(ImVec2(pos.x, pos.y), label.color, label.text.c_str(), nullptr);
+	}
+	ImGui::End();
 }
