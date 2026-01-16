@@ -8,9 +8,9 @@
 class CEffectorBobbing : public CEffectorCam  
 {
 	float	fTime;
-	Fvector	vAngleAmplitude;
-	float	fYAmplitude;
-	float	fSpeed;
+//	Fvector	vAngleAmplitude;	// рудимент ТСС?
+//	float	fYAmplitude;		// рудимент ТСС?
+//	float	fSpeed;				// рудимент ТСС?
 
 	u32		dwMState;
 	float	fReminderFactor;
@@ -30,6 +30,11 @@ public:
 	virtual ~CEffectorBobbing	();
 	virtual BOOL	ProcessCam	(SCamEffectorInfo& info);
 	void	SetState			(u32 st, bool limping, bool ZoomMode);
+
+private:
+	static constexpr const char* kSectionName	= "bobbing_effector";
+	static constexpr float		 kCrouchFactor	= 0.75f;
+	static constexpr float		 kSpeedReminder = 5.f;
 };
 
 #endif //_EFFECTOR_BOBBING_H
