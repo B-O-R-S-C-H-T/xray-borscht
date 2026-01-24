@@ -18,10 +18,13 @@ struct SThunderboltDesc;
 struct SThunderboltCollection;
 class CLensFlareDescriptor;
 
-#define DAY_LENGTH		86400.f
+constexpr float DAY_LENGTH = 86400.f;
 
-#include "../Include/xrRender/FactoryPtr.h"
+#include <libnova/ln_types.h>
+
 #include "../Include/xrRender/EnvironmentRender.h"
+#include "../Include/xrRender/FactoryPtr.h"
+#include "../xrGame/date_time.h"
 
 // t-defs
 class ENGINE_API	CEnvModifier
@@ -64,7 +67,9 @@ public:
 
 						~SEffect				()	{}
 	};
+
 	DEFINE_VECTOR(SEffect*,EffectVec,EffectVecIt);
+
 	struct SSndChannel
 	{
 		shared_str				m_load_section;
@@ -85,6 +90,7 @@ public:
 		xr_vector<ref_sound>	m_sounds;
 	};
 	DEFINE_VECTOR(SSndChannel*,SSndChannelVec,SSndChannelVecIt);
+
 protected:
 	shared_str				m_load_section;
 
@@ -158,14 +164,10 @@ public:
 	float				m_fSunShaftsIntensity;
 	float				m_fWaterIntensity;
 
-
-//	int					lens_flare_id;
-//	int					tb_id;
 	shared_str			lens_flare_id;
 	shared_str			tb_id;
     
 	CEnvAmbient*		env_ambient;
-
 
 						CEnvDescriptor	(shared_str const& identifier);
 
@@ -185,18 +187,14 @@ public:
 	shared_str			m_identifier;
 };
 
-class ENGINE_API		CEnvDescriptorMixer: public CEnvDescriptor{
+class ENGINE_API		CEnvDescriptorMixer : public CEnvDescriptor
+{
 public:
-	/*
-	STextureList		sky_r_textures;		
-	STextureList		sky_r_textures_env;	
-	STextureList		clouds_r_textures;	
-	*/
 	FactoryPtr<IEnvDescriptorMixerRender>	m_pDescriptorMixer;
-	float				weight;				
+	float				weight;
+	float				fog_near;
+	float				fog_far;
 
-	float				fog_near;		
-	float				fog_far;		
 public:
 						CEnvDescriptorMixer	(shared_str const& identifier);
 	void				lerp			(CEnvironment* parent, CEnvDescriptor& A, CEnvDescriptor& B, float f, CEnvModifier& M, float m_power);
@@ -211,14 +209,17 @@ class ENGINE_API	CEnvironment
 		IC bool operator()(const shared_str& x, const shared_str& y) const
 		{	return xr_strcmp(x,y)<0;	}
 	};
+
 public:
 	DEFINE_VECTOR			(CEnvAmbient*,EnvAmbVec,EnvAmbVecIt);
 	DEFINE_VECTOR			(CEnvDescriptor*,EnvVec,EnvIt);
 	DEFINE_MAP_PRED			(shared_str,EnvVec,EnvsMap,EnvsMapIt,str_pred);
+
 private:
 	// clouds
 	FvectorVec				CloudsVerts;
 	U16Vec					CloudsIndices;
+
 private:
 	float					NormalizeTime	(float tm);
 	float					TimeDiff		(float prev, float cur);
@@ -227,16 +228,22 @@ private:
 	void					SelectEnv		(EnvVec* envs, CEnvDescriptor*& e, float tm);
 	void					StopWFX			();
 
+private:
+	bool					m_useDynamicSun;				// рассчитывать движение солнца в движке или брать данные, забитые в конфиг погоды
+	bool					m_usePhysicallyAccurateSun;		// рассчитывать движение солнца физически корректно через libnova
+	struct ln_lnlat_posn	m_observer;						// положение наблюдател€ (у нас прин€то за ѕрип€ть)
 	void					calculate_dynamic_sun_dir();
+
 public:
 	static bool sort_env_pred	(const CEnvDescriptor* x, const CEnvDescriptor* y)
 	{	return x->exec_time < y->exec_time;	}
 	static bool sort_env_etl_pred	(const CEnvDescriptor* x, const CEnvDescriptor* y)
 	{	return x->exec_time_loaded < y->exec_time_loaded;	}
+
 protected:
 	CPerlinNoise1D*			PerlinNoise1D;
-
 	float					fGameTime;
+
 public:
 	FactoryPtr<IEnvironmentRender>	m_pRender;
 	BOOL					bNeed_re_create_env;
@@ -281,9 +288,9 @@ public:
 	CEnvAmbient*			AppendEnvAmb	(const shared_str& sect);
 
 	void					Invalidate			();
+
 public:
 							CEnvironment		();
-
 							~CEnvironment		();
 
 	void					load			();
@@ -309,11 +316,12 @@ public:
 	void					OnDeviceCreate		();
 	void					OnDeviceDestroy		();
 
-	// editor-related
+// editor-related
 #ifdef _EDITOR
 public:
 	float					ed_from_time		;
 	float					ed_to_time			;
+
 public:
     void					ED_Reload			();
     float					GetGameTime			(){return fGameTime;}
@@ -333,9 +341,8 @@ protected:
 	void load_weathers					();
 	void load_weather_effects			();
 	void create_mixer					();
-							void destroy_mixer					();
-
-							void load_level_specific_ambients   ();
+	void destroy_mixer					();
+	void load_level_specific_ambients   ();
 
 public:
 	SThunderboltDesc* thunderbolt_description		(CInifile& config, shared_str const& section);
@@ -352,7 +359,6 @@ public:
 	float						p_sky_color;
 	float						p_sun_color;
 	float						p_fog_color;
-	bool m_dynamicSun;
 
 	xr_string weathersSubDir() const { return m_weathersDir; }
 

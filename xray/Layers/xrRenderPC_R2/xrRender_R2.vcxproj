@@ -342,10 +342,10 @@
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
       <WarningLevel>Level4</WarningLevel>
-      <AdditionalIncludeDirectories>$(SolutionDir)3rd_party\WildMagic;pch;$(SolutionDir)3rd_party\imgui;$(SolutionDir)3rd_party/luajit/src;$(SolutionDir)3rd_party/luabind/include;$(SolutionDir)3rd_party/imdexlib;$(SolutionDir)3rd_party/dlmalloc/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)3rd_party\WildMagic;pch;$(SolutionDir)3rd_party\imgui;$(SolutionDir)3rd_party/luajit/src;$(SolutionDir)3rd_party/luabind/include;$(SolutionDir)3rd_party/imdexlib;$(SolutionDir)3rd_party/dlmalloc/src;$(SolutionDir)3rd_party/libnova/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>nvapi64.lib;$(TargetDir)xrEngine.lib;$(TargetDir)dlmalloc.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>nvapi64.lib;$(TargetDir)xrEngine.lib;$(TargetDir)dlmalloc.lib;$(TargetDir)libnova.lib;lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <MapFileName>
       </MapFileName>
       <SubSystem>NotSet</SubSystem>
@@ -433,6 +433,11 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx9.h" />
     <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.h" />
+    <ClInclude Include="..\..\..\3rd_party\libnova\src\config.h" />
+    <ClInclude Include="..\..\..\3rd_party\libnova\src\libnova\apparent_position.h" />
+    <ClInclude Include="..\..\..\3rd_party\libnova\src\libnova\julian_day.h" />
+    <ClInclude Include="..\..\..\3rd_party\libnova\src\libnova\ln_types.h" />
+    <ClInclude Include="..\..\..\3rd_party\libnova\src\libnova\transform.h" />
     <ClInclude Include="..\..\..\3rd_party\NvMender2003\convert.h" />
     <ClInclude Include="..\..\..\3rd_party\NvMender2003\mender_input_output.h" />
     <ClInclude Include="..\..\..\3rd_party\NvMender2003\NVMeshMender.h" />
@@ -562,6 +567,7 @@
     <ClInclude Include="..\xrRender\SkeletonAnimated.h" />
     <ClInclude Include="..\xrRender\SkeletonCustom.h" />
     <ClInclude Include="..\xrRender\SkeletonX.h" />
+    <ClInclude Include="..\xrRender\stars_data.h" />
     <ClInclude Include="..\xrRender\TextureDescrManager.h" />
     <ClInclude Include="..\xrRender\tss.h" />
     <ClInclude Include="..\xrRender\tss_def.h" />
@@ -603,6 +609,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\libnova\src\apparent_position.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\libnova\src\julian_day.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\NvMender2003\NVMeshMender.cpp" />

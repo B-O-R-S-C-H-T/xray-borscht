@@ -637,14 +637,14 @@
       <BrowseInformation>
       </BrowseInformation>
       <WarningLevel>Level4</WarningLevel>
-      <AdditionalIncludeDirectories>$(SolutionDir)3rd_party\imgui;$(SolutionDir)3rd_party/luajit/src;$(SolutionDir)3rd_party/luabind/include;$(SolutionDir)3rd_party/imdexlib;$(SolutionDir)3rd_party/libogg-1.3.3/include;$(SolutionDir)3rd_party/libtheora-1.1.1/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)3rd_party\imgui;$(SolutionDir)3rd_party/luajit/src;$(SolutionDir)3rd_party/luabind/include;$(SolutionDir)3rd_party/imdexlib;$(SolutionDir)3rd_party/libogg-1.3.3/include;$(SolutionDir)3rd_party/libtheora-1.1.1/include;$(SolutionDir)3rd_party/libnova/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0422</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>msacm32.lib;vfw32.lib;winmm.lib;dxguid.lib;dinput8.lib;d3dx9.lib;lua51.lib;$(TargetDir)dlmalloc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>msacm32.lib;vfw32.lib;winmm.lib;dxguid.lib;dinput8.lib;d3dx9.lib;lua51.lib;$(TargetDir)dlmalloc.lib;$(TargetDir)libnova.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <MapFileName>
       </MapFileName>
@@ -966,6 +966,7 @@
     <ClInclude Include="..\..\3rd_party\imgui\backends\imgui_impl_dx9.h" />
     <ClInclude Include="..\..\3rd_party\imgui\backends\imgui_impl_win32.h" />
     <ClInclude Include="..\Layers\xrRender\imgui_setup.h" />
+    <ClInclude Include="..\xrGame\date_time.h" />
     <ClInclude Include="ai_script_lua_extension.h" />
     <ClInclude Include="ai_script_lua_space.h" />
     <ClInclude Include="ai_script_space.h" />
@@ -1075,6 +1076,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\xrGame\date_time.cpp" />
     <ClCompile Include="ai_script_lua_debug.cpp" />
     <ClCompile Include="ai_script_lua_extension.cpp" />
     <ClCompile Include="bone.cpp" />

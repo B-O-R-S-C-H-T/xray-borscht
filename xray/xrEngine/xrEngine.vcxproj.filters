@@ -154,6 +154,9 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{608911d4-539a-4e00-9e5b-a7a4e3778b13}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DateTime">
+      <UniqueIdentifier>{14583bf5-8861-43ea-8e44-7cec59315d6c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="_d3d_extensions.h">
@@ -450,6 +453,9 @@
     <ClInclude Include="..\Layers\xrRender\imgui_setup.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="..\xrGame\date_time.h">
+      <Filter>DateTime</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="defines.cpp">
@@ -745,6 +751,9 @@
     </ClCompile>
     <ClCompile Include="..\Layers\xrRender\imgui_setup.cpp">
       <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xrGame\date_time.cpp">
+      <Filter>DateTime</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

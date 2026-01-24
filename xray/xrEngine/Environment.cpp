@@ -1,22 +1,27 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #ifndef _EDITOR
-    #include "render.h"
+	#include "render.h"
 #endif
-#include "Environment.h"
 #include "xr_efflensflare.h"
+#include "xr_input.h"
+
+#include "Environment.h"
+#include "perlin.h"
 #include "rain.h"
 #include "thunderbolt.h"
 #include "xrHemisphere.h"
-#include "perlin.h"
-#include "xr_input.h"
 #ifndef _EDITOR
 	#include "IGame_Level.h"
 #endif
-#include "../xrcore/xrCore.h"
+#include <libnova/julian_day.h>
+#include <libnova/solar.h>
+#include <libnova/transform.h>
+
 #include "../Include/xrRender/EnvironmentRender.h"
 #include "../Include/xrRender/LensFlareRender.h"
 #include "../Include/xrRender/RainRender.h"
 #include "../Include/xrRender/ThunderboltRender.h"
+#include "../xrCore/xrCore.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -37,7 +42,7 @@ CEnvironment::CEnvironment	() :
 	CurrentEnv				(0),
 	m_ambients_config		(0)
 {
-	bNeed_re_create_env = FALSE;
+	bNeed_re_create_env		= FALSE;
 	bWFX					= false;
 	Current[0]				= 0;
 	Current[1]				= 0;
@@ -173,7 +178,11 @@ CEnvironment::CEnvironment	() :
 	p_sky_color		= config->r_float							( "environment","sky_color" );
 	p_sun_color		= config->r_float							( "environment","sun_color" );
 	p_fog_color		= config->r_float							( "environment","fog_color" );
-	m_dynamicSun = config->line_exist("environment", "dynamic_sun") ? config->r_bool("environment", "dynamic_sun") : true;
+
+	m_useDynamicSun			   = config->line_exist("environment", "dynamic_sun") ? config->r_bool("environment", "dynamic_sun") : true;
+	m_usePhysicallyAccurateSun = config->line_exist("environment", "physically_accurate_sun") ? config->r_bool("environment", "physically_accurate_sun") : true;
+	m_observer.lng			   = 30.05;
+	m_observer.lat			   = 51.40;
 
 	xr_delete		(config);
 }
@@ -472,7 +481,7 @@ void CEnvironment::OnFrame()
 	lerp					(current_weight);
 
 	//	Igor. Dynamic sun position. 
-	if (m_dynamicSun)
+	if (m_useDynamicSun)
 		calculate_dynamic_sun_dir();
 
 #ifndef MASTER_GOLD
@@ -502,72 +511,135 @@ void CEnvironment::OnFrame()
 	m_pRender->OnFrame(*this);
 }
 
-void CEnvironment::calculate_dynamic_sun_dir()
-{
-	float g = (360.0f/365.25f)*(180.0f + fGameTime/DAY_LENGTH);
+void CEnvironment::calculate_dynamic_sun_dir() {
+	if (!m_usePhysicallyAccurateSun) {
+		float g = (360.0f/365.25f)*(180.0f + fGameTime/DAY_LENGTH);
 
-	g = deg2rad(g);
+		g = deg2rad(g);
 
-	//	Declination
-	float D = 0.396372f-22.91327f*_cos(g)+4.02543f*_sin(g)-0.387205f*_cos(2*g)+
-		0.051967f*_sin(2*g)-0.154527f*_cos(3*g) + 0.084798f*_sin(3*g);
+		//	Declination
+		float D = 0.396372f-22.91327f*_cos(g)+4.02543f*_sin(g)-0.387205f*_cos(2*g)+
+			0.051967f*_sin(2*g)-0.154527f*_cos(3*g) + 0.084798f*_sin(3*g);
 
-	//	Now calculate the time correction for solar angle:
-	float TC = 0.004297f+0.107029f*_cos(g)-1.837877f*_sin(g)-0.837378f*_cos(2*g)-
-		2.340475f*_sin(2*g);
+		//	Now calculate the time correction for solar angle:
+		float TC = 0.004297f+0.107029f*_cos(g)-1.837877f*_sin(g)-0.837378f*_cos(2*g)-
+			2.340475f*_sin(2*g);
 
-	//	IN degrees
-	float Longitude = -30.4f;
+		//	IN degrees
+		float Longitude = -30.4f;
 
-	float SHA = (fGameTime/(DAY_LENGTH/24)-12)*15 + Longitude + TC;
+		float SHA = (fGameTime/(DAY_LENGTH/24)-12)*15 + Longitude + TC;
 
-	//	Need this to correctly determine SHA sign
-	if (SHA>180) SHA -= 360;
-	if (SHA<-180) SHA += 360;
+		//	Need this to correctly determine SHA sign
+		if (SHA>180) SHA -= 360;
+		if (SHA<-180) SHA += 360;
 
-	//	IN degrees
-	float const Latitude = 50.27f;
-	float const LatitudeR = deg2rad(Latitude);
+		//	IN degrees
+		float const Latitude = 50.27f;
+		float const LatitudeR = deg2rad(Latitude);
 
-	//	Now we can calculate the Sun Zenith Angle (SZA):
-	float cosSZA = _sin(LatitudeR)
-		* _sin(deg2rad(D)) + _cos(LatitudeR)*
-		_cos(deg2rad(D)) * _cos(deg2rad(SHA));
+		//	Now we can calculate the Sun Zenith Angle (SZA):
+		float cosSZA = _sin(LatitudeR)
+			* _sin(deg2rad(D)) + _cos(LatitudeR)*
+			_cos(deg2rad(D)) * _cos(deg2rad(SHA));
 
-	clamp( cosSZA, -1.0f, 1.0f);
+		clamp( cosSZA, -1.0f, 1.0f);
 
-	float SZA = acosf(cosSZA);
-	float SEA = PI/2-SZA;
+		float SZA = acosf(cosSZA);
+		float SEA = PI/2-SZA;
 
-	//	To finish we will calculate the Azimuth Angle (AZ):
-	float cosAZ = 0.f;
-	float const sin_SZA = _sin(SZA);
-	float const cos_Latitude = _cos(LatitudeR);
-	float const sin_SZA_X_cos_Latitude = sin_SZA*cos_Latitude;
-	if (!fis_zero(sin_SZA_X_cos_Latitude))
-		cosAZ	= (_sin(deg2rad(D))-_sin(LatitudeR)*_cos(SZA))/sin_SZA_X_cos_Latitude;
+		//	To finish we will calculate the Azimuth Angle (AZ):
+		float cosAZ = 0.f;
+		float const sin_SZA = _sin(SZA);
+		float const cos_Latitude = _cos(LatitudeR);
+		float const sin_SZA_X_cos_Latitude = sin_SZA*cos_Latitude;
+		if (!fis_zero(sin_SZA_X_cos_Latitude))
+			cosAZ	= (_sin(deg2rad(D))-_sin(LatitudeR)*_cos(SZA))/sin_SZA_X_cos_Latitude;
 
-	clamp( cosAZ, -1.0f, 1.0f);
-	float AZ = acosf(cosAZ) - PI;
+		clamp( cosAZ, -1.0f, 1.0f);
+		float AZ = acosf(cosAZ) - PI;
 
-	const Fvector2 minAngle = Fvector2().set(deg2rad(1.0f), deg2rad(3.0f));
+		const Fvector2 minAngle = Fvector2().set(deg2rad(1.0f), deg2rad(3.0f));
 
-	if (SEA<minAngle.x) SEA = minAngle.x;
+		if (SEA<minAngle.x) SEA = minAngle.x;
 
-	float fSunBlend = (SEA-minAngle.x)/(minAngle.y-minAngle.x);
-	clamp (  fSunBlend, 0.0f, 1.0f);
+		float fSunBlend = (SEA-minAngle.x)/(minAngle.y-minAngle.x);
+		clamp (  fSunBlend, 0.0f, 1.0f);
 
-	SEA = -SEA;
+		SEA = -SEA;
 
-	if (SHA<0)
-		AZ = 2*PI-AZ;
+		if (SHA<0)
+			AZ = 2*PI-AZ;
 
-	R_ASSERT					( _valid(AZ) );
-	R_ASSERT					( _valid(SEA) );
-	CurrentEnv->sun_dir.setHP	(AZ,SEA);
-	R_ASSERT					( _valid(CurrentEnv->sun_dir) );
+		R_ASSERT					( _valid(AZ) );
+		R_ASSERT					( _valid(SEA) );
+		CurrentEnv->sun_dir.setHP	(AZ,SEA);
+		R_ASSERT					( _valid(CurrentEnv->sun_dir) );
 
-	CurrentEnv->sun_color.mul	(fSunBlend);
+		CurrentEnv->sun_color.mul	(fSunBlend);
+	} else {
+		constexpr float kAtmosphericRefractionDeg = 0.58f;
+		constexpr float kMinBlendElevationDeg	  = 0.5f;
+		constexpr float kMaxBlendElevationDeg	  = 3.0f;
+		constexpr int	kTimezoneOffsetHours	  = 3;
+
+		u32				years = 2011, months = 9, days = 10;
+		u32				hours = 6, minutes = 10, seconds = 0, milliseconds = 0;
+
+		if (g_pGameLevel) {
+			u64 env_game_time = g_pGameLevel->GetEnvironmentGameTime();
+			split_time(env_game_time, years, months, days, hours, minutes, seconds, milliseconds);
+		}
+
+		// перевод на местное время
+		int ut_hours = static_cast<int>(hours) - kTimezoneOffsetHours;
+		if (ut_hours < 0) {
+			ut_hours += 24;
+			if (days > 1)
+				--days;
+			else {
+				days = 31;
+				if (months > 1)
+					--months;
+				else {
+					months = 12;
+					--years;
+				}
+			}
+		}
+
+		struct ln_date date{};
+		date.years			  = static_cast<int>(years);
+		date.months			  = static_cast<int>(months);
+		date.days			  = static_cast<int>(days);
+		date.hours			  = ut_hours;
+		date.minutes		  = static_cast<int>(minutes);
+		date.seconds		  = static_cast<double>(seconds) + static_cast<double>(milliseconds) / 1000.0;
+
+		double			   jd = ln_get_julian_day(&date);
+
+		struct ln_equ_posn equ;
+		ln_get_solar_equ_coords(jd, &equ);
+
+		struct ln_hrz_posn hrz;
+		ln_get_hrz_from_equ(&equ, &m_observer, jd, &hrz);
+
+		float azimuth			  = deg2rad(360.0f - hrz.az);
+
+		float observed_alt		  = hrz.alt + (hrz.alt < 0.0f ? kAtmosphericRefractionDeg : kAtmosphericRefractionDeg * 0.1f);
+		float elevation			  = deg2rad(observed_alt);
+
+		float effective_elevation = _max(elevation, deg2rad(kMinBlendElevationDeg));
+		float sun_blend			  = (effective_elevation - deg2rad(kMinBlendElevationDeg)) / (deg2rad(kMaxBlendElevationDeg) - deg2rad(kMinBlendElevationDeg));
+		clamp(sun_blend, 0.0f, 1.0f);
+
+		float pitch = -deg2rad(hrz.alt);	// так принято в хрее
+
+		CurrentEnv->sun_dir.setHP(azimuth, pitch);
+		R_ASSERT(_valid(CurrentEnv->sun_dir));
+
+		CurrentEnv->sun_color.mul(sun_blend);
+	}
 }
 
 void CEnvironment::create_mixer ()

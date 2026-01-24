@@ -169,6 +169,9 @@
     <Filter Include="imgui_render">
       <UniqueIdentifier>{088049fb-4e3b-4540-ae7f-0473e8063084}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Interfase implementations\EnvironmentRender\libnova">
+      <UniqueIdentifier>{857da224-cb00-4717-ac77-64aaef1773ec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cl_intersect.h">
@@ -669,6 +672,22 @@
     <ClInclude Include="..\xrRender\imgui_setup.h">
       <Filter>imgui_render</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\libnova\src\libnova\apparent_position.h">
+      <Filter>Interfase implementations\EnvironmentRender\libnova</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\libnova\src\libnova\julian_day.h">
+      <Filter>Interfase implementations\EnvironmentRender\libnova</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\libnova\src\libnova\ln_types.h">
+      <Filter>Interfase implementations\EnvironmentRender\libnova</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\libnova\src\libnova\transform.h">
+      <Filter>Interfase implementations\EnvironmentRender\libnova</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\libnova\src\config.h">
+      <Filter>Interfase implementations\EnvironmentRender\libnova</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xrRender\stars_data.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\xrRender\xrRender_console.cpp">
@@ -1207,6 +1226,12 @@
     </ClCompile>
     <ClCompile Include="..\xrRender\imgui_setup.cpp">
       <Filter>imgui_render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\libnova\src\apparent_position.c">
+      <Filter>Interfase implementations\EnvironmentRender\libnova</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\libnova\src\julian_day.c">
+      <Filter>Interfase implementations\EnvironmentRender\libnova</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
