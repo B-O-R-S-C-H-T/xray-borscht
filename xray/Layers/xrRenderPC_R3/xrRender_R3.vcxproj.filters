@@ -190,6 +190,9 @@
     <Filter Include="imgui_render">
       <UniqueIdentifier>{56975efc-9037-4632-aa7f-db7276919b05}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Astronomy">
+      <UniqueIdentifier>{145c5c35-1e6f-4505-a305-ff92499967d3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cl_intersect.h">
@@ -755,6 +758,12 @@
     </ClInclude>
     <ClInclude Include="..\xrRender\imgui_setup.h">
       <Filter>imgui_render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xrRender\stars_data.h">
+      <Filter>Astronomy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xrGame\date_time.h">
+      <Filter>Astronomy</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1387,6 +1396,9 @@
     </ClCompile>
     <ClCompile Include="..\xrRender\imgui_setup.cpp">
       <Filter>imgui_render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xrGame\date_time.cpp">
+      <Filter>Astronomy</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

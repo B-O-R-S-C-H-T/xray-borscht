@@ -511,6 +511,38 @@ void CEnvironment::OnFrame()
 	m_pRender->OnFrame(*this);
 }
 
+double CEnvironment::compute_julian_day_from_game_time(u64 game_time, int timezone_offset) {
+	u32 years, months, days, hours, minutes, seconds, milliseconds;
+	split_time(game_time, years, months, days, hours, minutes, seconds, milliseconds);
+
+	int ut_hours = static_cast<int>(hours) - timezone_offset;
+	if (ut_hours < 0) {
+		ut_hours += 24;
+		if (days > 1)
+			--days;
+		else {
+			days = 31;
+			if (months > 1)
+				--months;
+			else {
+				months = 12;
+				--years;
+			}
+		}
+	}
+
+	struct ln_date date{};
+	date.years	 = static_cast<int>(years);
+	date.months	 = static_cast<int>(months);
+	date.days	 = static_cast<int>(days);
+	date.hours	 = ut_hours;
+	date.minutes = static_cast<int>(minutes);
+	date.seconds = static_cast<double>(seconds) + static_cast<double>(milliseconds) / 1000.0;
+
+	double jd	 = ln_get_julian_day(&date);
+	return jd;
+}
+
 void CEnvironment::calculate_dynamic_sun_dir() {
 	if (!m_usePhysicallyAccurateSun) {
 		float g = (360.0f/365.25f)*(180.0f + fGameTime/DAY_LENGTH);
@@ -587,58 +619,31 @@ void CEnvironment::calculate_dynamic_sun_dir() {
 		u32				hours = 6, minutes = 10, seconds = 0, milliseconds = 0;
 
 		if (g_pGameLevel) {
-			u64 env_game_time = g_pGameLevel->GetEnvironmentGameTime();
-			split_time(env_game_time, years, months, days, hours, minutes, seconds, milliseconds);
+			u64				   env_game_time = g_pGameLevel->GetEnvironmentGameTime();
+			double			   jd			 = compute_julian_day_from_game_time(env_game_time);
+
+			struct ln_equ_posn equ;
+			ln_get_solar_equ_coords(jd, &equ);
+
+			struct ln_hrz_posn hrz;
+			ln_get_hrz_from_equ(&equ, &m_observer, jd, &hrz);
+
+			float azimuth			  = deg2rad(360.0f - hrz.az);
+
+			float observed_alt		  = hrz.alt + (hrz.alt < 0.0f ? kAtmosphericRefractionDeg : kAtmosphericRefractionDeg * 0.1f);
+			float elevation			  = deg2rad(observed_alt);
+
+			float effective_elevation = _max(elevation, deg2rad(kMinBlendElevationDeg));
+			float sun_blend			  = (effective_elevation - deg2rad(kMinBlendElevationDeg)) / (deg2rad(kMaxBlendElevationDeg) - deg2rad(kMinBlendElevationDeg));
+			clamp(sun_blend, 0.0f, 1.0f);
+
+			float pitch = -deg2rad(hrz.alt);	// так принято в хрее
+
+			CurrentEnv->sun_dir.setHP(azimuth, pitch);
+			R_ASSERT(_valid(CurrentEnv->sun_dir));
+
+			CurrentEnv->sun_color.mul(sun_blend);
 		}
-
-		// перевод на местное время
-		int ut_hours = static_cast<int>(hours) - kTimezoneOffsetHours;
-		if (ut_hours < 0) {
-			ut_hours += 24;
-			if (days > 1)
-				--days;
-			else {
-				days = 31;
-				if (months > 1)
-					--months;
-				else {
-					months = 12;
-					--years;
-				}
-			}
-		}
-
-		struct ln_date date{};
-		date.years			  = static_cast<int>(years);
-		date.months			  = static_cast<int>(months);
-		date.days			  = static_cast<int>(days);
-		date.hours			  = ut_hours;
-		date.minutes		  = static_cast<int>(minutes);
-		date.seconds		  = static_cast<double>(seconds) + static_cast<double>(milliseconds) / 1000.0;
-
-		double			   jd = ln_get_julian_day(&date);
-
-		struct ln_equ_posn equ;
-		ln_get_solar_equ_coords(jd, &equ);
-
-		struct ln_hrz_posn hrz;
-		ln_get_hrz_from_equ(&equ, &m_observer, jd, &hrz);
-
-		float azimuth			  = deg2rad(360.0f - hrz.az);
-
-		float observed_alt		  = hrz.alt + (hrz.alt < 0.0f ? kAtmosphericRefractionDeg : kAtmosphericRefractionDeg * 0.1f);
-		float elevation			  = deg2rad(observed_alt);
-
-		float effective_elevation = _max(elevation, deg2rad(kMinBlendElevationDeg));
-		float sun_blend			  = (effective_elevation - deg2rad(kMinBlendElevationDeg)) / (deg2rad(kMaxBlendElevationDeg) - deg2rad(kMinBlendElevationDeg));
-		clamp(sun_blend, 0.0f, 1.0f);
-
-		float pitch = -deg2rad(hrz.alt);	// так принято в хрее
-
-		CurrentEnv->sun_dir.setHP(azimuth, pitch);
-		R_ASSERT(_valid(CurrentEnv->sun_dir));
-
-		CurrentEnv->sun_color.mul(sun_blend);
 	}
 }
 

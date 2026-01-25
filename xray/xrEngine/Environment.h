@@ -232,6 +232,7 @@ private:
 	bool					m_useDynamicSun;				// рассчитывать движение солнца в движке или брать данные, забитые в конфиг погоды
 	bool					m_usePhysicallyAccurateSun;		// рассчитывать движение солнца физически корректно через libnova
 	struct ln_lnlat_posn	m_observer;						// положение наблюдател€ (у нас прин€то за ѕрип€ть)
+	static double			compute_julian_day_from_game_time(u64 game_time, int timezone_offset = 3);
 	void					calculate_dynamic_sun_dir();
 
 public:

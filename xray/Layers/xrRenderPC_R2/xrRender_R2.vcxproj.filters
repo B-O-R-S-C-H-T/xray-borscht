@@ -172,6 +172,9 @@
     <Filter Include="Interfase implementations\EnvironmentRender\libnova">
       <UniqueIdentifier>{857da224-cb00-4717-ac77-64aaef1773ec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Astronomy">
+      <UniqueIdentifier>{5c2601ae-0b78-4ce0-a67b-05afb51f4da6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cl_intersect.h">
@@ -687,7 +690,12 @@
     <ClInclude Include="..\..\..\3rd_party\libnova\src\config.h">
       <Filter>Interfase implementations\EnvironmentRender\libnova</Filter>
     </ClInclude>
-    <ClInclude Include="..\xrRender\stars_data.h" />
+    <ClInclude Include="..\xrRender\stars_data.h">
+      <Filter>Astronomy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xrGame\date_time.h">
+      <Filter>Astronomy</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\xrRender\xrRender_console.cpp">
@@ -1232,6 +1240,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\libnova\src\julian_day.c">
       <Filter>Interfase implementations\EnvironmentRender\libnova</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xrGame\date_time.cpp">
+      <Filter>Astronomy</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

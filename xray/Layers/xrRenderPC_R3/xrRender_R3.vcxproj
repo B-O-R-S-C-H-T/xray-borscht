@@ -463,6 +463,7 @@
     <ClInclude Include="..\..\Include\xrRender\UISequenceVideoItem.h" />
     <ClInclude Include="..\..\Include\xrRender\UIShader.h" />
     <ClInclude Include="..\..\Include\xrRender\WallMarkArray.h" />
+    <ClInclude Include="..\..\xrGame\date_time.h" />
     <ClInclude Include="..\Editor\EditMesh.h" />
     <ClInclude Include="..\Editor\EditObject.h" />
     <ClInclude Include="..\Editor\ExportObjectOGF.h" />
@@ -581,6 +582,7 @@
     <ClInclude Include="..\xrRender\SkeletonAnimated.h" />
     <ClInclude Include="..\xrRender\SkeletonCustom.h" />
     <ClInclude Include="..\xrRender\SkeletonX.h" />
+    <ClInclude Include="..\xrRender\stars_data.h" />
     <ClInclude Include="..\xrRender\TextureDescrManager.h" />
     <ClInclude Include="..\xrRender\tss.h" />
     <ClInclude Include="..\xrRender\tss_def.h" />
@@ -630,6 +632,7 @@
     <ClCompile Include="..\..\..\3rd_party\NvMender2003\NVMeshMender.cpp" />
     <ClCompile Include="..\..\xrEngine\ai_script_lua_debug.cpp" />
     <ClCompile Include="..\..\xrEngine\ai_script_lua_extension.cpp" />
+    <ClCompile Include="..\..\xrGame\date_time.cpp" />
     <ClCompile Include="..\Editor\EditMesh.cpp" />
     <ClCompile Include="..\Editor\EditMeshIO.cpp" />
     <ClCompile Include="..\Editor\EditMeshModify.cpp" />

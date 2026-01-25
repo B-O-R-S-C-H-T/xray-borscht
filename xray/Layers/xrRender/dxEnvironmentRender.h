@@ -78,6 +78,23 @@ public:
 	virtual particles_systems::library_interface const& particles_systems_library	();
 
 private:
+	struct VisibleStar {
+		Fvector pos;
+		float	size;
+		u32		color;
+	};
+
+	xr_vector<VisibleStar> m_visible_stars;
+	bool				   m_render_stars	 = true;
+
+	static constexpr float kTwinkleAmplitude = 0.2f;
+	static constexpr float kTwinkleFrequency = 0.1f;
+	static constexpr float kGoldenRatioConj	 = 0.6180339887498949f;
+	static constexpr float kMinStarSizeWorld = 0.3f;
+
+	void				   UpdateStars(CEnvironment& env);
+
+private:
 	CBlender_skybox			m_b_skybox;
 
 	ref_shader				sh_2sky;

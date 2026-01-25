@@ -1,14 +1,18 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
+
 #include "dxEnvironmentRender.h"
 
-#include "dxRenderDeviceRender.h"
+#include <libnova/julian_day.h>
+#include <libnova/libnova.h>
+#include <libnova/transform.h>
 
-#include "../../xrEngine/environment.h"
 #include "../../Layers/xrRender/ResourceManager.h"
-
+#include "../../xrEngine/environment.h"
 #include "../../xrEngine/xr_efflensflare.h"
+#include "dxRenderDeviceRender.h"
+#include "stars_data.h"
 
-// xray-ñïåöèôè÷íûé skybox
+// xray-ÑÐ¿ÐµÑ†Ð¸Ñ„Ð¸Ñ‡Ð½Ñ‹Ð¹ skybox
 static const Fvector3 hbox_verts_xray[24] =
 {
 	{-1.f,	-1.f,	-1.f}, {-1.f,	-1.01f,	-1.f},	// down
@@ -25,7 +29,7 @@ static const Fvector3 hbox_verts_xray[24] =
 	{-1.f,	 0.f,	 1.f}, {-1.f,	-1.f,	 1.f}	// half
 };
 
-// îáùåïðèíÿòûé skybox
+// Ð¾Ð±Ñ‰ÐµÐ¿Ñ€Ð¸Ð½ÑÑ‚Ñ‹Ð¹ skybox
 static const Fvector3 hbox_verts_new[24] =
 {
 	{-1.f,	-1.f,	-1.f}, {-1.f,	-1.0f,	-1.f},	// down
@@ -293,6 +297,31 @@ void dxEnvironmentRender::RenderSky(CEnvironment &env)
     // Sun
     ::Render->rmNormal			();
     env.eff_LensFlare->Render		(TRUE,FALSE,FALSE);
+
+	if (m_render_stars) {
+		UpdateStars(env);
+	}
+
+	if (m_render_stars && !m_visible_stars.empty()) {
+		RCache.set_xform_world(mSky);
+
+		float time = Device.fTimeGlobal;
+
+		for (size_t i = 0; i < m_visible_stars.size(); ++i) {
+			const auto& star	= m_visible_stars[i];
+
+			float		phase	= static_cast<float>(i) * kGoldenRatioConj;
+			float		twinkle = 1.0f + kTwinkleAmplitude * sinf(time * kTwinkleFrequency * (1.0f + 0.2f * phase) + phase * PI_MUL_2);
+
+			twinkle				= (twinkle < 0.8f ? 0.8f : (twinkle > 1.2f ? 1.2f : twinkle));
+
+			float current_size	= star.size * twinkle;
+
+			current_size		= fmaxf(current_size, kMinStarSizeWorld);
+
+			DU->DrawCross(star.pos, current_size, current_size, current_size, current_size, current_size, current_size, star.color, false);
+		}
+	}
 }
 
 void dxEnvironmentRender::RenderClouds(CEnvironment &env)
@@ -353,4 +382,57 @@ void dxEnvironmentRender::OnDeviceDestroy()
 	sh_2geom.destroy						();
 	clouds_sh.destroy						();
 	clouds_geom.destroy						();
+
+	m_visible_stars.clear();
+}
+
+void dxEnvironmentRender::UpdateStars(CEnvironment& env) {
+	u64					 env_game_time = g_pGameLevel->GetEnvironmentGameTime();
+
+	double				 jd			   = CEnvironment::compute_julian_day_from_game_time(env_game_time);
+
+	struct ln_lnlat_posn observer	   = env.m_observer;
+
+	m_visible_stars.clear();
+	m_visible_stars.reserve(kVisibleStarsCount);
+
+	constexpr float	 sky_radius	  = 400.0f;
+	constexpr double ref_mag	  = 0.0;
+	constexpr float	 base_size	  = 0.05f;
+	constexpr float	 max_size_add = 0.35f;
+
+	for (const auto& data : kVisibleStars) {
+		struct ln_equ_posn equ{data.ra_deg, data.dec_deg};
+
+		struct ln_hrz_posn hrz;
+		ln_get_hrz_from_equ(&equ, &observer, jd, &hrz);
+
+		if (hrz.alt > 0.0) {
+			float	alt_rad = static_cast<float>(deg2rad(hrz.alt));
+			float	az_rad	= static_cast<float>(deg2rad(hrz.az));
+
+			Fvector pos{};
+			pos.x			 = sky_radius * cosf(alt_rad) * sinf(az_rad);
+			pos.y			 = sky_radius * sinf(alt_rad);
+			pos.z			 = sky_radius * cosf(alt_rad) * cosf(az_rad);
+
+			float flux		 = powf(10.0f, -0.4f * static_cast<float>(data.mag));
+			float ref_flux	 = powf(10.0f, -0.4f * static_cast<float>(ref_mag));
+			float normalized = flux / ref_flux;
+
+			float size		 = base_size + max_size_add * normalized;
+			clamp(size, base_size, base_size + max_size_add);
+
+			u32 color;
+			if (data.mag < 0.5f) {
+				color = color_rgba(200, 220, 255, 255);
+			} else if (data.mag > 2.0f) {
+				color = color_rgba(255, 220, 180, 255);
+			} else {
+				color = color_rgba(255, 255, 255, 255);
+			}
+
+			m_visible_stars.push_back({pos, size, color});
+		}
+	}
 }
