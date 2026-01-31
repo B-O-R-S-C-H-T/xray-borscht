@@ -6,6 +6,8 @@
 #include "../Edit/UI_LevelTools.h"
 #include "../Edit/customobject.h"
 
+IM_ObjectListWnd * IM_ObjectListWnd::instance;
+
 void IM_ObjectListWnd::Render()
 {
     if (m_needRefresh)
@@ -53,6 +55,7 @@ void IM_ObjectListWnd::Render()
                         if (sel && !ImGui::GetIO().KeyCtrl)
                             clearAllSel();
                         object.Selected = sel;
+                        object.Obj->Select(sel);
                     }
                     if (!vis)
                         ImGui::PopStyleColor();
@@ -98,6 +101,11 @@ void IM_ObjectListWnd::Render()
         auto _this = this;
         xr_delete(_this);
     }
+}
+
+void IM_ObjectListWnd::RefreshList()
+{
+    refresh();
 }
 
 void IM_ObjectListWnd::refresh()
@@ -146,8 +154,10 @@ void IM_ObjectListWnd::refresh()
 void IM_ObjectListWnd::clearAllSel()
 {
     for (auto& group : m_items)
-        for (auto& obj : group.Objects)
+        for (auto& obj : group.Objects) {
             obj.Selected = false;
+            obj.Obj->Select(false);
+        }
 }
 
 void IM_ObjectListWnd::showSelected(bool vis)

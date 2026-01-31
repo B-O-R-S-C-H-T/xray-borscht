@@ -515,8 +515,10 @@ void CLevelTool::ShowObjectList()
 #ifndef NO_VCL
 	if (pObjectListForm) pObjectListForm->ShowObjectList();
 #else
-    auto wnd = xr_new<IM_ObjectListWnd>();
-    UI->AddIMWindow(wnd);
+    if(!IM_ObjectListWnd::instance) {
+        auto wnd = xr_new<IM_ObjectListWnd>();
+        UI->AddIMWindow(wnd);
+    }
 #endif
 }
 //---------------------------------------------------------------------------
@@ -524,9 +526,11 @@ void CLevelTool::ShowObjectList()
 void CLevelTool::RealUpdateObjectList()
 {
 #ifndef NO_VCL
-	if (pObjectListForm) pObjectListForm->UpdateObjectList();
+    if (pObjectListForm) pObjectListForm->UpdateObjectList();
+#else
+    if (IM_ObjectListWnd::instance) IM_ObjectListWnd::instance->RefreshList();
 #endif
-	m_Flags.set(flUpdateObjectList,FALSE);
+    m_Flags.set(flUpdateObjectList,FALSE);
 }
 //---------------------------------------------------------------------------
 

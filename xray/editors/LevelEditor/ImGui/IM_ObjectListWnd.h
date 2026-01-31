@@ -9,7 +9,21 @@ class CCustomObject;
 class IM_ObjectListWnd : public IM_Window
 {
 public:
+	static IM_ObjectListWnd *instance;
+	
+	IM_ObjectListWnd()
+	{
+		instance = this;
+	}
+	
+	~IM_ObjectListWnd()
+	{
+		instance = NULL;
+	}
+	
+public:
     void Render() override;
+    void RefreshList();
 
 private:
     int m_filterTools = 0;
