@@ -619,6 +619,24 @@ void	CEnvironment::mods_unload		()
 	Modifiers.clear_and_free			();
 }
 
+CEnvModifier*	CEnvironment::new_modifier	()
+{
+	CEnvModifier em;
+    em.shape_type = CShapeData::cfSphere;
+	Modifiers.push_back(em);
+    return &Modifiers.back();
+}
+
+void	CEnvironment::remove_modifier	(CEnvModifier *ptr)
+{
+	xr_vector<CEnvModifier>::iterator it = Modifiers.begin(), end = Modifiers.end();
+    for(; it != end; it++)
+    	if(&*it == ptr) {
+        	Modifiers.erase(it);
+            return;
+        }
+}
+
 void    CEnvironment::load_level_specific_ambients ()
 {
 #ifndef _EDITOR

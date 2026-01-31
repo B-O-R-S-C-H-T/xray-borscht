@@ -291,6 +291,9 @@ public:
 
 	void					mods_load			();
 	void					mods_unload			();
+	
+    CEnvModifier*			new_modifier		();
+    void					remove_modifier		(CEnvModifier *ptr);
 
 	void					OnFrame				();
 	void					lerp				(float& current_weight);

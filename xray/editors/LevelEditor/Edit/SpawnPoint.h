@@ -5,7 +5,7 @@
 #ifndef SpawnPointH
 #define SpawnPointH
 
-#define SPAWNPOINT_VERSION   			0x0017
+#define SPAWNPOINT_VERSION   			0x0018
 
 #include "../../xrServerEntities/LevelGameDef.h"
 #include "../../xrServerEntities/xrServer_Objects_abstract.h"
@@ -15,8 +15,9 @@
 class CSE_Visual;
 class CSE_Motion;
 class CObjectAnimator;
-struct ISE_Abstract;
-
+class ISE_Abstract;
+class CEnvModifier;
+class IParticleCustom;
 
 class CSpawnPoint : public CCustomObject
 {
@@ -27,7 +28,8 @@ public:
     class CLE_Visual
     {
     public:
-        static bool     g_tmp_lock;
+        static xr_map<xr_string, xr_string> replaced_visuals;
+
     	CSE_Visual*		source;
         IRenderVisual*	visual;
         void 			OnChangeVisual			();
@@ -51,26 +53,28 @@ public:
 						CLE_Motion		(CSE_Motion* src);
         virtual			~CLE_Motion		();
     };
-	struct SSpawnData: public ISE_AbstractLEOwner
-	{
-		CLASS_ID		m_ClassID;
+    struct SSpawnData: public ISE_AbstractLEOwner
+    {
+        CLASS_ID		m_ClassID;
         shared_str 		m_Profile;
-		ISE_Abstract*	m_Data;
+        ISE_Abstract*	m_Data;
         CLE_Visual*		m_Visual;
         Flags8			m_flags;
         xr_vector<CLE_Visual*> m_VisualHelpers;
+        IParticleCustom*m_IdleParticles; // for anomalies
 
         CLE_Motion*		m_Motion;
         CSpawnPoint*	m_owner;
         enum{ eSDTypeRespawn = (1<<0),};
         SSpawnData	(CSpawnPoint* o)
         {
-			m_ClassID	= 0;
-			m_Data		= 0;
+            m_ClassID	= 0;
+            m_Data		= 0;
             m_Visual	= 0;
             m_Motion	= 0;
             m_owner		= o;
             m_flags.zero();
+            m_IdleParticles = 0;
         }
         ~SSpawnData	()
         {
@@ -91,9 +95,10 @@ public:
 
 		void    		Render			(bool bSelected, const Fmatrix& parent,int priority, bool strictB2F);
 		void    		OnFrame			();
-    	void        	OnAnimControlClick		(ButtonValue* value, bool& bModif, bool& bSafe);  
+		void    		OnAnimControlClick		(ButtonValue* value, bool& bModif, bool& bSafe);
+		void    		OnParticleControlClick	(ButtonValue* value, bool& bModif, bool& bSafe);
         
-		virtual void __stdcall get_bone_xform				(LPCSTR name, Fmatrix& xform);
+		virtual void get_bone_xform				(LPCSTR name, Fmatrix& xform);
 	};
 
 	SSpawnData    	m_SpawnData;
@@ -117,17 +122,20 @@ public:
             u32		m_EM_SkyColor;
             u32		m_EM_HemiColor;
             Flags16	m_EM_Flags;
+
+            u8		m_EM_ShapeType;
+            CEnvModifier* m_EM_Ptr;
         };
     };
 
     shared_str		SectionToEditor			(shared_str);
     shared_str		EditorToSection			(shared_str);
-	void        	OnProfileChange			(PropValue* prop);
-	void        	OnRPointTypeChange		(PropValue* prop);
+	void    		OnProfileChange			(PropValue* prop);
+	void    		OnRPointTypeChange		(PropValue* prop);
     
-	void        	OnEnvModFlagChange		(PropValue* prop);
-	void        	OnFillChooseItems		(ChooseValue*);
-    void        	OnFillRespawnItemProfile(ChooseValue*);
+	void    		OnEnvModFlagChange		(PropValue* prop);
+	void    		OnFillChooseItems		(ChooseValue*);
+    void    		OnFillRespawnItemProfile(ChooseValue*);
     bool 			OnAppendObject			(CCustomObject* object);
 protected:
     virtual void 	SetPosition		(const Fvector& pos);
@@ -143,12 +151,14 @@ public:
     virtual LPCSTR	RefName			();
 
     bool			CreateSpawnData	(LPCSTR entity_ref);
+    virtual bool	IsRender		();
 	virtual void    Render      	( int priority, bool strictB2F );
 	virtual bool    RayPick     	( float& distance,	const Fvector& start,	const Fvector& direction, SRayPickInfo* pinf = NULL );
     virtual bool 	FrustumPick		( const CFrustum& frustum );
 	virtual bool    GetBox      	(Fbox& box);
 
 	virtual void 	OnFrame			();
+	virtual void	OnUpdateTransform();
 
 	virtual void 	Select			(int  flag);
 
