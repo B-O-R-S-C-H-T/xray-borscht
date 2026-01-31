@@ -506,10 +506,9 @@ public:
 
 	virtual void	Execute	(LPCSTR args)
 	{
-		Fvector v;
-		if (3!=sscanf(args,"%f,%f,%f",&v.x,&v.y,&v.z))	
-			InvalidSyntax(); 
-		else if ( (v.x > v.y-0.1f) || (v.z < v.y+0.1f))
+		CCC_Vector3::Execute(args);
+
+		if ( (value->x > value->y - 0.1f) || (value->z < value->y + 0.1f) )
 		{
 			InvalidSyntax();
 			Msg("x <= y - 0.1");
@@ -517,20 +516,18 @@ public:
 		}
 		else
 		{
-			CCC_Vector3::Execute(args);
 			if(g_pGamePersistent)
 				g_pGamePersistent->SetBaseDof(ps_r2_dof);
 		}
 	}
 	virtual void	Status	(TStatus& S)
-	{	
-		sprintf	(S,"%f,%f,%f",value->x,value->y,value->z);
+	{
+		sprintf_s (S, sizeof(S), "(%f, %f, %f)", value->x, value->y, value->z);
 	}
 	virtual void	Info	(TInfo& I)
-	{	
-		sprintf(I,"vector3 in range [%f,%f,%f]-[%f,%f,%f]",min.x,min.y,min.z,max.x,max.y,max.z);
+	{
+		sprintf(I,"vector3 in range [%f, %f, %f] - [%f, %f, %f]", min.x, min.y, min.z, max.x, max.y, max.z);
 	}
-
 };
 
 class CCC_DumpResources : public IConsole_Command
