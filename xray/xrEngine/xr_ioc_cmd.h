@@ -264,24 +264,48 @@ public
 
 	void	Execute	(LPCSTR args) override
 	{
-		Fvector v;
-		if (3!=sscanf(args,"%f,%f,%f",&v.x,&v.y,&v.z))	{ InvalidSyntax(); return; }
-		if (v.x<min.x || v.y<min.y || v.z<min.z)		{ InvalidSyntax(); return; }
-		if (v.x>max.x || v.y>max.y || v.z>max.z)		{ InvalidSyntax(); return; }
+		Fvector	   v{};
+
+		const char* start = args;
+
+		while (*start == ' ' || *start == '\t' || *start == '\r' || *start == '\n')
+			++start;
+		if (*start == '(')
+			++start;
+
+		const char* end = start + xr_strlen(start) - 1;
+		while (end >= start && (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n' || *end == ')')) {
+			--end;
+		}
+		// временный нолик для sscanf
+		char temp					 = *(end + 1);
+		const_cast<char*>(end + 1)[0] = 0;
+
+		int parsed					 = sscanf(start, "%f, %f, %f", &v.x, &v.y, &v.z);
+
+		const_cast<char*>(end + 1)[0] = temp;
+
+		if (parsed != 3)									 { InvalidSyntax(); return; }
+		if ((v.x < min.x) || (v.y < min.y) || (v.z < min.z)) { InvalidSyntax(); return; }
+		if ((v.x > max.x) || (v.y > max.y) || (v.z > max.z)) { InvalidSyntax(); return; }
+
 		value->set(v);
 	}
+
 	void	Status	(TStatus& S) override
 	{	
-		sprintf_s	(S,sizeof(S),"(%f,%f,%f)",value->x,value->y,value->z);
+		sprintf_s	(S,sizeof(S),"(%f, %f, %f)", value->x, value->y, value->z);
 	}
+
 	void	Info	(TInfo& I) override
 	{	
-		sprintf_s(I,sizeof(I),"vector3 in range [%e,%e,%e]-[%e,%e,%e]",min.x,min.y,min.z,max.x,max.y,max.z);
+		sprintf_s(I,sizeof(I),"vector3 in range [%e, %e, %e] - [%e, %e, %e]", min.x, min.y, min.z, max.x, max.y, max.z);
 	}
+
 	void	fill_tips(vecTips& tips, u32 mode) override
 	{
 		TStatus  str;
-		sprintf_s(str, sizeof(str), "(%e, %e, %e)  (current)  [(%e,%e,%e)-(%e,%e,%e)]", value->x, value->y, value->z, min.x, min.y, min.z, max.x, max.y, max.z);
+		sprintf_s(str, sizeof(str), "(%e, %e, %e)  (current)  [(%e, %e, %e) - (%e, %e, %e)]", value->x, value->y, value->z, min.x, min.y, min.z, max.x, max.y, max.z);
 		tips.push_back(str);
 		IConsole_Command::fill_tips(tips, mode);
 	}
