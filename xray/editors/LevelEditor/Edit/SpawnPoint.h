@@ -15,7 +15,7 @@
 class CSE_Visual;
 class CSE_Motion;
 class CObjectAnimator;
-class ISE_Abstract;
+struct ISE_Abstract;
 class CEnvModifier;
 class IParticleCustom;
 
@@ -98,7 +98,7 @@ public:
 		void    		OnAnimControlClick		(ButtonValue* value, bool& bModif, bool& bSafe);
 		void    		OnParticleControlClick	(ButtonValue* value, bool& bModif, bool& bSafe);
         
-		virtual void get_bone_xform				(LPCSTR name, Fmatrix& xform);
+		virtual void __stdcall get_bone_xform				(LPCSTR name, Fmatrix& xform);
 	};
 
 	SSpawnData    	m_SpawnData;

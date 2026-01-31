@@ -266,7 +266,12 @@ public:
 
 	EnvsMap					WeatherCycles;
 	EnvsMap					WeatherFXs;
-	xr_vector<CEnvModifier>	Modifiers;
+#ifdef _EDITOR
+	typedef xr_list<CEnvModifier> ModifiersList;
+#else
+	typedef xr_vector<CEnvModifier> ModifiersList;
+#endif
+	ModifiersList			Modifiers;
 	EnvAmbVec				Ambients;
 
 	CEffect_Rain*			eff_Rain;
@@ -291,9 +296,11 @@ public:
 
 	void					mods_load			();
 	void					mods_unload			();
-	
+
+#ifdef _EDITOR	
     CEnvModifier*			new_modifier		();
     void					remove_modifier		(CEnvModifier *ptr);
+#endif
 
 	void					OnFrame				();
 	void					lerp				(float& current_weight);
