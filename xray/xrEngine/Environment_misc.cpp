@@ -586,7 +586,7 @@ CEnvAmbient* CEnvironment::AppendEnvAmb		(const shared_str& sect)
 
 void	CEnvironment::mods_load			()
 {
-	Modifiers.clear_and_free			();
+	mods_unload();
 	string_path							path;
 	if (FS.exist(path,"$level$","level.env_mod"))	
 	{
@@ -616,9 +616,11 @@ void	CEnvironment::mods_load			()
 
 void	CEnvironment::mods_unload		()
 {
-	Modifiers.clear_and_free			();
+	// clear the list
+	Modifiers = ModifiersList();
 }
 
+#ifdef _EDITOR
 CEnvModifier*	CEnvironment::new_modifier	()
 {
 	CEnvModifier em;
@@ -629,13 +631,14 @@ CEnvModifier*	CEnvironment::new_modifier	()
 
 void	CEnvironment::remove_modifier	(CEnvModifier *ptr)
 {
-	xr_vector<CEnvModifier>::iterator it = Modifiers.begin(), end = Modifiers.end();
+	ModifiersList::iterator it = Modifiers.begin(), end = Modifiers.end();
     for(; it != end; it++)
     	if(&*it == ptr) {
         	Modifiers.erase(it);
             return;
         }
 }
+#endif
 
 void    CEnvironment::load_level_specific_ambients ()
 {
