@@ -18,7 +18,6 @@
 #include "clsid_game.h"
 
 #define PICKUP_INFO_COLOR 0xFFDDDDDD
-//AAAAAA
 
 void CActor::feel_touch_new				(CObject* O)
 {
@@ -79,19 +78,19 @@ void CActor::PickupModeOff()
 ICF static BOOL info_trace_callback(collide::rq_result& result, LPVOID params)
 {
 	BOOL& bOverlaped	= *(BOOL*)params;
-	if(result.O){
-		if (Level().CurrentEntity()!=result.O){	
-//			bOverlaped		= TRUE;
-			return			TRUE;//FALSE;
-		}else{
-			return			TRUE;
+	if (result.O) {
+		if (Level().CurrentEntity() == result.O) { // игнорировать самого актора
+			return TRUE;
+		} else {
+			bOverlaped = TRUE;
+			return FALSE;
 		}
-	}else{
+	} else {
 		//получить треугольник и узнать его материал
-		CDB::TRI* T		= Level().ObjectSpace.GetStaticTris()+result.element;
+		CDB::TRI* T		= Level().ObjectSpace.GetStaticTris() + result.element;
 		if (GMLib.GetMaterialByIdx(T->material)->Flags.is(SGameMtl::flPassable)) 
 			return TRUE;
-	}	
+	}
 	bOverlaped			= TRUE;
 	return				FALSE;
 }
