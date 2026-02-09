@@ -37,8 +37,6 @@ void imgui_build_fonts() {
 		}
 	}
 
-	io.Fonts->Build();
-
 	if (loaded_count == fonts.size()) {
 		Msg("* [ImGui] Fonts built successfully.");
 	} else if (loaded_count > 0) {

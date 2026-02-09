@@ -131,7 +131,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_EDITOR;_SHADER_EDITOR;NO_VCL;DEBUG;_WINDOWS;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;../..</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../..;$(SolutionDir)3rd_party/imgui</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>

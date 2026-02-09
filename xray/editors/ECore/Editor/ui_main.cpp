@@ -78,7 +78,6 @@ void TUI::OnDeviceDestroy()
 {
 	DUImpl.OnDeviceDestroy();
 	ImGui_ImplDX9_Shutdown();
-	ImGui_ImplWin32_Shutdown();
 	imgui_destroy_context();
 }
 
@@ -387,7 +386,7 @@ void TUI::CheckWindowPos(TForm* form)
 //---------------------------------------------------------------------------
 #include <xrEngine/IGame_Persistent.h>
 #include <xrEngine/Environment.h>
-    static bool b_imgui_rendering = false;
+static bool b_imgui_rendering = false;
 void TUI::PrepareRedraw()
 {
 	VERIFY(m_bReady);
@@ -443,8 +442,10 @@ void TUI::PrepareRedraw()
     	b_imgui_rendering = true;
 
         ImGui_ImplDX9_NewFrame();
-        ImGui::GetIO().DisplaySize = ImVec2(Device.dwWidth, Device.dwHeight);
-        
+        ImGui_ImplWin32_NewFrame();
+		ImGui::GetIO().DisplaySize = ImVec2(Device.dwWidth, Device.dwHeight);
+        ImGui::NewFrame();
+
         ImGuizmo::BeginFrame();
 
     	if(show_demo_window)
@@ -530,7 +531,6 @@ void TUI::RealResize()
     Device.Resize		(m_D3DWindow->Width,m_D3DWindow->Height); 
     m_Flags.set			(flResize,FALSE);
     ExecCommand			(COMMAND_UPDATE_PROPERTIES);
-	ImGui_ImplDX9_CreateDeviceObjects();
 }
 void TUI::RealUpdateScene()
 {
