@@ -1,11 +1,13 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "../ECore/ImGui/ImGui.h"
-
 #include "IM_FrameFogVol.h"
-#include "../Edit/Scene.h"
+
+#include <imgui.h>
+#include <imgui_user.h>
+
 #include "../Edit/ESceneFogVolumeTools.h"
+#include "../Edit/Scene.h"
 
 #pragma package(smart_init)
 

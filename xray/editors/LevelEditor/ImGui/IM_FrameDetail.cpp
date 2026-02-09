@@ -1,12 +1,13 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "../ECore/ImGui/ImGui.h"
-
 #include "IM_FrameDetail.h"
-#include "IM_DetailShuffle.h"
-#include "../Edit/Scene.h"
+
+#include <imgui.h>
+
 #include "../Edit/ESceneDOTools.h"
+#include "../Edit/Scene.h"
+#include "IM_DetailShuffle.h"
 #ifndef NO_VCL
 #include "DOShuffle.h"
 #endif

@@ -1,11 +1,13 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "imgui.h"
 #include "IM_ChooseForm.h"
-#include "../Editor/ui_main.h"
+
 #include <Layers/xrRender/ETextureParams.h>
 #include <editors/xrEProps/ChoseForm.h> // for GetEvents
+#include <imgui.h>
+
+#include "../Editor/ui_main.h"
 
 #pragma package(smart_init)
 

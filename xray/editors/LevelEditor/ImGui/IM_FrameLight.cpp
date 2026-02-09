@@ -2,10 +2,12 @@
 #pragma hdrstop
 
 #include "IM_FrameLight.h"
-#include "..\ECore\ImGui\ImGui.h"
 
-#include "../Edit/Scene.h"
+#include <imgui.h>
+#include <imgui_user.h>
+
 #include "../Edit/ELight.h"
+#include "../Edit/Scene.h"
 
 #pragma package(smart_init)
 

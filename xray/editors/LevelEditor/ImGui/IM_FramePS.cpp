@@ -1,16 +1,17 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "../ECore/ImGui/imgui.h"
-#include "../ECore/ImGui/utf8.h"
-
 #include "IM_FramePS.h"
-#include "../ECore/Editor/render.h"
+
 #include <Layers/xrRender/PSLibrary.h>
-#include <Layers/xrRender/ParticleGroup.h>
 #include <Layers/xrRender/ParticleEffectDef.h>
-#include "../Edit/Scene.h"
+#include <Layers/xrRender/ParticleGroup.h>
+#include <imgui.h>
+
+#include "../ECore/Editor/render.h"
+#include "../ECore/ImGui/utf8.h"
 #include "../Edit/EParticlesObject.h"
+#include "../Edit/Scene.h"
 
 #pragma package(smart_init)
 

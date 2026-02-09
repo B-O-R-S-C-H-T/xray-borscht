@@ -1,6 +1,9 @@
 #include "stdafx.h"
+
 #include "IM_DetailShuffle.h"
-#include "../ECore/ImGui/imgui.h"
+
+#include <imgui.h>
+
 #include "../ECore/Editor/ui_main.h"
 #include "../Edit/ESceneDOTools.h"
 

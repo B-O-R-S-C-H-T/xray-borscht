@@ -151,9 +151,6 @@
     <Filter Include="RenderRef\Execution &amp; 3D\Device\imgui">
       <UniqueIdentifier>{7eb57f67-a880-4d03-848e-8cc8e4df30e9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="imgui">
-      <UniqueIdentifier>{608911d4-539a-4e00-9e5b-a7a4e3778b13}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="_d3d_extensions.h">
@@ -448,7 +445,7 @@
       <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\Layers\xrRender\imgui_setup.h">
-      <Filter>imgui</Filter>
+      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -744,7 +741,7 @@
       <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\Layers\xrRender\imgui_setup.cpp">
-      <Filter>imgui</Filter>
+      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

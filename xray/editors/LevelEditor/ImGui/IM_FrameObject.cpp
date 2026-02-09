@@ -2,16 +2,19 @@
 #pragma hdrstop
 
 #include "IM_FrameObject.h"
-#include "../ECore/ImGui/ImGui.h"
-#include "../ECore/ImGui/utf8.h"
-#include "../ECore/ImGui/IM_ChooseForm.h"
+
+#include <imgui.h>
+#include <imgui_user.h>
+#include <random>
+
+#include "../ECore/Editor/EThumbnail.h"
 #include "../ECore/Editor/Library.h"
+#include "../ECore/Editor/ui_main.h"
+#include "../ECore/ImGui/IM_ChooseForm.h"
+#include "../ECore/ImGui/utf8.h"
+#include "../Edit/ESceneObjectTools.h"
 #include "../Edit/Scene.h"
 #include "../Edit/SceneObject.h"
-#include "../Edit/ESceneObjectTools.h"
-#include "../ECore/Editor/ui_main.h"
-#include "../ECore/Editor/EThumbnail.h"
-#include <random>
 
 LPCSTR IM_FrameObject::Current()
 {

@@ -1,14 +1,15 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "../ECore/ImGui/imgui.h"
-
 #include "IM_FramePortal.h"
-#include "../Edit/scene.h"
-#include "../Edit/sector.h"
+
+#include <imgui.h>
+
+#include "../Edit/EScenePortalTools.h"
 #include "../Edit/portal.h"
 #include "../Edit/portalutils.h"
-#include "../Edit/EScenePortalTools.h"
+#include "../Edit/scene.h"
+#include "../Edit/sector.h"
 
 #pragma package(smart_init)
 

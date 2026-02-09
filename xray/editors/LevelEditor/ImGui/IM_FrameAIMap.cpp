@@ -1,13 +1,14 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "../ECore/ImGui/imgui.h"
-#include "../ECore/ImGui/utf8.h"
-
 #include "IM_FrameAIMap.h"
-#include "../Edit/Scene.h"
-#include "../Edit/ESceneAIMapTools.h"
+
+#include <imgui.h>
 #include <xrEngine/GameMtlLib.h>
+
+#include "../ECore/ImGui/utf8.h"
+#include "../Edit/ESceneAIMapTools.h"
+#include "../Edit/Scene.h"
 #include "../Edit/UI_LevelMain.h"
 
 #pragma package(smart_init)

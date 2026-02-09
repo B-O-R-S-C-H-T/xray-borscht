@@ -1,13 +1,14 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "../ECore/ImGui/imgui.h"
-
 #include "IM_FrameWayPoint.h"
+
+#include <imgui.h>
+
 #include "../ECore/Editor/ui_main.h"
+#include "../Edit/ESceneWayControls.h"
 #include "../Edit/UI_LevelTools.h"
 #include "../Edit/WayPoint.h"
-#include "../Edit/ESceneWayControls.h"
 #include "../Edit/scene.h"
 
 #pragma package(smart_init)

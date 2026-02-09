@@ -1,5 +1,6 @@
 #pragma once
 
+#include "stdafx.h"
 #include "imgui_setup.h"
 
 void imgui_create_context() {
@@ -35,8 +36,6 @@ void imgui_build_fonts() {
 			loaded_count++;
 		}
 	}
-
-	io.Fonts->Build();
 
 	if (loaded_count == fonts.size()) {
 		Msg("* [ImGui] Fonts built successfully.");
