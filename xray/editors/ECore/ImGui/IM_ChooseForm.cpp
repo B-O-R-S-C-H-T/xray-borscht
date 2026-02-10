@@ -168,7 +168,7 @@ void IM_ChooseForm::Render()
 
             ImGui::EndChild();
 
-            if(ImGui::Button("^"))
+            if(ImGui::Button("^##choose_up"))
             	if(m_current_item > 0 && m_current_item < m_selected.size())
                 {
                 	std::swap(m_selected[m_current_item], m_selected[m_current_item-1]);
@@ -179,7 +179,7 @@ void IM_ChooseForm::Render()
             	ImGui::SetTooltip("Up");
 
             ImGui::SameLine();
-            if(ImGui::Button("v"))
+            if(ImGui::Button("v##choose_down"))
             	if(m_selected.size() && m_current_item < m_selected.size()-1)
                 {
                 	std::swap(m_selected[m_current_item], m_selected[m_current_item+1]);
@@ -190,7 +190,7 @@ void IM_ChooseForm::Render()
             	ImGui::SetTooltip("Down");
 
             ImGui::SameLine();
-            if(ImGui::Button("X"))
+            if(ImGui::Button("X##choose_unselect"))
             	if(m_selected.size() && m_current_item < m_selected.size())
 					m_items_tree.Select(*m_selected[m_current_item], false);
 
@@ -198,7 +198,7 @@ void IM_ChooseForm::Render()
             	ImGui::SetTooltip("Unselect");
 
             ImGui::SameLine();
-            if(ImGui::Button("0"))
+            if(ImGui::Button("0##choose_clear"))
             {
             	m_items_tree.SelectAll(false);
                 m_current_item = 0;
@@ -232,7 +232,7 @@ void IM_ChooseForm::Render()
 
         ImGui::Columns(1);
 
-        if(ImGui::Button("OK", ImVec2(80, 0)))
+        if(ImGui::Button("OK##choose_ok", ImVec2(80, 0)))
         {
 			if(!OnOK.empty())
 				OnOK(this);
@@ -241,7 +241,7 @@ void IM_ChooseForm::Render()
         }
 
         ImGui::SameLine();
-        if(ImGui::Button("Cancel", ImVec2(80, 0)))
+        if(ImGui::Button("Cancel##choose_cancel", ImVec2(80, 0)))
 		{
 			if(!OnCancel.empty())
 				OnCancel(this);

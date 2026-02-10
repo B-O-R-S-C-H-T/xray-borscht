@@ -49,7 +49,8 @@ void IM_Log::Render()
     ImGui::BeginChild("log", ImVec2(0, -(ImGui::GetTextLineHeightWithSpacing() + 5)));
 
     xr_list<Message>::iterator it, end;
-    for(it = msgs.begin(), end = msgs.end(); it != end; it++)
+    int index = 0;
+    for (it = msgs.begin(), end = msgs.end(); it != end; ++it)
     {
     	const char* text = it->text.c_str();
     	u32 color;
@@ -65,9 +66,11 @@ void IM_Log::Render()
     	color = subst_alpha(bgr2rgb(color), 0xFF);
     	ImGui::PushStyleColor(ImGuiCol_Text, color);
 
-    	ImGui::Selectable(text, &it->selected);
+        ImGui::PushID(index++);
+        ImGui::Selectable(text, &it->selected);
+        ImGui::PopID();
 
-    	ImGui::PopStyleColor(1);
+        ImGui::PopStyleColor(1);
     }
 
     if(has_new_messages)
@@ -80,23 +83,23 @@ void IM_Log::Render()
 
     ImGui::Separator();
 
-    if(ImGui::Button("Close"))
+    if(ImGui::Button("Close##log_close"))
     	Close();
 
     ImGui::SameLine();
 
-    if(ImGui::Button("Flush"))
+    if(ImGui::Button("Flush##log_flush"))
     	FlushLog();
 
     ImGui::SameLine();
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.f);
 
-    if(ImGui::Button("Clear"))
+    if(ImGui::Button("Clear##log_clear"))
     	Clear();
 
     ImGui::SameLine();
 
-    if(ImGui::Button("Clear selected"))
+    if(ImGui::Button("Clear selected##log_clear_selected"))
     	ClearSelected();
 
     ImGui::End();

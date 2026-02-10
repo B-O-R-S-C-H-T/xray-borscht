@@ -22,11 +22,13 @@ void IM_ContextMenu::Render()
 		
 		if(ImGui::MenuItem("------------------------"))
 			detach = true;
-		
+
+		ImGui::PushID(0);
 		ShowMenu();
-			
+		ImGui::PopID();
+
 		ImGui::EndPopup();
-		
+
 		if(detach)
 		{
 			m_detach = true;
@@ -41,9 +43,11 @@ void IM_ContextMenu::Render()
 			ImGui::End();
 			return;
 		}
-		
+
+		ImGui::PushID(1);
 		ShowMenu();
-		
+		ImGui::PopID();
+
 		ImGui::End();
 	}
 }

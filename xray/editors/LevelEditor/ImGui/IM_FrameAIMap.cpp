@@ -152,48 +152,48 @@ void IM_FrameAIMap::Render()
     ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
     {
     	ImGui::Columns(2, "aimap_nodes", false);
-        if(ImGui::Selectable("Ignore Contraints", &m_ignore_constraints))
-        	;
+        if (ImGui::Selectable("Ignore Contraints##aimap_ignore_constraints", &m_ignore_constraints))
+            ;
         ImGui::NextColumn();
-        if(ImGui::Selectable("Auto Link", &m_auto_link))
-        	;
+        if (ImGui::Selectable("Auto Link##aimap_auto_link", &m_auto_link))
+            ;
         ImGui::Columns(1);
 
         ImGui::TextUnformatted("Link commands:");
 
         ImGui::Columns(3);
 
-        if(ImGui::Selectable("Add", &m_link_add) && m_link_add)
-        	m_link_del = m_link_invert = false;
-        if(ImGui::Selectable("Delete", &m_link_del) && m_link_del)
-        	m_link_add = m_link_invert = false;
-        if(ImGui::Selectable("Invert", &m_link_invert) && m_link_invert)
-        	m_link_add = m_link_del = false;
+        if(ImGui::Selectable("Add##link_add", &m_link_add) && m_link_add)
+            m_link_del = m_link_invert = false;
+        if(ImGui::Selectable("Delete##link_del", &m_link_del) && m_link_del)
+            m_link_add = m_link_invert = false;
+        if(ImGui::Selectable("Invert##link_invert", &m_link_invert) && m_link_invert)
+            m_link_add = m_link_del = false;
 
         ImGui::NextColumn();
 
-        ImGui::SmallButton(" ");
+        ImGui::SmallButton("##space1");
         ImGui::SameLine();
-        if(ImGui::SmallButton("^"))
-        	MakeLink(1);
+        if(ImGui::SmallButton("^##up"))
+            MakeLink(1);
         ImGui::SameLine();
-        ImGui::SmallButton(" ");
+        ImGui::SmallButton("##space2");
 
-        if(ImGui::SmallButton("<"))
-        	MakeLink(0);
+        if(ImGui::SmallButton("<##left"))
+            MakeLink(0);
         ImGui::SameLine();
-        if(ImGui::SmallButton("+"))
-        	MakeLink(4);
+        if(ImGui::SmallButton("+##plus"))
+            MakeLink(4);
         ImGui::SameLine();
-        if(ImGui::SmallButton(">"))
-        	MakeLink(2);
+        if(ImGui::SmallButton(">##right"))
+            MakeLink(2);
 
-        ImGui::SmallButton(" ");
+        ImGui::SmallButton("##space3");
         ImGui::SameLine();
-        if(ImGui::SmallButton("v"))
-        	MakeLink(3);
+        if(ImGui::SmallButton("v##down"))
+            MakeLink(3);
         ImGui::SameLine();
-        ImGui::SmallButton(" ");
+        ImGui::SmallButton("##space4");
 
         ImGui::NextColumn();
 
@@ -234,8 +234,10 @@ void IM_FrameAIMap::Render()
         ImGui::BeginChild("ignorematerials", ImVec2(0,250), true);
         for(SStringVecIt it = m_ignored_materials.begin(), end = m_ignored_materials.end(); it != end; it++)
         {
-        	xr_string mat_name = codepage2utf8(*it);
-        	ImGui::TextUnformatted(&*mat_name.begin(), &*mat_name.end());
+            ImGui::PushID(it - m_ignored_materials.begin());
+            xr_string mat_name = codepage2utf8(*it);
+            ImGui::TextUnformatted(&*mat_name.begin(), &*mat_name.end());
+            ImGui::PopID();
         }
         ImGui::EndChild();
     }

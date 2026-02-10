@@ -24,22 +24,22 @@ void IM_FrameDetail::Render()
     if(ImGui::CollapsingHeader("DO Commands",
     ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
     {
-    	if(ImGui::MenuItem("First Initialize"))
+        if (ImGui::MenuItem("First Initialize##detail_first_init"))
         {
         	if(parent_tool->Initialize())
             	Scene->UndoSave();
         }
-		if(ImGui::MenuItem("Reinitialize All"))
+        if (ImGui::MenuItem("Reinitialize All##detail_reinit_all"))
         {
         	if(parent_tool->Reinitialize())
             	Scene->UndoSave();
         }
-        if(ImGui::MenuItem("Reinitialize Objects Only"))
+        if (ImGui::MenuItem("Reinitialize Objects Only##detail_reinit_objs"))
         {
         	if(parent_tool->UpdateObjects(true, false))
             	Scene->UndoSave();
         }
-        if(ImGui::MenuItem("Reinitialize Selected Slot Objects"))
+        if (ImGui::MenuItem("Reinitialize Selected Slot Objects##detail_reinit_sel_slots"))
         {
         	if(parent_tool->UpdateObjects(false, true))
             	Scene->UndoSave();
@@ -47,7 +47,7 @@ void IM_FrameDetail::Render()
 
         ImGui::Separator();
 
-        if(ImGui::MenuItem("Update Renderer"))
+        if (ImGui::MenuItem("Update Renderer##detail_update_renderer"))
         {
         	parent_tool->InvalidateCache();
             Scene->UndoSave();
@@ -55,7 +55,7 @@ void IM_FrameDetail::Render()
 
         ImGui::Separator();
 
-        if(ImGui::MenuItem("Clear Slots"))
+        if (ImGui::MenuItem("Clear Slots##detail_clear_slots"))
         {
         	if(ELog.DlgMsg(mtConfirmation, TMsgDlgButtons() << mbYes << mbNo, "Are you sure to reset slots?") == mrYes)
             {
@@ -63,7 +63,7 @@ void IM_FrameDetail::Render()
 				Scene->UndoSave();
     		}
     	}
-		if(ImGui::MenuItem("Clear Details"))
+        if (ImGui::MenuItem("Clear Details##detail_clear_details"))
         {
         	if(ELog.DlgMsg(mtConfirmation, TMsgDlgButtons() << mbYes << mbNo, "Are you sure to clear details?") == mrYes)
             {
@@ -75,7 +75,7 @@ void IM_FrameDetail::Render()
 
         ImGui::Separator();
 
-        if(ImGui::MenuItem("Object List"))
+        if (ImGui::MenuItem("Object List##detail_object_list"))
         {
 #ifdef NO_VCL
             auto wnd = xr_new<IM_DetailShuffle>(dynamic_cast<EDetailManager*>(Scene->GetTool(OBJCLASS_DO)));

@@ -104,9 +104,9 @@ void IM_TextEditor::Render()
         return;
     }
 
-    ImGui::Columns(3, NULL, false);
+    ImGui::Columns(3, "text_editor_cols", false);
 
-    if(ImGui::Button("OK"))
+    if(ImGui::Button("OK##text_ok"))
     {
     	if(m_on_ok)
         	m_on_ok(this);
@@ -116,7 +116,7 @@ void IM_TextEditor::Render()
 		open = false;
 	}
     ImGui::SameLine();
-    if(ImGui::Button("Cancel"))
+    if(ImGui::Button("Cancel##text_cancel"))
     {
     	if(m_on_cancel)
         	m_on_cancel(this);
@@ -140,13 +140,13 @@ void IM_TextEditor::Render()
 
     ImGui::NextColumn();
 
-    if(ImGui::Button("Load"))
+    if(ImGui::Button("Load##text_load"))
     	;
     ImGui::SameLine();
-    if(ImGui::Button("Save"))
+    if(ImGui::Button("Save##text_save"))
     	;
     ImGui::SameLine();
-    if(ImGui::Button("Clear"))
+    if(ImGui::Button("Clear##text_clear"))
     	m_text[0] = '\0';
 
     ImGui::Columns(1);

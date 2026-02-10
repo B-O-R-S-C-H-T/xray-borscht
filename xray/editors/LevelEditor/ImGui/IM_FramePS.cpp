@@ -79,20 +79,19 @@ void IM_FramePS::OnRemove()
 
 void IM_FramePS::Render()
 {
-    if(ImGui::CollapsingHeader("PS Commands",
-    ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader("PS Commands", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::TextUnformatted("Ref's select:\t");
         ImGui::SameLine();
-        if(ImGui::Button("+", ImVec2(80.f, 0.0f)))
-        	SelectByRef(true);
+        if (ImGui::Button("+##ps_ref_add", ImVec2(80.f, 0.0f)))
+            SelectByRef(true);
         ImGui::SameLine();
-        if(ImGui::Button("-", ImVec2(80.f, 0.0f)))
-        	SelectByRef(false);
+        if (ImGui::Button("-##ps_ref_sub", ImVec2(80.f, 0.0f)))
+            SelectByRef(false);
 
         ImGui::TextUnformatted("Selected:\t\t");
         ImGui::SameLine();
-        if(ImGui::Button("Play", ImVec2(80.f, 0.0f)))
+        if (ImGui::Button("Play##ps_play", ImVec2(80.f, 0.0f)))
         {
             ObjectIt _F = Scene->FirstObj(OBJCLASS_PS);
     		ObjectIt _E = Scene->LastObj(OBJCLASS_PS);
@@ -102,7 +101,7 @@ void IM_FramePS::Render()
     		}
     	}
         ImGui::SameLine();
-        if(ImGui::Button("Stop", ImVec2(80.f, 0.0f)))
+        if (ImGui::Button("Stop##ps_stop", ImVec2(80.f, 0.0f)))
         {
             ObjectIt _F = Scene->FirstObj(OBJCLASS_PS);
     		ObjectIt _E = Scene->LastObj(OBJCLASS_PS);

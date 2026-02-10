@@ -32,12 +32,12 @@ void IM_FrameFogVol::Render()
     {
     	ImGui::Columns(2, NULL, false);
 
-    	if(ImGui::MenuItem("Group Selected"))
+        if (ImGui::MenuItem("Group Selected##fogvol_group"))
     		m_parent_tool->GroupSelected();
 
     	ImGui::NextColumn();
 
-    	if(ImGui::MenuItem("UnGroup Selected"))
+        if (ImGui::MenuItem("UnGroup Selected##fogvol_ungroup"))
     		m_parent_tool->UnGroupCurrent();
 
     	ImGui::Columns(1);

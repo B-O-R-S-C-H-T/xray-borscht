@@ -115,42 +115,41 @@ void IM_FrameSpawn::Render()
 	if(ImGui::CollapsingHeader("Reference Select",
     ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
     {
-    	ImGui::Columns(2, "ref_select", false);
+        ImGui::Columns(2, "ref_select_spawn", false);
 
         ImGui::AlignTextToFramePadding();
-    	ImGui::TextUnformatted("Select by Current:\t");
+        ImGui::TextUnformatted("Select by Current:\t");
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Select by Selected:\t");
 
         ImGui::NextColumn();
 
-        if(ImGui::Button("+", ImVec2(40,0)))
-        	SelByRefObject(true);
+        if (ImGui::Button("+##spawn_sel_by_cur_add", ImVec2(40, 0)))
+            SelByRefObject(true);
         ImGui::SameLine();
-        if(ImGui::Button("-", ImVec2(40,0)))
-        	SelByRefObject(false);
+        if (ImGui::Button("-##spawn_sel_by_cur_sub", ImVec2(40, 0)))
+            SelByRefObject(false);
 
-        if(ImGui::Button("=%", ImVec2(40,0)))
-        	MultiSelByRefObject(true);
+        if (ImGui::Button("=%##spawn_multi_sel_clear", ImVec2(40, 0)))
+            MultiSelByRefObject(true);
         ImGui::SameLine();
-        if(ImGui::Button("+%", ImVec2(40,0)))
-        	MultiSelByRefObject(false);
+        if (ImGui::Button("+%##spawn_multi_sel_add", ImVec2(40, 0)))
+            MultiSelByRefObject(false);
 
         ImGui::Columns(1);
 
         ImGui::SliderInt("%", &m_select_percent, 0, 100);
     }
 
-	if(ImGui::CollapsingHeader("Commands",
-    ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader("Commands", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
-    	if(ImGui::Selectable("Attach Object...", &m_attach_object))
+        if (ImGui::Selectable("Attach Object...##spawn_attach", &m_attach_object))
         {
         	if(m_attach_object)
             	ExecCommand(COMMAND_CHANGE_ACTION, etaAdd);
         }
 
-        if(ImGui::MenuItem("Detach Object"))
+        if (ImGui::MenuItem("Detach Object##spawn_detach"))
 		{
             ObjectList lst;
     		if (Scene->GetQueryObjects(lst,OBJCLASS_SPAWNPOINT,1,1,0)){
@@ -162,8 +161,7 @@ void IM_FrameSpawn::Render()
     	}
     }
 
-    if(ImGui::CollapsingHeader("Current Spawn",
-    ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader("Current Spawn", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
     	ImGui::BeginChild("spawns", ImVec2(0,0), true);
         m_spawns.Render();

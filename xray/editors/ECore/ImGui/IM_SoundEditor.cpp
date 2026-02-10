@@ -59,7 +59,7 @@ void IM_SoundEditor::Render()
 		return;
 	}
 
-	ImGui::Columns(2, NULL, true);
+	ImGui::Columns(2, "sound_editor_cols", true);
 
 	ImGui::BeginChild("ItemList", ImVec2(0, 0), true);
 	m_items.Render();
@@ -73,14 +73,14 @@ void IM_SoundEditor::Render()
 
 	if(!m_Flags.is(flReadOnly))
 	{
-		if(ImGui::Button("OK", ImVec2(80, 0)))
+		if(ImGui::Button("OK##sound_ok", ImVec2(80, 0)))
 		{
 			UpdateLib();
 			m_open = false;
 		}
 
 		ImGui::SameLine();
-		if(ImGui::Button("Cancel", ImVec2(80, 0)))
+		if(ImGui::Button("Cancel##sound_cancel", ImVec2(80, 0)))
 		{
 			m_open = false;
 		}

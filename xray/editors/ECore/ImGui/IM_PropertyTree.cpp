@@ -1368,7 +1368,7 @@ void IM_PropertyTree::RenderGameType(PropItem* item)
 
 void IM_PropertyTree::Render()
 {
-	ImGui::Columns(2, NULL, true);
+	ImGui::Columns(2, "props_cols", true);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
 
 	RenderNode(root);
