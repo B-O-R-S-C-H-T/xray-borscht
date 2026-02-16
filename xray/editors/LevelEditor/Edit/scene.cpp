@@ -621,3 +621,32 @@ bool EScene::GetSubstObjectName(const xr_string& _from, xr_string& _to) const
 
     return (It!=It_e);
 }
+
+// Undo/Redo
+void EScene::UndoSave() {
+	ELog.Msg(mtInformation, "! Deprecated call EScene::UndoSave()");
+}
+
+bool EScene::Undo() {
+	if (m_undoManager.CanUndo()) {
+		m_undoManager.Undo();
+		UI->RedrawScene();
+		ExecCommand(COMMAND_UPDATE_PROPERTIES);
+		return true;
+	}
+	return false;
+}
+
+bool EScene::Redo() {
+	if (m_undoManager.CanRedo()) {
+		m_undoManager.Redo();
+		UI->RedrawScene();
+		ExecCommand(COMMAND_UPDATE_PROPERTIES);
+		return true;
+	}
+	return false;
+}
+
+void EScene::UndoClear() {
+	m_undoManager.Clear();
+}

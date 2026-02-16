@@ -19,9 +19,6 @@
     <Filter Include="Edit">
       <UniqueIdentifier>{e5ae2477-5ee1-41e3-b238-778a6b8ac618}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ImGui">
-      <UniqueIdentifier>{51ad96bc-51e4-4dc0-b230-6dda67534585}</UniqueIdentifier>
-    </Filter>
     <Filter Include="xrServerEntities">
       <UniqueIdentifier>{3855fb19-bce5-4e88-bd54-7f52f1d52cec}</UniqueIdentifier>
     </Filter>
@@ -30,6 +27,12 @@
     </Filter>
     <Filter Include="Include">
       <UniqueIdentifier>{6c45c6e7-65dd-4975-be8a-760dc26b1ede}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Undo Manager">
+      <UniqueIdentifier>{34580253-a0b9-486b-b075-5f1e3aaf45a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui Frames">
+      <UniqueIdentifier>{51ad96bc-51e4-4dc0-b230-6dda67534585}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -58,46 +61,46 @@
       <Filter>Edit</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_FrameAIMap.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_FrameDetail.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_FrameFogVol.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_FrameGroup.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_FrameLight.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_FrameObject.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_FramePortal.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_FramePS.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_FrameSector.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_FrameShape.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_FrameSpawn.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_FrameWayPoint.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_LeftBar.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_TopBar.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="Edit\WayPoint.h">
       <Filter>Edit</Filter>
@@ -277,19 +280,19 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_Manipulator.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="Edit\AppendObjectInfoForm.h">
       <Filter>Edit</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_ContextMenu.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_ObjectListWnd.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_DetailShuffle.h">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -309,46 +312,46 @@
       <Filter>Edit</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_FrameAIMap.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_FrameDetail.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_FrameFogVol.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_FrameGroup.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_FrameLight.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_FrameObject.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_FramePortal.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_FramePS.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_FrameSector.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_FrameShape.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_FrameSpawn.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_FrameWayPoint.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_LeftBar.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_TopBar.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="Edit\Scene_Tools.cpp">
       <Filter>Edit</Filter>
@@ -602,9 +605,6 @@
     <ClCompile Include="Edit\GroupObject.cpp">
       <Filter>Edit</Filter>
     </ClCompile>
-    <ClCompile Include="Edit\SceneUndo.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xrServerEntities\gametype_chooser.cpp">
       <Filter>xrServerEntities</Filter>
     </ClCompile>
@@ -672,19 +672,22 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_Manipulator.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="Edit\AppendObjectInfoForm.cpp">
       <Filter>Edit</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_ContextMenu.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_ObjectListWnd.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_DetailShuffle.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>ImGui Frames</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\undo_manager.cpp">
+      <Filter>Undo Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

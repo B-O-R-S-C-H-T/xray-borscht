@@ -311,6 +311,7 @@
     <ClInclude Include="Editor\ui_main.h" />
     <ClInclude Include="Editor\UI_MainCommand.h" />
     <ClInclude Include="Editor\UI_ToolsCustom.h" />
+    <ClInclude Include="Editor\undo_manager.h" />
     <ClInclude Include="Engine\blenders\Blender_B.h" />
     <ClInclude Include="Engine\blenders\blender_light.h" />
     <ClInclude Include="Engine\GameMtlLib.h" />
