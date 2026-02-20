@@ -58,6 +58,9 @@
     <Filter Include="ImGui">
       <UniqueIdentifier>{4ef78859-ccdc-450f-a6cf-eeb044d3b614}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Editor\Preferences">
+      <UniqueIdentifier>{a9501c23-65a4-40f6-ad1d-e128d9f14c8c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -95,9 +98,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Layers\xrRender\R_Backend_xform.h">
       <Filter>xrRender</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor\EditorPreferences.h">
-      <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="Editor\pick_defs.h">
       <Filter>Editor</Filter>
@@ -522,6 +522,9 @@
     <ClInclude Include="Editor\undo_manager.h">
       <Filter>Undo Manager</Filter>
     </ClInclude>
+    <ClInclude Include="Editor\EditorPreferences.h">
+      <Filter>Editor\Preferences</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -559,9 +562,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Layers\xrRender\R_Backend_xform.cpp">
       <Filter>xrRender</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor\EditorPreferences.cpp">
-      <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="Editor\UI_ToolsCustom.cpp">
       <Filter>Editor</Filter>
@@ -1063,6 +1063,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\addons\ImGuizmo\ImGuizmo.cpp">
       <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EditorPreferences.cpp">
+      <Filter>Editor\Preferences</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

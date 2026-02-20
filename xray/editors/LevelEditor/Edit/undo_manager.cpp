@@ -46,8 +46,13 @@ void MoveCommand::Undo() {
 		if (m_objects[i])
 			m_objects[i]->SetPosition(m_oldPositions[i]);
 	}
-	Device.m_Camera.Set(m_oldCamHPB, m_oldCamPos);
-	Device.m_Camera.BuildCamera();
+
+	if (EPrefs->cam_undo_enabled) {
+		Device.m_Camera.StartUndoCamInterpolation(m_oldCamPos, m_oldCamHPB, EPrefs->cam_undo_duration);
+	} else {
+		Device.m_Camera.Set(m_oldCamHPB, m_oldCamPos);
+		Device.m_Camera.BuildCamera();
+	}
 }
 
 void MoveCommand::Redo() {
@@ -55,8 +60,13 @@ void MoveCommand::Redo() {
 		if (m_objects[i])
 			m_objects[i]->SetPosition(m_newPositions[i]);
 	}
-	Device.m_Camera.Set(m_newCamHPB, m_newCamPos);
-	Device.m_Camera.BuildCamera();
+
+	if (EPrefs->cam_undo_enabled) {
+		Device.m_Camera.StartUndoCamInterpolation(m_newCamPos, m_newCamHPB, EPrefs->cam_undo_duration);
+	} else {
+		Device.m_Camera.Set(m_newCamHPB, m_newCamPos);
+		Device.m_Camera.BuildCamera();
+	}
 }
 
 ScaleCommand::ScaleCommand(const std::vector<CCustomObject*>& objects,
@@ -75,8 +85,13 @@ void ScaleCommand::Undo() {
 		if (m_objects[i])
 			m_objects[i]->SetScale(m_oldScales[i]);
 	}
-	Device.m_Camera.Set(m_oldCamHPB, m_oldCamPos);
-	Device.m_Camera.BuildCamera();
+
+	if (EPrefs->cam_undo_enabled) {
+		Device.m_Camera.StartUndoCamInterpolation(m_oldCamPos, m_oldCamHPB, EPrefs->cam_undo_duration);
+	} else {
+		Device.m_Camera.Set(m_oldCamHPB, m_oldCamPos);
+		Device.m_Camera.BuildCamera();
+	}
 }
 
 void ScaleCommand::Redo() {
@@ -84,8 +99,13 @@ void ScaleCommand::Redo() {
 		if (m_objects[i])
 			m_objects[i]->SetScale(m_newScales[i]);
 	}
-	Device.m_Camera.Set(m_newCamHPB, m_newCamPos);
-	Device.m_Camera.BuildCamera();
+
+	if (EPrefs->cam_undo_enabled) {
+		Device.m_Camera.StartUndoCamInterpolation(m_newCamPos, m_newCamHPB, EPrefs->cam_undo_duration);
+	} else {
+		Device.m_Camera.Set(m_newCamHPB, m_newCamPos);
+		Device.m_Camera.BuildCamera();
+	}
 }
 
 RotateCommand::RotateCommand(const std::vector<CCustomObject*>& objects,
@@ -104,8 +124,13 @@ void RotateCommand::Undo() {
 		if (m_objects[i])
 			m_objects[i]->SetRotation(m_oldRotations[i]);
 	}
-	Device.m_Camera.Set(m_oldCamHPB, m_oldCamPos);
-	Device.m_Camera.BuildCamera();
+
+	if (EPrefs->cam_undo_enabled) {
+		Device.m_Camera.StartUndoCamInterpolation(m_oldCamPos, m_oldCamHPB, EPrefs->cam_undo_duration);
+	} else {
+		Device.m_Camera.Set(m_oldCamHPB, m_oldCamPos);
+		Device.m_Camera.BuildCamera();
+	}
 }
 
 void RotateCommand::Redo() {
@@ -113,6 +138,11 @@ void RotateCommand::Redo() {
 		if (m_objects[i])
 			m_objects[i]->SetRotation(m_newRotations[i]);
 	}
-	Device.m_Camera.Set(m_newCamHPB, m_newCamPos);
-	Device.m_Camera.BuildCamera();
+
+	if (EPrefs->cam_undo_enabled) {
+		Device.m_Camera.StartUndoCamInterpolation(m_newCamPos, m_newCamHPB, EPrefs->cam_undo_duration);
+	} else {
+		Device.m_Camera.Set(m_newCamHPB, m_newCamPos);
+		Device.m_Camera.BuildCamera();
+	}
 }

@@ -2,37 +2,43 @@
 #pragma hdrstop
 
 #include "UI_Camera.h"
+
 #include "ui_main.h"
 #include "ui_toolscustom.h"
 
-CUI_Camera::CUI_Camera()
-{
+CUI_Camera::CUI_Camera() {
 	m_Style = csPlaneMove;
 
 	m_Znear = 0.2f;
-	m_Zfar = 1500.f;
-    m_HPB.set(0,0,0);
-    m_Position.set(0,0,0);
-    m_Target.set(0,0,0);
-    m_CamMat.identity();
+	m_Zfar	= 1500.f;
+	m_HPB.set(0, 0, 0);
+	m_Position.set(0, 0, 0);
+	m_Target.set(0, 0, 0);
+	m_CamMat.identity();
 
-	m_FlySpeed = 5.f;
-    m_FlyAltitude = 1.8f;
+	m_FlySpeed	  = 5.f;
+	m_FlyAltitude = 1.8f;
 
-    m_bMoving=false;
+	m_bMoving	  = false;
+
+	m_SM		  = 0.0f;
+	m_SR		  = 0.0f;
+	m_StartPos.set(0, 0);
+	m_undoTargetPos.set(0.0f, 0.0f, 0.0f);
+	m_undoTargetHPB.set(0.0f, 0.0f, 0.0f);
 }
 
-CUI_Camera::~CUI_Camera()
-{
-}
+CUI_Camera::~CUI_Camera() {}
 
 void CUI_Camera::SetStyle(ECameraStyle new_style)
 {
   	if (new_style==cs3DArcBall){
-	    Fvector dir;
+		Fvector dir{};
         dir.sub			(m_Target,m_Position);
         // parse heading
-   	    Fvector DYaw; DYaw.set(dir.x,0.f,dir.z); DYaw.normalize_safe();
+		Fvector DYaw{};
+		DYaw.set(dir.x, 0.f, dir.z);
+		DYaw.normalize_safe();
         if (DYaw.x<0)	m_HPB.x = acosf(DYaw.z);
    	    else			m_HPB.x = 2*PI-acosf(DYaw.z);
         // parse pitch
@@ -74,7 +80,7 @@ void CUI_Camera::BuildCamera()
 	if (m_HPB.z>PI_MUL_2)  m_HPB.z-=PI_MUL_2;	if (m_HPB.z<-PI_MUL_2) m_HPB.z+=PI_MUL_2;
 
     if (m_Style==cs3DArcBall){
-	    Fvector D;
+		Fvector D{};
     	D.setHP			(m_HPB.x,m_HPB.y);
 		float dist = m_Position.distance_to(m_Target);
 	    m_Position.mul	(D,-dist);
@@ -109,38 +115,65 @@ void CUI_Camera::SetSensitivity(float sm, float sr)
     m_SR = 0.02f*(sr*sr);
 }
 
-static const Fvector down_dir={0.f,-1.f,0.f};
+static const Fvector down_dir = {0.f, -1.f, 0.f};
 
-void CUI_Camera::Update(float dt)
-{
-	if (m_bMoving){
-    	BOOL bLeftDn = m_Shift.Contains(ssLeft);
-    	BOOL bRightDn = m_Shift.Contains(ssRight);
-		if ((m_Style==csFreeFly)&&(bLeftDn||bRightDn)&&!(bLeftDn&&bRightDn)){
-			Fvector vmove;
-	        vmove.set( m_CamMat.k );
-			vmove.mul( m_FlySpeed*dt );
-    		if (bLeftDn) 		m_Position.add( vmove );
-    		else if (bRightDn) 	m_Position.sub( vmove );
+void CUI_Camera::Update(float dt) {
+	if (m_bMoving) {
+		BOOL bLeftDn  = m_Shift.Contains(ssLeft);
+		BOOL bRightDn = m_Shift.Contains(ssRight);
+		if ((m_Style == csFreeFly) && (bLeftDn || bRightDn) && !(bLeftDn && bRightDn)) {
+			Fvector vmove{};
+			vmove.set(m_CamMat.k);
+			vmove.mul(m_FlySpeed * dt);
+			if (bLeftDn)
+				m_Position.add(vmove);
+			else if (bRightDn)
+				m_Position.sub(vmove);
 
-            if (m_Shift.Contains(ssCtrl)){
-                float dist = UI->ZFar();
-            	if (Tools->RayPick(m_Position,down_dir,dist))//UI->R PickGround(pos,m_Position,dir,-1))
-                	m_Position.y = m_Position.y+down_dir.y*dist+m_FlyAltitude;
-                else
-                	m_Position.y = m_FlyAltitude;
-                	
-            }
+			if (m_Shift.Contains(ssCtrl)) {
+				float dist = UI->ZFar();
+				if (Tools->RayPick(m_Position, down_dir, dist))
+					m_Position.y = m_Position.y + down_dir.y * dist + m_FlyAltitude;
+				else
+					m_Position.y = m_FlyAltitude;
+			}
 
-        	UI->RedrawScene();
-	    }
-        BuildCamera();
-    }
+			UI->RedrawScene();
+		}
+		BuildCamera();
+	}
+
+	if (m_undoCamInterpolation) {
+		if (!EPrefs->cam_undo_enabled) {
+			m_undoCamInterpolation = false;
+			Set(m_undoTargetHPB, m_undoTargetPos);
+			BuildCamera();
+			return;
+		}
+
+		m_undoInterpolationTime += dt;
+		float t = m_undoInterpolationTime / EPrefs->cam_undo_duration;
+		if (t >= 1.0f) {
+			t				   = 1.0f;
+			m_undoCamInterpolation = false;
+		}
+
+		Fvector currPos = GetPosition();
+		Fvector currHPB = GetHPB();
+
+		currPos.lerp(currPos, m_undoTargetPos, t);
+		currHPB.lerp(currHPB, m_undoTargetHPB, t);
+
+		Set(currHPB, currPos);
+		BuildCamera();
+
+		UI->RedrawScene();
+	}
 }
 
 void CUI_Camera::Pan(float dx, float dz)
 {
-    Fvector vmove;
+	Fvector vmove{};
     vmove.set( m_CamMat.k );  vmove.y = 0;
     vmove.normalize_safe();
     vmove.mul( dz*-m_SM );
@@ -156,7 +189,7 @@ void CUI_Camera::Pan(float dx, float dz)
 
 void CUI_Camera::Scale(float dy)
 {
-    Fvector vmove;
+	Fvector vmove{};
     vmove.set( 0.f, dy, 0.f );
     vmove.y *= -m_SM;
     m_Position.add( vmove );
@@ -260,7 +293,7 @@ void CUI_Camera::MouseRayFromPoint( Fvector& start, Fvector& direction, const Iv
 
     if (!halfwidth||!halfheight) return;
 
-    Ivector2 point2;
+    Ivector2 point2{};
     point2.set(point.x-halfwidth, halfheight-point.y);
 
 	start.set( m_Position );
@@ -279,7 +312,7 @@ void CUI_Camera::MouseRayFromPoint( Fvector& start, Fvector& direction, const Iv
 
 void CUI_Camera::ZoomExtents(const Fbox& bb)
 {
-	Fvector C,D;
+	Fvector C, D{};
     float R,H1,H2;
     bb.getsphere(C,R);
 	D.mul(m_CamMat.k,-1);
@@ -306,7 +339,7 @@ void CUI_Camera::ArcBall(TShiftState Shift, float dx, float dy)
 	float dist = m_Position.distance_to(m_Target);
 	if (Shift.Contains(ssAlt)){
 		if (Shift.Contains(ssLeft)){
-            Fvector vmove;
+			Fvector vmove{};
             vmove.set( m_CamMat.k );  vmove.y = 0;
             vmove.normalize_safe();
             vmove.mul( dy*-m_SM );
@@ -317,7 +350,7 @@ void CUI_Camera::ArcBall(TShiftState Shift, float dx, float dy)
             vmove.mul( dx*m_SM );
             m_Target.add( vmove );
         }else if(Shift.Contains(ssRight)){
-            Fvector vmove;
+			Fvector vmove{};
             vmove.set( 0.f, dy, 0.f );
             vmove.y *= -m_SM;
             m_Target.add( vmove );
@@ -331,7 +364,7 @@ void CUI_Camera::ArcBall(TShiftState Shift, float dx, float dy)
 	    }
     }
 
-    Fvector D;
+    Fvector D{};
     D.setHP			(m_HPB.x,m_HPB.y);
 
     m_Position.mul	(D,-dist);
@@ -340,4 +373,10 @@ void CUI_Camera::ArcBall(TShiftState Shift, float dx, float dy)
 	BuildCamera		();
 }
 
-
+void CUI_Camera::StartUndoCamInterpolation(const Fvector& targetPos, const Fvector& targetHPB, float duration) {
+	m_undoTargetPos				= targetPos;
+	m_undoTargetHPB				= targetHPB;
+	m_undoInterpolationTime		= 0.0f;
+	m_undoInterpolationDuration = duration;
+	m_undoCamInterpolation		= true;
+}
