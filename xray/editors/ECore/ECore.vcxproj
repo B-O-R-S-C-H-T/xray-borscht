@@ -293,6 +293,7 @@
     <ClInclude Include="Editor\EditMesh.h" />
     <ClInclude Include="Editor\EditObject.h" />
     <ClInclude Include="Editor\EditorPreferences.h" />
+    <ClInclude Include="Editor\editor_clipboard.h" />
     <ClInclude Include="Editor\ELog.h" />
     <ClInclude Include="Editor\engine.h" />
     <ClInclude Include="Editor\EStats.h" />

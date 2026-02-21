@@ -1163,69 +1163,145 @@ bool EScene::LoadSelection( LPCSTR fname )
 	return res;
 }
 //----------------------------------------------------
+void EScene::CollectAddedObjects(std::vector<CCustomObject*>& out) {
+	out.clear();
+	ObjectList current;
+	GetQueryObjects(current, OBJCLASS_DUMMY, 1, 1, 0);
 
-#pragma pack(push,1)
-struct SceneClipData {
-	int m_ClassFilter;
-	char m_FileName[MAX_PATH];
-};
-#pragma pack(pop)
+	out.reserve(current.size());
+	for (auto* obj : current)
+		out.push_back(obj);
+}
 
-void EScene::CopySelection( ObjClassID classfilter )
-{
-	HGLOBAL hmem = GlobalAlloc(GMEM_MOVEABLE|GMEM_DDESHARE, sizeof(SceneClipData) );
-	SceneClipData *sceneclipdata = (SceneClipData *)GlobalLock(hmem);
+void EScene::SaveSelectionToStream(ObjClassID classfilter, IWriter& F) {
+	F.open_chunk(CHUNK_VERSION);
+	F.w_u32(CURRENT_FILE_VERSION);
+	F.close_chunk();
 
-	sceneclipdata->m_ClassFilter = classfilter;
-	GetTempFileName( FS.get_path(_temp_)->m_Path, "clip", 0, sceneclipdata->m_FileName );
-	SaveSelection( classfilter, sceneclipdata->m_FileName );
+	m_SaveCache.clear();
 
-	GlobalUnlock( hmem );
-
-	int clipformat = RegisterClipboardFormat( "CF_XRAY_CLASS_LIST" );
-	if( OpenClipboard( 0 ) ){
-		SetClipboardData( clipformat, hmem );
-		CloseClipboard();
+	if (OBJCLASS_DUMMY == classfilter) {
+		SceneToolsMapPairIt _I = m_SceneTools.begin();
+		SceneToolsMapPairIt _E = m_SceneTools.end();
+		for (; _I != _E; ++_I)
+			if (_I->second && _I->second->IsNeedSave()) {
+				F.open_chunk(CHUNK_TOOLS_DATA + _I->first);
+				_I->second->SaveSelection(m_SaveCache);
+				F.w(m_SaveCache.pointer(), m_SaveCache.size());
+				m_SaveCache.clear();
+				F.close_chunk();
+			}
 	} else {
-		ELog.DlgMsg( mtError, "Failed to open clipboard" );
-		GlobalFree( hmem );
+		ESceneToolBase* mt = GetTool(classfilter);
+		VERIFY(mt);
+		F.open_chunk(CHUNK_TOOLS_DATA + classfilter);
+		mt->SaveSelection(m_SaveCache);
+		F.w(m_SaveCache.pointer(), m_SaveCache.size());
+		m_SaveCache.clear();
+		F.close_chunk();
 	}
 }
 
-void EScene::PasteSelection() 
-{
-	int clipformat = RegisterClipboardFormat( "CF_XRAY_CLASS_LIST" );
-	if( OpenClipboard( 0 ) ){
+void EScene::LoadSelectionFromStream(IReader& F) {
+	u32 version = 0;
+	R_ASSERT(F.r_chunk(CHUNK_VERSION, &version));
+	if (version != CURRENT_FILE_VERSION) {
+		ELog.DlgMsg(mtError, "! EScene: unsupported selection version");
+		return;
+	}
 
-		HGLOBAL hmem = GetClipboardData(clipformat);
-		if( hmem ){
-			SceneClipData *sceneclipdata = (SceneClipData *)GlobalLock(hmem);
-			LoadSelection( sceneclipdata->m_FileName );
-			GlobalUnlock( hmem );
-		} else {
-			ELog.DlgMsg( mtError, "No data in clipboard" );
+	if (!ReadObjectsStream(F, CHUNK_OBJECT_LIST, std::bind(&EScene::OnLoadSelectionAppendObject, this, std::placeholders::_1), nullptr)) {
+		ELog.DlgMsg(mtError, "! EScene: failed to load selection from memory");
+	}
+
+	SceneToolsMapPairIt _I = m_SceneTools.begin();
+	SceneToolsMapPairIt _E = m_SceneTools.end();
+	for (; _I != _E; _I++)
+		if (_I->second && _I->second->IsEnabled() && _I->second->IsEditable()) {
+			IReader* chunk = F.open_chunk(CHUNK_TOOLS_DATA + _I->first);
+			if (chunk) {
+				_I->second->LoadSelection(*chunk);
+				chunk->close();
+			}
 		}
 
-		CloseClipboard();
+	SynchronizeObjects();
+}
 
-	} else {
-		ELog.DlgMsg( mtError, "Failed to open clipboard" );
+void EScene::CopySelection(ObjClassID classfilter) {
+	int selCount = SelectionCount(true, classfilter);
+	if (selCount == 0) {
+		ELog.Msg(mtInformation, "Nothing selected to copy!");
+		return;
+	}
+
+	m_clipboard.Copy(classfilter, this);
+}
+
+void EScene::PasteSelection() {
+	if (!m_clipboard.HasData()) {
+		ELog.Msg(mtInformation, "Clipboard is empty, nothing to paste!");
+		return;
+	}
+
+	m_clipboard.Paste(this);
+
+	std::vector<CCustomObject*> added;
+	CollectAddedObjects(added);
+
+	if (!added.empty()) {
+		auto cmd = std::make_unique<PasteCommand>(std::move(added));
+		PushCommand(std::move(cmd));
 	}
 }
 
-void EScene::CutSelection( ObjClassID classfilter )
-{
-	CopySelection( classfilter );
-	RemoveSelection( classfilter );
+void EScene::CutSelection(ObjClassID classfilter) {
+	if (SelectionCount(true, classfilter) == 0)
+		return;
+
+	std::vector<CCustomObject*> removed;
+	ObjectList					sel_list;
+	GetQueryObjects(sel_list, classfilter, 1, -1, -1);
+	for (auto* obj : sel_list)
+		removed.push_back(obj);
+
+	if (removed.empty())
+		return;
+
+	m_clipboard.Copy(classfilter, this);
+
+	auto cmd = std::make_unique<CutCommand>(std::move(removed));
+
+	cmd->Redo();
+	PushCommand(std::move(cmd));
 }
 
-void EScene::DuplicateSelection( ObjClassID classfilter )
-{
-	string_path fn;
-	GetTempFileName( FS.get_path(_temp_)->m_Path, "clip", 0, fn );
-	SaveSelection( classfilter, fn );
-	LoadSelection( fn );
-	unlink( fn );
+void EScene::DuplicateSelection(ObjClassID classfilter) {
+	int selCount = SelectionCount(true, classfilter);
+	if (selCount == 0) {
+		ELog.Msg(mtInformation, "Nothing selected to duplicate!");
+		return;
+	}
+
+	std::vector<CCustomObject*> originals;
+	ObjectList					sel_list;
+	GetQueryObjects(sel_list, classfilter, 1, -1, -1);
+	for (auto* obj : sel_list)
+		originals.push_back(obj);
+
+	m_clipboard.Duplicate(classfilter, this);
+
+	std::vector<CCustomObject*> added;
+	CollectAddedObjects(added);
+
+	if (!added.empty()) {
+		for (auto* orig : originals)
+			if (orig)
+				orig->Select(false);
+
+		auto cmd = std::make_unique<PasteCommand>(std::move(added));
+		PushCommand(std::move(cmd));
+	}
 }
 //----------------------------------------------------
 

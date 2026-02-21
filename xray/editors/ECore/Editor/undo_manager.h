@@ -92,3 +92,27 @@ private:
 	Fvector						m_newCamPos;
 	Fvector						m_newCamHPB;
 };
+
+class PasteCommand : public ICommand {
+public:
+	explicit PasteCommand(std::vector<CCustomObject*> added);
+	void Undo() override;
+	void Redo() override;
+	~PasteCommand() override;
+
+private:
+	std::vector<CCustomObject*> m_added;
+	bool						m_undone = false;
+};
+
+class CutCommand : public ICommand {
+public:
+	explicit CutCommand(std::vector<CCustomObject*> removed);
+	void Undo() override;
+	void Redo() override;
+	~CutCommand() override;
+
+private:
+	std::vector<CCustomObject*> m_removed;
+	bool						m_cut = false;
+};

@@ -689,6 +689,9 @@
     <ClCompile Include="Edit\undo_manager.cpp">
       <Filter>Undo Manager</Filter>
     </ClCompile>
+    <ClCompile Include="Edit\editor_clipboard.cpp">
+      <Filter>Undo Manager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LevelEditor.rc">

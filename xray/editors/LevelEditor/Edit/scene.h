@@ -16,6 +16,7 @@
 #include "../ECore/Editor/pick_defs.h"
 #include <functional>
 #include <editors/ECore/Editor/undo_manager.h>
+#include <editors/ECore/Editor/editor_clipboard.h>
 
 //refs
 struct FSChunkDef;
@@ -53,8 +54,9 @@ struct st_LevelOptions {
 };
 
 class EScene {
-	CMemoryWriter 	m_SaveCache;
-	UndoManager	  m_undoManager;
+	CMemoryWriter	m_SaveCache;
+	UndoManager		m_undoManager;
+	EditorClipboard m_clipboard;
 
 public:
 	typedef	FixedMAP<float,CCustomObject*>	mapObject_D;
@@ -214,10 +216,12 @@ public:
 	void			InvertSelection     (ObjClassID classfilter);
 	int 			SelectionCount      (bool testflag, ObjClassID classfilter);
 	void			RemoveSelection     (ObjClassID classfilter);
-	void 			CutSelection        (ObjClassID classfilter);
-	void			CopySelection       (ObjClassID classfilter);
-	void			PasteSelection      ();
-	void			DuplicateSelection	(ObjClassID classfilter);
+	void 			CutSelection			(ObjClassID classfilter);
+	void			SaveSelectionToStream	(ObjClassID classfilter, IWriter& F);
+	void			LoadSelectionFromStream	(IReader& F);
+	void			CopySelection			(ObjClassID classfilter);
+	void			PasteSelection			();
+	void			DuplicateSelection		(ObjClassID classfilter);
 
 	void 			SelectLightsForObject(CCustomObject* obj);
 
@@ -289,6 +293,9 @@ public:
 
 private:
 	xr_map<xr_string, int>					m_CountByName;
+
+private:
+	void CollectAddedObjects(std::vector<CCustomObject*>& out);
 };
 
 //----------------------------------------------------

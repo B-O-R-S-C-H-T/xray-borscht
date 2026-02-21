@@ -276,6 +276,7 @@
     <ClCompile Include="Edit\CustomObject.cpp" />
     <ClCompile Include="Edit\CustomObjectAnimation.cpp" />
     <ClCompile Include="Edit\CustomObjectLE.cpp" />
+    <ClCompile Include="Edit\editor_clipboard.cpp" />
     <ClCompile Include="Edit\ELight.cpp" />
     <ClCompile Include="Edit\ELight_IO.cpp" />
     <ClCompile Include="Edit\ELight_props.cpp" />

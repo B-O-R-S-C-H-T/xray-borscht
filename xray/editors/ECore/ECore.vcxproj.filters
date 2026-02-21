@@ -525,6 +525,9 @@
     <ClInclude Include="Editor\EditorPreferences.h">
       <Filter>Editor\Preferences</Filter>
     </ClInclude>
+    <ClInclude Include="Editor\editor_clipboard.h">
+      <Filter>Undo Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
