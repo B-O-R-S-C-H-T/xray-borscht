@@ -1,7 +1,9 @@
 #include "stdafx.h"
 
-#include "..\ECore\Editor\undo_manager.h"
+#include <editors/ECore/Editor/undo_manager.h>
+
 #include "scene.h"
+#include "SceneObject.h"
 
 void UndoManager::Push(std::unique_ptr<ICommand> cmd) {
 	m_undoStack.push_back(std::move(cmd));
@@ -27,6 +29,12 @@ void UndoManager::Redo() {
 }
 
 void UndoManager::Clear() {
+	for (auto& cmd : m_undoStack)
+		if (cmd)
+			cmd->ReleaseResources();
+	for (auto& cmd : m_redoStack)
+		if (cmd)
+			cmd->ReleaseResources();
 	m_undoStack.clear();
 	m_redoStack.clear();
 }
@@ -204,4 +212,44 @@ CutCommand::~CutCommand() {
 			xr_delete(obj);
 		}
 	}
+}
+
+AddObjectCommand::AddObjectCommand(CCustomObject* obj) : m_object(obj) {}
+
+void AddObjectCommand::Undo() {
+	if (m_object)
+		Scene->RemoveObject(m_object, false, false);
+}
+
+void AddObjectCommand::Redo() {
+	if (m_object) {
+		Scene->AppendObject(m_object, false);
+		m_object->Select(true);
+	}
+}
+
+RemoveObjectsCommand::RemoveObjectsCommand(std::vector<CCustomObject*> objects) : m_objects(std::move(objects)) {}
+
+void RemoveObjectsCommand::Undo() {
+	for (auto obj : m_objects) {
+		if (obj) {
+			Scene->AppendObject(obj, false);
+			obj->Select(true);
+		}
+	}
+}
+
+void RemoveObjectsCommand::Redo() {
+	for (auto obj : m_objects) {
+		if (obj)
+			Scene->RemoveObject(obj, false, false);
+	}
+}
+
+void RemoveObjectsCommand::ReleaseResources() {
+	for (auto obj : m_objects) {
+		if (obj)
+			xr_delete(obj);
+	}
+	m_objects.clear();
 }

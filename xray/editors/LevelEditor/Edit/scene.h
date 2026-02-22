@@ -182,8 +182,8 @@ public:
 	void 			Render              (const Fmatrix& camera);
 	void 			OnFrame				(float dT);
 
-	virtual void 	AppendObject		(CCustomObject* object, bool bExecUnd= true);
-	virtual bool 	RemoveObject		(CCustomObject* object, bool bExecUndo, bool bDeleting);
+	virtual void	AppendObject		(CCustomObject* object, bool bExecUndo = true);
+	virtual bool	RemoveObject		(CCustomObject* object, bool bExecUndo, bool bDeleting);
     void			BeforeObjectChange	(CCustomObject* object);
     bool 			ContainsObject		(CCustomObject* object, ObjClassID classfilter);
 

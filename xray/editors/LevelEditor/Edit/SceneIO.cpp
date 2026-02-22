@@ -1256,8 +1256,10 @@ void EScene::PasteSelection() {
 }
 
 void EScene::CutSelection(ObjClassID classfilter) {
-	if (SelectionCount(true, classfilter) == 0)
+	if (SelectionCount(true, classfilter) == 0) {
+		ELog.Msg(mtInformation, "Nothing selected to cut!");
 		return;
+	}
 
 	std::vector<CCustomObject*> removed;
 	ObjectList					sel_list;

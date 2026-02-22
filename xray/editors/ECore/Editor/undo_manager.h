@@ -11,6 +11,7 @@ public:
 	virtual ~ICommand() = default;
 	virtual void Undo() = 0;
 	virtual void Redo() = 0;
+	virtual void ReleaseResources() {}
 };
 
 class UndoManager {
@@ -37,6 +38,7 @@ public:
 
 	void Undo() override;
 	void Redo() override;
+	void ReleaseResources() override {}
 
 private:
 	std::vector<CCustomObject*> m_objects;
@@ -59,6 +61,7 @@ public:
 
 	void Undo() override;
 	void Redo() override;
+	void ReleaseResources() override {}
 
 private:
 	std::vector<CCustomObject*> m_objects;
@@ -81,6 +84,7 @@ public:
 
 	void Undo() override;
 	void Redo() override;
+	void ReleaseResources() override {}
 
 private:
 	std::vector<CCustomObject*> m_objects;
@@ -98,6 +102,7 @@ public:
 	explicit PasteCommand(std::vector<CCustomObject*> added);
 	void Undo() override;
 	void Redo() override;
+	void ReleaseResources() override {}
 	~PasteCommand() override;
 
 private:
@@ -110,9 +115,31 @@ public:
 	explicit CutCommand(std::vector<CCustomObject*> removed);
 	void Undo() override;
 	void Redo() override;
+	void ReleaseResources() override {}
 	~CutCommand() override;
 
 private:
 	std::vector<CCustomObject*> m_removed;
 	bool						m_cut = false;
+};
+
+class AddObjectCommand : public ICommand {
+	CCustomObject* m_object;
+
+public:
+	explicit AddObjectCommand(CCustomObject* obj);
+	void Undo() override;
+	void Redo() override;
+	void ReleaseResources() override {}
+};
+
+class RemoveObjectsCommand : public ICommand {
+	std::vector<CCustomObject*> m_objects;
+
+public:
+	explicit RemoveObjectsCommand(std::vector<CCustomObject*> objects);
+	void Undo() override;
+	void Redo() override;
+	void ReleaseResources() override;
+	~RemoveObjectsCommand() override = default;
 };

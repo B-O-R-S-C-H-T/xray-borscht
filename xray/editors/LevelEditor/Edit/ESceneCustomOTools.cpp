@@ -75,11 +75,10 @@ void ESceneCustomOTool::OnFrame()
     bool need_undo = remove_objects.size();
     while (!remove_objects.empty()){
     	CCustomObject* O	= remove_objects.back();
-        Scene->RemoveObject	(O,false,true);
+        Scene->RemoveObject(O,false,false);
         xr_delete			(O);
         remove_objects.pop_back();
     }
-    if (need_undo) Scene->UndoSave();
 }
 //----------------------------------------------------
 
@@ -150,30 +149,30 @@ void ESceneCustomOTool::SelectObjects(bool flag)
     UI->RedrawScene		();
 }
 
-void ESceneCustomOTool::RemoveSelection()
-{
-    ObjectIt _F = m_Objects.begin();
-    while(_F!=m_Objects.end())
-    {
-        if((*_F)->Selected() && !(*_F)->Locked() && !(*_F)->m_CO_Flags.test(CCustomObject::flObjectInGroup))
-        {
-            if ((*_F)->OnSelectionRemove())
-            {
-                ObjectIt _D = _F; _F++;
-                CCustomObject* obj 	= *_D; 
-                Scene->RemoveObject	(obj,false,true);
-                xr_delete			(obj);
-            }else{
-                _F++;
-            }
-        }else{
-            if((*_F)->Selected() && (*_F)->Locked() && !(*_F)->m_CO_Flags.test(CCustomObject::flObjectInGroup))
-                ELog.Msg(mtError, "Cannot delete locked object '%s'", (*_F)->GetName());
-            	      
-            _F++;
-        }
-    }
-	UI->RedrawScene		();
+void ESceneCustomOTool::RemoveSelection() {
+	std::vector<CCustomObject*> to_remove;
+	ObjectIt _F = m_Objects.begin();
+	while (_F != m_Objects.end()) {
+		if ((*_F)->Selected() && !(*_F)->Locked() && !(*_F)->m_CO_Flags.test(CCustomObject::flObjectInGroup)) {
+			if ((*_F)->OnSelectionRemove()) {
+				ObjectIt _D = _F;
+				_F++;
+				Scene->RemoveObject(*_D, false, false);
+				to_remove.push_back(*_D);
+			} else {
+				_F++;
+			}
+		} else {
+			if ((*_F)->Selected() && (*_F)->Locked() && !(*_F)->m_CO_Flags.test(CCustomObject::flObjectInGroup))
+				ELog.Msg(mtError, "Cannot delete locked object '%s'", (*_F)->GetName());
+			_F++;
+		}
+	}
+	if (!to_remove.empty()) {
+		auto cmd = std::make_unique<RemoveObjectsCommand>(to_remove);
+		Scene->PushCommand(std::move(cmd));
+	}
+	UI->RedrawScene();
 }
 
 void ESceneCustomOTool::InvertSelection()

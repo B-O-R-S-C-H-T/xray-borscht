@@ -1,4 +1,4 @@
-//---------------------------------------------------------------------------
+ï»¿//---------------------------------------------------------------------------
 #include "stdafx.h"
 #pragma hdrstop
 
@@ -752,14 +752,13 @@ CCommandVar CommandDeselectAll(CCommandVar p1, CCommandVar p2)
 
 CCommandVar CommandDeleteSelection(CCommandVar p1, CCommandVar p2)
 {
-    if( !Scene->locked() ){
-        Scene->RemoveSelection	( LTools->CurrentClassID() );
-        Scene->UndoSave			();
-        return					TRUE;
-    } else {
-        ELog.DlgMsg( mtError, "Scene sharing violation" );
-	    return 					FALSE;
-    }
+	if (!Scene->locked()) {
+		Scene->RemoveSelection(LTools->CurrentClassID());
+		return TRUE;
+	} else {
+		ELog.DlgMsg(mtError, "Scene sharing violation");
+	}
+	return FALSE;
 }
 
 CCommandVar CommandHideUnsel(CCommandVar p1, CCommandVar p2)
@@ -1193,7 +1192,7 @@ void CLevelMain::RealUpdateScene()
 	inherited::RealUpdateScene	();
 	if (GetEState()==esEditScene){
 	    Scene->OnObjectsUpdate	();
-    	LTools->OnObjectsUpdate	(); // îáíîâèòü âñå ÷òî êàê-òî ñâÿçàíî ñ îáúåêòàìè
+    	LTools->OnObjectsUpdate	(); // Ğ¾Ğ±Ğ½Ğ¾Ğ²Ğ¸Ñ‚ÑŒ Ğ²ÑĞµ Ñ‡Ñ‚Ğ¾ ĞºĞ°Ğº-Ñ‚Ğ¾ ÑĞ²ÑĞ·Ğ°Ğ½Ğ¾ Ñ Ğ¾Ğ±ÑŠĞµĞºÑ‚Ğ°Ğ¼Ğ¸
 	    RedrawScene				();
     }
 }
@@ -1265,7 +1264,7 @@ void CLevelMain::OutCameraPos()
         const Fvector& c 	= Device.m_Camera.GetPosition();
         sprintf(s, "C: %3.1f, %3.1f, %3.1f",c.x,c.y,c.z);
     //	const Fvector& hpb 	= Device.m_Camera.GetHPB();
-    //	s.sprintf(" Cam: %3.1f°, %3.1f°, %3.1f°",rad2deg(hpb.y),rad2deg(hpb.x),rad2deg(hpb.z));
+    //	s.sprintf(" Cam: %3.1fÂ°, %3.1fÂ°, %3.1fÂ°",rad2deg(hpb.y),rad2deg(hpb.x),rad2deg(hpb.z));
 #ifndef NO_VCL
         fraBottomBar->paCamera->Caption=s; fraBottomBar->paCamera->Repaint();
 #endif
