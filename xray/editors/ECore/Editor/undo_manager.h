@@ -1,3 +1,9 @@
+///////////////////////////////////////////////////////////////////////////////
+// undo_manager.h
+// Командно-ориентированная система отмены/повтора действий
+// (C) 2026 Проект Б.О.Р.Ж.Т.Ч. (xray-engine.org)
+///////////////////////////////////////////////////////////////////////////////
+
 #pragma once
 
 #include <deque>
@@ -102,35 +108,44 @@ public:
 	explicit PasteCommand(std::vector<CCustomObject*> added);
 	void Undo() override;
 	void Redo() override;
-	void ReleaseResources() override {}
 	~PasteCommand() override;
 
 private:
 	std::vector<CCustomObject*> m_added;
-	bool						m_undone = false;
+};
+
+class DuplicateCommand : public ICommand {
+public:
+	explicit DuplicateCommand(std::vector<CCustomObject*> added);
+	void Undo() override;
+	void Redo() override;
+	~DuplicateCommand() override;
+
+private:
+	std::vector<CCustomObject*> m_added;
 };
 
 class CutCommand : public ICommand {
 public:
-	explicit CutCommand(std::vector<CCustomObject*> removed);
+	explicit CutCommand(std::vector<CCustomObject*> objects);
 	void Undo() override;
 	void Redo() override;
-	void ReleaseResources() override {}
 	~CutCommand() override;
 
 private:
-	std::vector<CCustomObject*> m_removed;
+	std::vector<CCustomObject*> m_objects;
 	bool						m_cut = false;
 };
 
 class AddObjectCommand : public ICommand {
-	CCustomObject* m_object;
-
 public:
 	explicit AddObjectCommand(CCustomObject* obj);
 	void Undo() override;
 	void Redo() override;
-	void ReleaseResources() override {}
+	~AddObjectCommand() override;
+
+private:
+	CCustomObject* m_object;
 };
 
 class RemoveObjectsCommand : public ICommand {
@@ -142,4 +157,45 @@ public:
 	void Redo() override;
 	void ReleaseResources() override;
 	~RemoveObjectsCommand() override = default;
+};
+
+class RenameCommand : public ICommand {
+public:
+	RenameCommand(std::vector<CCustomObject*> objects, std::vector<xr_string> oldNames, std::vector<xr_string> newNames);
+	void Undo() override;
+	void Redo() override;
+	void ReleaseResources() override {}
+
+private:
+	std::vector<CCustomObject*> m_objects;
+	std::vector<xr_string>		m_oldNames;
+	std::vector<xr_string>		m_newNames;
+};
+
+using AddFromSelectionCommand = PasteCommand;
+
+class HideCommand : public ICommand {
+public:
+	HideCommand(std::vector<xr_string> names, std::vector<bool> oldVisibility, std::vector<bool> newVisibility);
+	void Undo() override;
+	void Redo() override;
+	void ReleaseResources() override {}
+
+private:
+	std::vector<xr_string> m_names;
+	std::vector<bool>	   m_oldVisibility;
+	std::vector<bool>	   m_newVisibility;
+};
+
+class LockCommand : public ICommand {
+public:
+	LockCommand(std::vector<xr_string> names, std::vector<bool> oldLocks, std::vector<bool> newLocks);
+	void Undo() override;
+	void Redo() override;
+	void ReleaseResources() override {}
+
+private:
+	std::vector<xr_string> m_names;
+	std::vector<bool>	   m_oldLocks;
+	std::vector<bool>	   m_newLocks;
 };

@@ -232,6 +232,7 @@ void EScene::Unload		(BOOL bEditableOnly)
 
 void EScene::Clear(BOOL bEditableToolsOnly)
 {
+	UndoClear();
 	// clear snap
     ClearSnapList			(false);
 	// clear scene tools
@@ -243,7 +244,7 @@ void EScene::Clear(BOOL bEditableToolsOnly)
 	        	t_it->second->Clear();
             }
         }
-        
+
     Tools->ClearDebugDraw	();
 
     m_RTFlags.set			(flRT_Unsaved|flRT_Modified,FALSE);

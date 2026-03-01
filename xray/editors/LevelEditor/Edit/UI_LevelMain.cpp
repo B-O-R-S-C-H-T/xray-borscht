@@ -1,5 +1,4 @@
-﻿//---------------------------------------------------------------------------
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #pragma hdrstop
 
 #include "UI_LevelMain.h"
@@ -40,6 +39,9 @@
 #include "StatusBar.h"
 #include "ImGui/IM_ContextMenu.h"
 
+#include "SpawnPoint.h"
+#include "AppendObjectInfoForm.h"
+
 #ifdef _LEVEL_EDITOR
 //.    if (m_Cursor->GetVisible()) RedrawScene();
 #endif
@@ -60,8 +62,6 @@ CLevelMain::~CLevelMain()
     TClipMaker::DestroyForm(g_clip_maker);
 #endif
 }
-
-
 
 //------------------------------------------------------------------------------
 // Tools commands
@@ -101,6 +101,7 @@ CCommandVar CommandLibraryEditor(CCommandVar p1, CCommandVar p2)
     }
     return TRUE;
 }
+
 CCommandVar CommandLAnimEditor(CCommandVar p1, CCommandVar p2)
 {
 #ifndef NO_VCL
@@ -108,6 +109,7 @@ CCommandVar CommandLAnimEditor(CCommandVar p1, CCommandVar p2)
 #endif
     return TRUE;
 }
+
 CCommandVar CommandFileMenu(CCommandVar p1, CCommandVar p2)
 {
 #ifndef NO_VCL
@@ -115,6 +117,7 @@ CCommandVar CommandFileMenu(CCommandVar p1, CCommandVar p2)
 #endif
     return TRUE;
 }
+
 CCommandVar CLevelTool::CommandEnableTarget(CCommandVar p1, CCommandVar p2)
 {
 	ESceneToolBase* M 	= Scene->GetTool(p1);
@@ -182,6 +185,7 @@ CCommandVar CLevelTool::CommandReadonlyTarget(CCommandVar p1, CCommandVar p2)
     }
     return res;
 }
+
 CCommandVar CLevelTool::CommandMultiRenameObjects(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() )
@@ -192,9 +196,8 @@ CCommandVar CLevelTool::CommandMultiRenameObjects(CCommandVar p1, CCommandVar p2
             if (cnt)
             {
 			    ExecCommand	(COMMAND_UPDATE_PROPERTIES);
-            	Scene->UndoSave();
             }
-	        ELog.DlgMsg		( mtInformation, "%d - objects are renamed.", cnt );
+	        ELog.DlgMsg		( mtInformation, "Multirename: %d objects are renamed.", cnt );
         }
     }else
     {
@@ -202,6 +205,7 @@ CCommandVar CLevelTool::CommandMultiRenameObjects(CCommandVar p1, CCommandVar p2
     }
     return 					FALSE;
 }
+
 CCommandVar CommandLoadLevelPart(CCommandVar p1, CCommandVar p2)
 {
     xr_string temp_fn	= LTools->m_LastFileName.c_str();
@@ -216,6 +220,7 @@ CCommandVar CommandUnloadLevelPart(CCommandVar p1, CCommandVar p2)
         return			Scene->UnloadLevelPart(temp_fn.c_str(),p1,p2);
     return				TRUE;
 }
+
 CCommandVar CommandLoad(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() )
@@ -257,10 +262,8 @@ CCommandVar CommandLoad(CCommandVar p1, CCommandVar p2)
                 BOOL bk1 			= Scene->m_RTFlags.test(EScene::flRT_Unsaved);
                 BOOL bk2 			= Scene->m_RTFlags.test(EScene::flRT_Modified);
 
-                Scene->UndoSave		();
-
-                 Scene->m_RTFlags.set(EScene::flRT_Unsaved,bk1);
-                 Scene->m_RTFlags.set(EScene::flRT_Modified,bk2);
+                Scene->m_RTFlags.set(EScene::flRT_Unsaved,bk1);
+                Scene->m_RTFlags.set(EScene::flRT_Modified,bk2);
 
 				ExecCommand			(COMMAND_CLEAN_LIBRARY);
                 ExecCommand			(COMMAND_UPDATE_CAPTION);
@@ -281,6 +284,7 @@ CCommandVar CommandLoad(CCommandVar p1, CCommandVar p2)
     }
     return TRUE;
 }
+
 CCommandVar CommandSaveBackup(CCommandVar p1, CCommandVar p2)
 {
     string_path 	fn;
@@ -288,6 +292,7 @@ CCommandVar CommandSaveBackup(CCommandVar p1, CCommandVar p2)
     FS.update_path	(fn,_maps_,fn);
     return 			ExecCommand(COMMAND_SAVE,xr_string(fn));
 }
+
 CCommandVar CommandSave(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() )
@@ -349,7 +354,6 @@ CCommandVar CommandClear(CCommandVar p1, CCommandVar p2)
         ExecCommand				(COMMAND_CHANGE_TARGET,OBJCLASS_SCENEOBJECT);
         ExecCommand				(COMMAND_CHANGE_ACTION,etaSelect,estDefault);
 	    ExecCommand				(COMMAND_UPDATE_PROPERTIES);
-        Scene->UndoSave			();
         return 					TRUE;
     } else {
         ELog.DlgMsg( mtError, "Scene sharing violation" );
@@ -369,7 +373,7 @@ CCommandVar CommandClearDebugDraw(CCommandVar p1, CCommandVar p2)
     UI->RedrawScene				();
     return 						TRUE;
 }
-#include "SpawnPoint.h"
+
 CCommandVar CommandShowClipEditor(CCommandVar p1, CCommandVar p2)
 {
 #ifndef NO_VCL
@@ -416,6 +420,7 @@ CCommandVar CommandImportCompilerError(CCommandVar p1, CCommandVar p2)
     UI->RedrawScene		();
     return TRUE;
 }
+
 CCommandVar CommandExportCompilerError(CCommandVar p1, CCommandVar p2)
 {
     xr_string fn;
@@ -424,6 +429,7 @@ CCommandVar CommandExportCompilerError(CCommandVar p1, CCommandVar p2)
     }
     return TRUE;
 }
+
 CCommandVar CommandValidateScene(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() ){
@@ -434,6 +440,7 @@ CCommandVar CommandValidateScene(CCommandVar p1, CCommandVar p2)
 	    return 			FALSE;
     }
 }
+
 CCommandVar CommandCleanLibrary(CCommandVar p1, CCommandVar p2)
 {
     if ( !Scene->locked() ){
@@ -463,13 +470,13 @@ CCommandVar CommandCut(CCommandVar p1, CCommandVar p2)
         fraLeftBar->miPaste->Enabled = true;
         fraLeftBar->miPaste2->Enabled = true;
 #endif
-        Scene->UndoSave	();
         return 			TRUE;
     } else {
         ELog.DlgMsg( mtError, "Scene sharing violation" );
         return 			FALSE;
     }
 }
+
 CCommandVar CommandCopy(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() ){
@@ -489,7 +496,6 @@ CCommandVar CommandPaste(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() ){
         Scene->PasteSelection();
-        Scene->UndoSave	();
         return 			TRUE;
     } else {
         ELog.DlgMsg		( mtError, "Scene sharing violation" );
@@ -501,7 +507,6 @@ CCommandVar CommandDuplicate(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() ){
 		Scene->DuplicateSelection(LTools->CurrentClassID());
-        Scene->UndoSave	();
         return 			TRUE;
     } else {
         ELog.DlgMsg		( mtError, "Scene sharing violation" );
@@ -509,7 +514,6 @@ CCommandVar CommandDuplicate(CCommandVar p1, CCommandVar p2)
 	}
 }
 
-#include "AppendObjectInfoForm.h"
 CCommandVar CommandLoadSelection(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() )
@@ -527,17 +531,17 @@ CCommandVar CommandLoadSelection(CCommandVar p1, CCommandVar p2)
             g_frmConflictLoadObject->m_result = 4; //auto-rename
 
             UI->ResetStatus		();
-            Scene->UndoSave		();
             ExecCommand			(COMMAND_CHANGE_ACTION,etaSelect);
             ExecCommand			(COMMAND_UPDATE_PROPERTIES);
             UI->RedrawScene		();
 	        return 				TRUE;
-        }               	
+        }
     } else {
         ELog.DlgMsg( mtError, "Scene sharing violation" );
     }
     return 				FALSE;
-}        
+}
+
 CCommandVar CommandSaveSelection(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() ){
@@ -765,71 +769,71 @@ CCommandVar CommandHideUnsel(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() ){
         Scene->ShowObjects		( false, LTools->CurrentClassID(), true, false );
-        Scene->UndoSave			();
-        ExecCommand				(COMMAND_UPDATE_PROPERTIES);
+//        ExecCommand				(COMMAND_UPDATE_PROPERTIES);
 	    return 					TRUE;
     } else {
         ELog.DlgMsg				( mtError, "Scene sharing violation" );
 	    return 					FALSE;
     }
 }
+
 CCommandVar CommandHideSel(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() ){
         Scene->ShowObjects		( bool(p1), LTools->CurrentClassID(), true, true );
-        Scene->UndoSave			();
-        ExecCommand				(COMMAND_UPDATE_PROPERTIES);
+//        ExecCommand				(COMMAND_UPDATE_PROPERTIES);
 	    return 					TRUE;
     } else {
         ELog.DlgMsg				( mtError, "Scene sharing violation" );
 	    return 					FALSE;
     }
 }
+
 CCommandVar CommandHideAll(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() ){
         Scene->ShowObjects		( bool(p1), LTools->CurrentClassID(), false );
-        Scene->UndoSave			();
-        ExecCommand				(COMMAND_UPDATE_PROPERTIES);
+//        ExecCommand				(COMMAND_UPDATE_PROPERTIES);
 	    return 					TRUE;
     }else{
         ELog.DlgMsg				( mtError, "Scene sharing violation" );
 	    return 					FALSE;
     }
 }
+
 CCommandVar CommandLockAll(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() ){
         Scene->LockObjects		(bool(p1),LTools->CurrentClassID(),false);
-        Scene->UndoSave			();
 	    return 					TRUE;
     }else{
         ELog.DlgMsg				( mtError, "Scene sharing violation" );
 	    return 					FALSE;
     }
 }
+
 CCommandVar CommandLockSel(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() ){
         Scene->LockObjects		(bool(p1),LTools->CurrentClassID(),true,true);
-        Scene->UndoSave			();
 	    return 					TRUE;
     }else{
         ELog.DlgMsg				( mtError, "Scene sharing violation" );
 	    return 					FALSE;
     }
 }
+
 CCommandVar CommandLockUnsel(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() ){
         Scene->LockObjects		(bool(p1),LTools->CurrentClassID(),true,false);
-        Scene->UndoSave			();
         return					TRUE;
    }else{
         ELog.DlgMsg				( mtError, "Scene sharing violation" );                   
 	    return 					FALSE;
     }
 }
+
 CCommandVar CommandSetSnapObjects(CCommandVar p1, CCommandVar p2)
 {
     if( !Scene->locked() ){

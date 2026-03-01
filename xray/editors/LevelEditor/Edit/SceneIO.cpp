@@ -1146,6 +1146,18 @@ bool EScene::LoadSelection( LPCSTR fname )
             res = false;
         }
 
+		std::vector<CCustomObject*> added;
+		if (!ReadObjectsStream(*F, CHUNK_OBJECT_LIST, std::bind(&EScene::OnLoadSelectionAppendObject, this, std::placeholders::_1), 0)) {
+			ELog.DlgMsg(mtError, "EScene. Failed to load selection.");
+			res = false;
+		} else {
+			CollectAddedObjects(added);
+			if (!added.empty()) {
+				auto cmd = std::make_unique<AddFromSelectionCommand>(std::move(added));
+				PushCommand(std::move(cmd));
+			}
+		}
+
         SceneToolsMapPairIt _I = m_SceneTools.begin();
         SceneToolsMapPairIt _E = m_SceneTools.end();
         for (; _I!=_E; _I++)
@@ -1244,6 +1256,8 @@ void EScene::PasteSelection() {
 		return;
 	}
 
+	SelectObjects(false);
+
 	m_clipboard.Paste(this);
 
 	std::vector<CCustomObject*> added;
@@ -1292,7 +1306,7 @@ void EScene::DuplicateSelection(ObjClassID classfilter) {
 		originals.push_back(obj);
 
 	m_clipboard.Duplicate(classfilter, this);
-
+    //FIXME: глитч
 	std::vector<CCustomObject*> added;
 	CollectAddedObjects(added);
 
@@ -1301,7 +1315,7 @@ void EScene::DuplicateSelection(ObjClassID classfilter) {
 			if (orig)
 				orig->Select(false);
 
-		auto cmd = std::make_unique<PasteCommand>(std::move(added));
+		auto cmd = std::make_unique<DuplicateCommand>(std::move(added));
 		PushCommand(std::move(cmd));
 	}
 }

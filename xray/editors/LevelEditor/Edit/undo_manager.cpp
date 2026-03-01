@@ -1,3 +1,9 @@
+﻿///////////////////////////////////////////////////////////////////////////////
+// undo_manager.cpp
+// Командно-ориентированная система отмены/повтора действий
+// (C) 2026 Проект Б.О.Р.Ж.Т.Ч. (xray-engine.org)
+///////////////////////////////////////////////////////////////////////////////
+
 #include "stdafx.h"
 
 #include <editors/ECore/Editor/undo_manager.h>
@@ -160,44 +166,60 @@ PasteCommand::PasteCommand(std::vector<CCustomObject*> added) : m_added(std::mov
 
 void PasteCommand::Undo() {
 	for (auto obj : m_added) {
-		if (obj) {
-			if (obj->OnSelectionRemove())
-				Scene->RemoveObject(obj, false, false);
+		if (obj && Scene->ContainsObject(obj, obj->ClassID)) {
+			Scene->RemoveObject(obj, false, false);
 		}
 	}
-	m_undone = true;
 }
 
 void PasteCommand::Redo() {
 	for (auto obj : m_added) {
-		if (obj) {
+		if (obj && !obj->IsDeleted() && !Scene->ContainsObject(obj, obj->ClassID)) {
 			Scene->AppendObject(obj, false);
 			obj->Select(true);
 		}
 	}
-	m_undone = false;
 }
 
 PasteCommand::~PasteCommand() {
-	if (m_undone) {
-		for (auto obj : m_added) {
-			xr_delete(obj);
+	m_added.clear();
+}
+
+DuplicateCommand::DuplicateCommand(std::vector<CCustomObject*> added) : m_added(std::move(added)) {}
+
+void DuplicateCommand::Undo() {
+	for (auto obj : m_added) {
+		if (obj && Scene->ContainsObject(obj, obj->ClassID)) {
+			Scene->RemoveObject(obj, false, false);
 		}
 	}
 }
 
-CutCommand::CutCommand(std::vector<CCustomObject*> removed) : m_removed(std::move(removed)) {}
+void DuplicateCommand::Redo() {
+	for (auto obj : m_added) {
+		if (obj && !obj->IsDeleted() && !Scene->ContainsObject(obj, obj->ClassID)) {
+			Scene->AppendObject(obj, false);
+			obj->Select(true);
+		}
+	}
+}
+
+DuplicateCommand::~DuplicateCommand() {
+	m_added.clear();
+}
+
+CutCommand::CutCommand(std::vector<CCustomObject*> objects) : m_objects(std::move(objects)) {}
 
 void CutCommand::Redo() {
-	for (auto obj : m_removed) {
-		if (obj && obj->OnSelectionRemove())
-			Scene->RemoveObject(obj, false, true);
+	for (auto obj : m_objects) {
+		if (obj)
+			Scene->RemoveObject(obj, false, false);
 	}
 	m_cut = true;
 }
 
 void CutCommand::Undo() {
-	for (auto obj : m_removed) {
+	for (auto obj : m_objects) {
 		if (obj) {
 			Scene->AppendObject(obj, false);
 			obj->Select(true);
@@ -208,10 +230,11 @@ void CutCommand::Undo() {
 
 CutCommand::~CutCommand() {
 	if (m_cut) {
-		for (auto obj : m_removed) {
+		for (auto obj : m_objects) {
 			xr_delete(obj);
 		}
 	}
+	m_objects.clear();
 }
 
 AddObjectCommand::AddObjectCommand(CCustomObject* obj) : m_object(obj) {}
@@ -226,6 +249,10 @@ void AddObjectCommand::Redo() {
 		Scene->AppendObject(m_object, false);
 		m_object->Select(true);
 	}
+}
+
+AddObjectCommand::~AddObjectCommand() {
+	m_object = nullptr;
 }
 
 RemoveObjectsCommand::RemoveObjectsCommand(std::vector<CCustomObject*> objects) : m_objects(std::move(objects)) {}
@@ -252,4 +279,76 @@ void RemoveObjectsCommand::ReleaseResources() {
 			xr_delete(obj);
 	}
 	m_objects.clear();
+}
+
+RenameCommand::RenameCommand(std::vector<CCustomObject*> objects, std::vector<xr_string> oldNames, std::vector<xr_string> newNames)
+	: m_objects(std::move(objects)), m_oldNames(std::move(oldNames)), m_newNames(std::move(newNames)) {
+	VERIFY(m_objects.size() == m_oldNames.size());
+	VERIFY(m_objects.size() == m_newNames.size());
+}
+
+void RenameCommand::Undo() {
+	for (size_t i = 0; i < m_objects.size(); ++i) {
+		if (m_objects[i])
+			m_objects[i]->SetName(m_oldNames[i].c_str());
+	}
+}
+
+void RenameCommand::Redo() {
+	for (size_t i = 0; i < m_objects.size(); ++i) {
+		if (m_objects[i])
+			m_objects[i]->SetName(m_newNames[i].c_str());
+	}
+}
+
+HideCommand::HideCommand(std::vector<xr_string> names, std::vector<bool> oldVisibility, std::vector<bool> newVisibility)
+	: m_names(std::move(names)), m_oldVisibility(std::move(oldVisibility)), m_newVisibility(std::move(newVisibility)) {
+	VERIFY(m_names.size() == m_oldVisibility.size());
+	VERIFY(m_names.size() == m_newVisibility.size());
+}
+
+void HideCommand::Undo() {
+	for (size_t i = 0; i < m_names.size(); ++i) {
+		CCustomObject* obj = Scene->FindObjectByName(m_names[i].c_str(), nullptr);
+		if (obj && !obj->IsDeleted()) {
+			obj->m_CO_Flags.set(CCustomObject::flVisible, m_oldVisibility[i]);
+			obj->OnSynchronize();
+		}
+	}
+}
+
+void HideCommand::Redo() {
+	for (size_t i = 0; i < m_names.size(); ++i) {
+		CCustomObject* obj = Scene->FindObjectByName(m_names[i].c_str(), nullptr);
+		if (obj && !obj->IsDeleted()) {
+			obj->m_CO_Flags.set(CCustomObject::flVisible, m_newVisibility[i]);
+			obj->OnSynchronize();
+		}
+	}
+}
+
+LockCommand::LockCommand(std::vector<xr_string> names, std::vector<bool> oldLocks, std::vector<bool> newLocks)
+	: m_names(std::move(names)), m_oldLocks(std::move(oldLocks)), m_newLocks(std::move(newLocks)) {
+	VERIFY(m_names.size() == m_oldLocks.size());
+	VERIFY(m_names.size() == m_newLocks.size());
+}
+
+void LockCommand::Undo() {
+	for (size_t i = 0; i < m_names.size(); ++i) {
+		CCustomObject* obj = Scene->FindObjectByName(m_names[i].c_str(), nullptr);
+		if (obj && !obj->IsDeleted()) {
+			obj->m_CO_Flags.set(CCustomObject::flLocked, m_oldLocks[i]);
+			obj->OnSynchronize();
+		}
+	}
+}
+
+void LockCommand::Redo() {
+	for (size_t i = 0; i < m_names.size(); ++i) {
+		CCustomObject* obj = Scene->FindObjectByName(m_names[i].c_str(), nullptr);
+		if (obj && !obj->IsDeleted()) {
+			obj->m_CO_Flags.set(CCustomObject::flLocked, m_newLocks[i]);
+			obj->OnSynchronize();
+		}
+	}
 }
