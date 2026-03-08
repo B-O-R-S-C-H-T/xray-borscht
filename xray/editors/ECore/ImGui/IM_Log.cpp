@@ -1,108 +1,91 @@
-//---------------------------------------------------------------------------
-
 #include "stdafx.h"
 #pragma hdrstop
 
 #include "IM_Log.h"
 
 #include <imgui.h>
-//---------------------------------------------------------------------------
 
-void IM_Log::Clear()
-{
+void IM_Log::Clear() {
 	msgs.clear();
 }
 
-void IM_Log::ClearSelected()
-{
+void IM_Log::ClearSelected() {
 	xr_list<Message>::iterator it, end;
-    for(it = msgs.begin(), end = msgs.end(); it != end;)
-    {
-    	if(it->selected)
-        {
-        	msgs.erase(it++);
-            continue;
-        }
-
-        it++;
-    }
+	for(it = msgs.begin(), end = msgs.end(); it != end;) {
+		if(it->selected) {
+			msgs.erase(it++);
+			continue;
+		}
+		it++;
+	}
 }
 
-void IM_Log::AddMessage(MessageType mt, const char* text)
-{
+void IM_Log::AddMessage(MessageType mt, const char* text) {
 	msgs.push_back(Message(mt, text));
-    has_new_messages = true;
+	has_new_messages = true;
 }
 
-void IM_Log::Render()
-{
-	if(!show_log)
-    	return;
+void IM_Log::Render() {
+	if (!show_log)
+		return;
 
-	ImGui::SetNextWindowSize(ImVec2(500,150), ImGuiCond_FirstUseEver);
-	if(!ImGui::Begin("Log", &show_log))
-    {
-    	ImGui::End();
-        return;
-    }
+	ImGui::SetNextWindowSize(ImVec2(500, 150), ImGuiCond_FirstUseEver);
 
-    ImGui::BeginChild("log", ImVec2(0, -(ImGui::GetTextLineHeightWithSpacing() + 5)));
+	if (!ImGui::Begin("Log", &show_log, ImGuiWindowFlags_NoScrollbar)) {
+		ImGui::End();
+		return;
+	}
 
-    xr_list<Message>::iterator it, end;
-    int index = 0;
-    for (it = msgs.begin(), end = msgs.end(); it != end; ++it)
-    {
-    	const char* text = it->text.c_str();
-    	u32 color;
+	const float footer_height = ImGui::GetFrameHeightWithSpacing() + 6.0f;
 
-    	switch(it->type)
-    	{
-    		case mtInfo:			color = EPrefs->log_info_color;			break;
-    		case mtError:			color = EPrefs->log_error_color;        break;
-    		case mtConfirmation:	color = EPrefs->log_confirmation_color;	break;
-    		default:				color = EPrefs->log_default_color;
-    	}
+	ImGui::BeginChild("log", ImVec2(0, -footer_height), true);
 
-    	color = subst_alpha(bgr2rgb(color), 0xFF);
-    	ImGui::PushStyleColor(ImGuiCol_Text, color);
+	xr_list<Message>::iterator it, end;
+	int						   index = 0;
+	for (it = msgs.begin(), end = msgs.end(); it != end; ++it) {
+		const char* text = it->text.c_str();
+		u32			color;
+		switch(it->type) {
+			case mtInfo:			color = EPrefs->log_info_color;			break;
+			case mtError:			color = EPrefs->log_error_color;		break;
+			case mtConfirmation:	color = EPrefs->log_confirmation_color;	break;
+			default:				color = EPrefs->log_default_color;
+		}
+		color = subst_alpha(bgr2rgb(color), 0xFF);
 
-        ImGui::PushID(index++);
-        ImGui::Selectable(text, &it->selected);
-        ImGui::PopID();
+		ImGui::PushStyleColor(ImGuiCol_Text, color);
+		ImGui::PushID(index++);
+		ImGui::Selectable(text, &it->selected);
+		ImGui::PopID();
+		ImGui::PopStyleColor(1);
+	}
 
-        ImGui::PopStyleColor(1);
-    }
+	if (has_new_messages) {
+		ImGui::SetScrollHereY(1.0f);
+		has_new_messages = false;
+	}
 
-    if(has_new_messages)
-    {
-    	ImGui::SetScrollY(ImGui::GetTextLineHeightWithSpacing() * msgs.size());
-    	has_new_messages = false;
-    }
+	ImGui::EndChild();
 
-    ImGui::EndChild();
+	if (ImGui::Button("Close##log_close"))
+		Close();
 
-    ImGui::Separator();
+	ImGui::SameLine();
 
-    if(ImGui::Button("Close##log_close"))
-    	Close();
+	if (ImGui::Button("Flush##log_flush"))
+		FlushLog();
 
-    ImGui::SameLine();
+	ImGui::SameLine();
 
-    if(ImGui::Button("Flush##log_flush"))
-    	FlushLog();
+	if (ImGui::Button("Clear##log_clear"))
+		Clear();
 
-    ImGui::SameLine();
-    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10.f);
+	ImGui::SameLine();
 
-    if(ImGui::Button("Clear##log_clear"))
-    	Clear();
+	if (ImGui::Button("Clear selected##log_clear_selected"))
+		ClearSelected();
 
-    ImGui::SameLine();
-
-    if(ImGui::Button("Clear selected##log_clear_selected"))
-    	ClearSelected();
-
-    ImGui::End();
+	ImGui::End();
 }
 
 ECORE_API IM_Log imLog;
