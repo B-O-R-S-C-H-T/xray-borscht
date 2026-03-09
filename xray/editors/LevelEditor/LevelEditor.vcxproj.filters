@@ -93,7 +93,7 @@
     <ClInclude Include="ImGui\IM_FrameWayPoint.h">
       <Filter>ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\IM_LeftBar.h">
+    <ClInclude Include="ImGui\IM_Sidebar.h">
       <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_TopBar.h">
@@ -347,7 +347,7 @@
     <ClCompile Include="ImGui\IM_FrameWayPoint.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\IM_LeftBar.cpp">
+    <ClCompile Include="ImGui\IM_Sidebar.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_TopBar.cpp">

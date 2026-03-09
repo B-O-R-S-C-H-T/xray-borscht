@@ -11,7 +11,7 @@
 #endif
 #include "../ECore/Editor/ui_main.h"
 
-#include "ImGui\IM_LeftBar.h"
+#include "ImGui\IM_Sidebar.h"
 
 using namespace std::placeholders;
 
@@ -27,7 +27,7 @@ bool TUI_ControlPSAdd::AfterAppendCallback(TShiftState Shift, CCustomObject* obj
 #ifndef NO_VCL
     LPCSTR ref_name		= ((TfraPS*)parent_tool->pFrame)->Current();
 #else
-    LPCSTR ref_name = imLeftBar.fraPS.Current();
+	LPCSTR ref_name = imSidebar.fraPS.Current();
 #endif
 
     if (!ref_name){

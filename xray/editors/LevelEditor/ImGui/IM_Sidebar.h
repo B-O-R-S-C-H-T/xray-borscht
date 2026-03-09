@@ -1,5 +1,4 @@
-#ifndef IM_LEFTBAR_H
-#define IM_LEFTBAR_H
+#pragma once
 
 #include "..\ECore\ImGui\IM_Window.h"
 #include "IM_FrameAIMap.h"
@@ -15,7 +14,7 @@
 #include "IM_FrameSpawn.h"
 #include "IM_FrameWayPoint.h"
 
-class IM_LeftBar : public IM_Window {
+class IM_Sidebar : public IM_Window {
 public:
 	IM_FrameObject	 fraObject;
 	IM_FrameLight	 fraLight;
@@ -30,13 +29,13 @@ public:
 	IM_FrameGroup	 fraGroup;
 	IM_FrameAIMap	 fraAIMap;
 
-	bool m_enable_snap_list;
-	bool m_select_snap_objs_mode;
-	bool m_show_snaplist;
-	bool m_detach_tool_frame;
+	bool			 m_enable_snap_list;
+	bool			 m_select_snap_objs_mode;
+	bool			 m_show_snaplist;
+	bool			 m_detach_tool_frame;
 
 public:
-	IM_LeftBar() : m_detach_tool_frame(false) {}
+	IM_Sidebar() : m_detach_tool_frame(false) {}
 
 	virtual void OnAdd();
 	virtual void OnRemove();
@@ -44,6 +43,4 @@ public:
 	void		 RenderToolFrame();
 };
 
-extern IM_LeftBar imLeftBar;
-
-#endif
+extern IM_Sidebar imSidebar;

@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 #pragma hdrstop
-#include "IM_LeftBar.h"
+#include "IM_Sidebar.h"
 
 #include <imgui.h>
 #include <imgui_user.h>
@@ -18,7 +18,7 @@
 extern XRCORE_API u32	 build_id;
 extern XRCORE_API LPCSTR build_date;
 
-void IM_LeftBar::OnAdd() {
+void IM_Sidebar::OnAdd() {
 	fraObject.OnAdd();
 	fraLight.OnAdd();
 	fraFogVol.OnAdd();
@@ -32,14 +32,14 @@ void IM_LeftBar::OnAdd() {
 	fraGroup.OnAdd();
 	fraAIMap.OnAdd();
 
-	IM_Storage s(false, "level.ini", "IM_LeftBar");
+	IM_Storage s(false, "level.ini", "IM_Sidebar");
 	m_enable_snap_list		= s.GetBool("enable_snap_list");
 	m_select_snap_objs_mode = s.GetBool("select_snap_objs_mode");
 	m_detach_tool_frame		= s.GetBool("detach_tool_frame");
 	m_show_snaplist			= s.GetBool("show_snaplist_panel", true);
 }
 
-void IM_LeftBar::OnRemove() {
+void IM_Sidebar::OnRemove() {
 	fraObject.OnRemove();
 	fraLight.OnRemove();
 	fraFogVol.OnRemove();
@@ -53,7 +53,7 @@ void IM_LeftBar::OnRemove() {
 	fraGroup.OnRemove();
 	fraAIMap.OnRemove();
 
-	IM_Storage s(true, "level.ini", "IM_LeftBar");
+	IM_Storage s(true, "level.ini", "IM_Sidebar");
 
 	s.PutBool("enable_snap_list", m_enable_snap_list);
 	s.PutBool("select_snap_objs_mode", m_select_snap_objs_mode);
@@ -61,7 +61,7 @@ void IM_LeftBar::OnRemove() {
 	s.PutBool("show_snaplist_panel", m_show_snaplist);
 }
 
-void IM_LeftBar::Render() {
+void IM_Sidebar::Render() {
 
 	ImGui::Begin("Level Editor", NULL);
 
@@ -80,10 +80,10 @@ void IM_LeftBar::Render() {
 		}
 
 		if (ImGui::Button(combo_preview.c_str(), ImVec2(-1, 0))) {
-			ImGui::OpenPopup("Edit Mode##leftbar_mode_popup");
+			ImGui::OpenPopup("Edit Mode##sidebar_mode_popup");
 		}
 
-		if (ImGui::BeginPopup("Edit Mode##leftbar_mode_popup")) {
+		if (ImGui::BeginPopup("Edit Mode##sidebar_mode_popup")) {
 			ImGui::SetNextWindowSize(ImVec2(320.0f, 0.0f));
 
 			const ImGuiStyle& style			  = ImGui::GetStyle();
@@ -138,7 +138,7 @@ void IM_LeftBar::Render() {
 	}
 
 	if (ImGui::CollapsingPanel("Snap list", &m_show_snaplist)) {
-		if (ImGui::BeginMenu("Commands##snap_commands_leftbar")) {
+		if (ImGui::BeginMenu("Commands##snap_commands_sidebar")) {
 			if (ImGui::MenuItem("Make list from selected##snap_make_list"))
 				ExecCommand(COMMAND_SET_SNAP_OBJECTS);
 			if (ImGui::MenuItem("Select objects from list##snap_select_list"))
@@ -163,7 +163,7 @@ void IM_LeftBar::Render() {
 				m_select_snap_objs_mode = false;
 			}
 		ImGui::NextColumn();
-		if (ImGui::MenuItem("Clear##snap_clear_leftbar"))
+		if (ImGui::MenuItem("Clear##snap_clear_sidebar"))
 			ExecCommand(COMMAND_CLEAR_SNAP_OBJECTS);
 		ImGui::NextColumn();
 		if (ImGui::MenuItem("Edit...##snap_edit"))
@@ -194,7 +194,7 @@ void IM_LeftBar::Render() {
 	ImGui::End();
 }
 
-void IM_LeftBar::RenderToolFrame() {
+void IM_Sidebar::RenderToolFrame() {
 	switch (LTools->CurrentClassID()) {
 		case OBJCLASS_SCENEOBJECT: 	fraObject.Render();   break;
 		case OBJCLASS_LIGHT:        fraLight.Render();    break;
@@ -211,4 +211,4 @@ void IM_LeftBar::RenderToolFrame() {
 	}
 }
 
-IM_LeftBar imLeftBar;
+IM_Sidebar imSidebar;

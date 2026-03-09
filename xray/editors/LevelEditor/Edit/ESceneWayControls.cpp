@@ -11,7 +11,7 @@
 #include "scene.h"
 #include "ui_levelmain.h"
 
-#include "ImGui\IM_LeftBar.h"
+#include "ImGui\IM_Sidebar.h"
 
 void ESceneWayTool::OnActivate()
 {
@@ -23,13 +23,13 @@ void ESceneWayTool::OnActivate()
 #else
 	if(sub_target == estWayModePoint)
     {
-    	imLeftBar.fraWayPoint.m_point_mode = true;
-        imLeftBar.fraWayPoint.m_way_mode = false;
+		imSidebar.fraWayPoint.m_point_mode = true;
+		imSidebar.fraWayPoint.m_way_mode   = false;
     }
     else
     {
-    	imLeftBar.fraWayPoint.m_point_mode = false;
-        imLeftBar.fraWayPoint.m_way_mode = true;
+		imSidebar.fraWayPoint.m_point_mode = false;
+		imSidebar.fraWayPoint.m_way_mode   = true;
     }
 #endif
 }
@@ -65,7 +65,7 @@ bool TUI_ControlWayPointAdd::Start(TShiftState Shift)
 	TfraWayPoint* frame=(TfraWayPoint*)parent_tool->pFrame;
 	bool bAutoLink = frame->ebAutoLink->Down;
 #else
-	bool bAutoLink = imLeftBar.fraWayPoint.m_auto_link;
+	bool bAutoLink = imSidebar.fraWayPoint.m_auto_link;
 #endif
 
     if (1!=lst.size()){

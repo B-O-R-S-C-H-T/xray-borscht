@@ -2,7 +2,7 @@
 #pragma hdrstop
 
 #include "scene.h"
-#include "../ImGui/IM_LeftBar.h"
+#include "../ImGui/IM_Sidebar.h"
 #include "ui_leveltools.h"
 #include "SceneObject.h"
 #include "../ECore/Editor/UI_Main.h"
@@ -14,7 +14,7 @@ ObjectList* EScene::GetSnapList(bool bIgnoreUse)
     ESceneToolBase* mt 		= m_SceneTools[cls];
     if (0==mt)				return 0;
     ObjectList* snap_list	= mt->GetSnapList()?mt->GetSnapList():&m_ESO_SnapObjects;
-    return bIgnoreUse?snap_list:(imLeftBar.m_enable_snap_list?snap_list:NULL);
+	return bIgnoreUse ? snap_list : (imSidebar.m_enable_snap_list ? snap_list : NULL);
 }
 //--------------------------------------------------------------------------------------------------
 

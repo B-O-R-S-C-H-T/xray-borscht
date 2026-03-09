@@ -9,7 +9,7 @@
 #endif
 #include "EShape.h"
 
-#include "ImGui\IM_LeftBar.h"
+#include "ImGui\IM_Sidebar.h"
 
 void ESceneShapeTool::CreateControls()
 {
@@ -92,7 +92,7 @@ void ESceneShapeTool::OnActivate()
 #ifndef NO_VCL
 	((TfraShape*)pFrame)->ebEditLevelBoundMode->Down = false;
 #else
-	imLeftBar.fraShape.m_edit_level_bound = false;
+	imSidebar.fraShape.m_edit_level_bound = false;
 #endif
 }
 
@@ -102,6 +102,6 @@ void ESceneShapeTool::OnDeactivate()
 #ifndef NO_VCL
 	((TfraShape*)pFrame)->ebEditLevelBoundMode->Down = false;
 #else
-	imLeftBar.fraShape.m_edit_level_bound = false;
+	imSidebar.fraShape.m_edit_level_bound = false;
 #endif
 }

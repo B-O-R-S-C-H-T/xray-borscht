@@ -12,12 +12,8 @@
 #include "leftbar.h"
 #endif
 #include "ui_levelmain.h"
+#include "ImGui\IM_Sidebar.h"
 
-#include "ImGui\IM_LeftBar.h"
-
-//------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
 TUI_ControlObjectAdd::TUI_ControlObjectAdd(int st, int act, ESceneToolBase* parent):TUI_CustomControl(st,act,parent)
 {
 }
@@ -30,7 +26,7 @@ bool TUI_ControlObjectAdd::Start(TShiftState Shift)
     TfraObject* fraObject = (TfraObject*)parent_tool->pFrame; VERIFY(fraObject);
     LPCSTR N = ((TfraObject*)parent_tool->pFrame)->Current();
 #else
-    LPCSTR N = imLeftBar.fraObject.Current();
+	LPCSTR N = imSidebar.fraObject.Current();
 #endif
 
 	Fvector p,n;

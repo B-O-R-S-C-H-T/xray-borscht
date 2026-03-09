@@ -10,7 +10,7 @@
 #include "scene.h"
 #include "ui_leveltools.h"
 
-#include "ImGui\IM_LeftBar.h"
+#include "ImGui\IM_Sidebar.h"
 
 //------------------------------------------------------------------------------
 // Node Add
@@ -29,8 +29,8 @@ bool TUI_ControlAIMapNodeAdd::Start(TShiftState Shift)
     bIgnoreConstraints = ((TfraAIMap*)S->pFrame)->ebIgnoreConstraints->Down;
     bAutoLink = ((TfraAIMap*)S->pFrame)->ebAutoLink->Down;
 #else
-    bIgnoreConstraints = imLeftBar.fraAIMap.m_ignore_constraints;
-    bAutoLink = imLeftBar.fraAIMap.m_auto_link;
+	bIgnoreConstraints = imSidebar.fraAIMap.m_ignore_constraints;
+	bAutoLink		   = imSidebar.fraAIMap.m_auto_link;
 #endif
 
     if (S->PickObjects(p,UI->m_CurrentRStart,UI->m_CurrentRNorm,UI->ZFar())){
@@ -54,8 +54,8 @@ void TUI_ControlAIMapNodeAdd::Move(TShiftState _Shift)
     bIgnoreConstraints = ((TfraAIMap*)S->pFrame)->ebIgnoreConstraints->Down;
     bAutoLink = ((TfraAIMap*)S->pFrame)->ebAutoLink->Down;
 #else
-    bIgnoreConstraints = imLeftBar.fraAIMap.m_ignore_constraints;
-    bAutoLink = imLeftBar.fraAIMap.m_auto_link;
+	bIgnoreConstraints = imSidebar.fraAIMap.m_ignore_constraints;
+	bAutoLink		   = imSidebar.fraAIMap.m_auto_link;
 #endif
     
     if (S->PickObjects(p,UI->m_CurrentRStart,UI->m_CurrentRNorm,UI->ZFar())){

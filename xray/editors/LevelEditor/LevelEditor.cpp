@@ -11,7 +11,7 @@
 #include "Edit/UI_LevelTools.h"
 
 #include "ImGui/IM_MainMenu.h"
-#include "ImGui/IM_LeftBar.h"
+#include "ImGui/IM_Sidebar.h"
 #include "ImGui/IM_TopBar.h"
 #include "ImGui/IM_ContextMenu.h"
 
@@ -81,7 +81,7 @@ int APIENTRY WinMain(
     UpdateWindow(g_MainWnd);
 
 	UI->AddIMWindow(&imMainMenu);
-    UI->AddIMWindow(&imLeftBar);
+    UI->AddIMWindow(&imSidebar);
     UI->AddIMWindow(&imTopBar);
     UI->AddIMWindow(&imContextMenu);
 
