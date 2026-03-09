@@ -42,17 +42,6 @@ public:
 	virtual void OnRemove();
 	virtual void Render();
 	void		 RenderToolFrame();
-	void		 RenderMainMenu();
-};
-
-class IM_About : public IM_Window {
-public:
-	bool m_open;
-	bool visited_source;
-	bool visited_updates;
-	IM_About() : m_open(false), visited_source(false), visited_updates(false) {}
-	void		 Open() { m_open = true; }
-	virtual void Render();
 };
 
 extern IM_LeftBar imLeftBar;
