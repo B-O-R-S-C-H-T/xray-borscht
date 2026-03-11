@@ -692,6 +692,9 @@
     <ClCompile Include="ImGui\IM_MainMenu.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LevelEditor.rc">

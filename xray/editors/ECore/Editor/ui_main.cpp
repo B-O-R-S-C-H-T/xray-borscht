@@ -1,5 +1,3 @@
-//---------------------------------------------------------------------------
-
 #include "stdafx.h"
 #pragma hdrstop
 
@@ -104,11 +102,7 @@ bool __fastcall TUI::KeyDown(WORD Key, TShiftState Shift)
 //	m_ShiftState = Shift;
 //	Log("Dn  ",Shift.Contains(ssShift)?"1":"0");
 
-	if (Key < 256)
-		ImGui::GetIO().AddKeyEvent(ImGuiKey(Key), true);
-
-	if (ImGui::GetIO().WantCaptureKeyboard)
-	{
+	if (ImGui::GetIO().WantCaptureKeyboard) {
 		RedrawScene();
 		return true;
 	}
@@ -124,16 +118,12 @@ bool __fastcall TUI::KeyUp(WORD Key, TShiftState Shift)
 	if (!m_bReady) return false;
 //	m_ShiftState = Shift;
 
-	if (Key < 256)
-		ImGui::GetIO().AddKeyEvent(ImGuiKey(Key), false);
-
-	if (ImGui::GetIO().WantCaptureKeyboard)
-	{
+	if (ImGui::GetIO().WantCaptureKeyboard) {
 		RedrawScene();
 		return false;
 	}
 
-	if (Device.m_Camera.KeyUp(Key,Shift))
+	if (Device.m_Camera.KeyUp(Key, Shift))
 		return true;
 
 	return Tools->KeyUp(Key, Shift);
@@ -143,9 +133,7 @@ bool __fastcall TUI::KeyPress(WORD Key, TShiftState Shift)
 {
 	if (!m_bReady) return false;
 
-	ImGui::GetIO().AddInputCharacter(Key);
-	if (ImGui::GetIO().WantCaptureKeyboard)
-	{
+	if (ImGui::GetIO().WantCaptureKeyboard) {
 		RedrawScene();
 		return true;
 	}
