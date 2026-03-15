@@ -14,7 +14,12 @@ void IM_ObjectListWnd::Render()
         refresh();
     if (m_needRecalcVis)
         recalcVis();
+    
     bool open = true;
+    int rangeSel_group = -1;
+    int rangeSel_top = -1;
+    int rangeSel_end = -1;
+    
     ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(u8"Object List", &open)) {
         ImGui::Columns(2, nullptr, false);
@@ -51,11 +56,22 @@ void IM_ObjectListWnd::Render()
                     if (!vis)
                         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
                     if (ImGui::Selectable(object.Obj->GetName(), object.Selected)) {
-                        bool sel = !object.Selected;
-                        if (sel && !ImGui::GetIO().KeyCtrl)
-                            clearAllSel();
-                        object.Selected = sel;
-                        object.Obj->Select(sel);
+                    	if(ImGui::GetIO().KeyShift && (rangeSel_top = getTopSelInGroup(m_vis[i].first)) >= 0) {
+                    		/* range select */
+                    		rangeSel_group = m_vis[i].first;
+                    		rangeSel_end = m_vis[i].second;
+                    	} else {
+                    		/* normal select */
+							if(ImGui::GetIO().KeyCtrl) {
+								bool sel = !object.Selected;
+								object.Selected = sel;
+								object.Obj->Select(sel);
+							} else {
+	                            clearAllSel();
+								object.Selected = true;
+								object.Obj->Select(true);
+							}
+	                    }
                     }
                     if (!vis)
                         ImGui::PopStyleColor();
@@ -96,6 +112,26 @@ void IM_ObjectListWnd::Render()
             open = false;
     }
     ImGui::End();
+    
+    /* do range select */
+    if(rangeSel_group >= 0) {    	
+    	auto& objects = m_items[rangeSel_group].Objects;
+    	if(rangeSel_end > rangeSel_top) {
+			clearAllSel();
+    		for(int it = rangeSel_top; it <= rangeSel_end; it++) {
+    			objects[it].Selected = true;
+    			objects[it].Obj->Select(true);
+    		}
+    	} else {
+			int rangeSel_bottom = getBottomSelInGroup(rangeSel_group);
+			clearAllSel();
+    		for(int it = rangeSel_end; it <= rangeSel_bottom; it++) {
+    			objects[it].Selected = true;
+    			objects[it].Obj->Select(true);
+    		}
+    	}
+    }
+    
     if (!open) {
         UI->RemoveIMWindow(this);
         auto _this = this;
@@ -189,4 +225,23 @@ void IM_ObjectListWnd::recalcVis()
             for (u32 j = 0; j != group.Objects.size(); j++)
                 m_vis[vis_i++] = { i, j };
     }
+}
+
+int IM_ObjectListWnd::getTopSelInGroup(int group)
+{
+    for (size_t i = 0; i < m_items[group].Objects.size(); i++) {
+        if(m_items[group].Objects[i].Selected)
+        	return (int)i;
+    }
+    return -1;
+}
+
+int IM_ObjectListWnd::getBottomSelInGroup(int group)
+{
+	int result = -1;
+    for (size_t i = 0; i < m_items[group].Objects.size(); i++) {
+        if(m_items[group].Objects[i].Selected)
+        	result = (int)i;
+    }
+    return result;
 }

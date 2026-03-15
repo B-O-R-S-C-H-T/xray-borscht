@@ -48,4 +48,7 @@ private:
     bool m_needRecalcVis = false;
     std::vector<std::pair<int, int>> m_vis;
     void recalcVis();
+    
+    int getTopSelInGroup(int group);
+	int getBottomSelInGroup(int group);
 };
