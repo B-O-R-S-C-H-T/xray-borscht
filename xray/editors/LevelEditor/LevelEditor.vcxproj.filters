@@ -93,7 +93,7 @@
     <ClInclude Include="ImGui\IM_FrameWayPoint.h">
       <Filter>ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\IM_LeftBar.h">
+    <ClInclude Include="ImGui\IM_Sidebar.h">
       <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_TopBar.h">
@@ -291,6 +291,9 @@
     <ClInclude Include="ImGui\IM_DetailShuffle.h">
       <Filter>ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="ImGui\IM_MainMenu.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LevelEditor.cpp">
@@ -344,7 +347,7 @@
     <ClCompile Include="ImGui\IM_FrameWayPoint.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\IM_LeftBar.cpp">
+    <ClCompile Include="ImGui\IM_Sidebar.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_TopBar.cpp">
@@ -684,6 +687,12 @@
       <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_DetailShuffle.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\IM_MainMenu.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
   </ItemGroup>

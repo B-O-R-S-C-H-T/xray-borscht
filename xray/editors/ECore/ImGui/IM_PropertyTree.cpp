@@ -2,11 +2,13 @@
 #pragma hdrstop
 
 #include "IM_PropertyTree.h"
-#include "IM_TextEditor.h"
-#include "IM_ChooseForm.h"
-#include "imgui.h"
-#include "utf8.h"
+
+#include <imgui.h>
+
 #include "../Editor/UI_Main.h"
+#include "IM_ChooseForm.h"
+#include "IM_TextEditor.h"
+#include "utf8.h"
 
 #pragma package(smart_init)
 
@@ -473,9 +475,11 @@ void IM_PropertyTree::RenderShortcut(PropItem* item)
 	
 	u8 key = 0;
 	ImGuiIO& io = ImGui::GetIO();
-	for(int i = 0; i < 256; i++)
-		if(io.KeysDown[i])
+	for (int i = 0; i < 256; i++) {
+		if (ImGui::IsKeyDown(ImGuiKey(i))) {
 			key = i;
+		}
+	}
 	
 	char text[256] = "";
 	if(io.KeyShift) strcat(text, "Shift + ");	
@@ -823,17 +827,21 @@ void IM_PropertyTree::RenderVector(PropItem* item)
 
 	ImGui::PushID(item->Key());
 	bool updated;
-	if(ImGui::GetIO().KeyShift)
+	if (ImGui::GetIO().KeyShift) {
 		updated = ImGui::DragFloat3("", (float*)&vec, 0.1f, 0.0f, 0.0f, "%.3f", 1.0f);
-	else
-		updated = ImGui::InputFloat3("", (float*)&vec, 4);
+	} else {
+		updated = ImGui::InputFloat3("", (float*)&vec, "%.3f");
+	}
 
 	bool disabled = item->m_Flags.is(PropItem::flDisabled);
 
-	if(updated && !disabled)
+	if (updated && !disabled)
 	{
-		if(item->AfterEdit<VectorValue,Fvector>(vec))
-			if(item->ApplyValue<VectorValue,Fvector>(vec));
+		if (item->AfterEdit<VectorValue, Fvector>(vec)) {
+			if (item->ApplyValue<VectorValue, Fvector>(vec)) {
+				Modified();
+			}
+		}
 	}
 	ImGui::PopID();
 }
@@ -1360,7 +1368,7 @@ void IM_PropertyTree::RenderGameType(PropItem* item)
 
 void IM_PropertyTree::Render()
 {
-	ImGui::Columns(2, NULL, true);
+	ImGui::Columns(2, "props_cols", true);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
 
 	RenderNode(root);
@@ -1443,7 +1451,7 @@ void IM_PropertiesWnd::Render()
 			
 			if(ShowButtonsBar)
 			{
-				ImGui::Indent(ImGui::GetContentRegionAvailWidth() - width);
+				ImGui::Indent(ImGui::GetContentRegionAvail().x - width);
 				if(ImGui::Button("OK"))
 				{
 					if(!OnOK.empty())

@@ -1,13 +1,13 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "../ECore/ImGui/ImGui.h"
-
 #include "IM_TopBar.h"
-#include "../ECore/Editor/device.h"
+
+#include <ImGui.h>
 #include <Layers/xrRender/ResourceManager.h>
 #include <Layers/xrRender/SH_Texture.h>
 
+#include "../ECore/Editor/device.h"
 #include "../UI_ShaderMain.h"
 #include "../UI_ShaderTools.h"
 

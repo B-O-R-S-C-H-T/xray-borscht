@@ -93,7 +93,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_EDITOR;_LEVEL_EDITOR;NO_VCL;NDEBUG;_WINDOWS;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;../..</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../..;$(SolutionDir)3rd_party/imgui</AdditionalIncludeDirectories>
       <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -112,6 +112,9 @@
       <LargeAddressAware>true</LargeAddressAware>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
+    <PostBuildEvent>
+      <Command>mt.exe -nologo -manifest "$(ProjectDir)LevelEditor.manifest" -outputresource:"$(TargetPath);#1"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -133,7 +136,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_EDITOR;_LEVEL_EDITOR;NO_VCL;DEBUG;_WINDOWS;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;../..</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../..;$(SolutionDir)3rd_party/imgui</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -141,6 +144,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>MagicFM.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>mt.exe -nologo -manifest "$(ProjectDir)LevelEditor.manifest" -outputresource:"$(TargetPath);#1"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -242,7 +248,8 @@
     <ClInclude Include="ImGui\IM_FrameShape.h" />
     <ClInclude Include="ImGui\IM_FrameSpawn.h" />
     <ClInclude Include="ImGui\IM_FrameWayPoint.h" />
-    <ClInclude Include="ImGui\IM_LeftBar.h" />
+    <ClInclude Include="ImGui\IM_Sidebar.h" />
+    <ClInclude Include="ImGui\IM_MainMenu.h" />
     <ClInclude Include="ImGui\IM_Manipulator.h" />
     <ClInclude Include="ImGui\IM_ObjectListWnd.h" />
     <ClInclude Include="ImGui\IM_TopBar.h" />
@@ -254,6 +261,10 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\Include\builder_types.cpp" />
     <ClCompile Include="..\..\Layers\xrRender\DetailManager.cpp" />
     <ClCompile Include="..\..\Layers\xrRender\DetailManager_CACHE.cpp" />
@@ -377,7 +388,8 @@
     <ClCompile Include="ImGui\IM_FrameShape.cpp" />
     <ClCompile Include="ImGui\IM_FrameSpawn.cpp" />
     <ClCompile Include="ImGui\IM_FrameWayPoint.cpp" />
-    <ClCompile Include="ImGui\IM_LeftBar.cpp" />
+    <ClCompile Include="ImGui\IM_Sidebar.cpp" />
+    <ClCompile Include="ImGui\IM_MainMenu.cpp" />
     <ClCompile Include="ImGui\IM_Manipulator.cpp" />
     <ClCompile Include="ImGui\IM_ObjectListWnd.cpp" />
     <ClCompile Include="ImGui\IM_TopBar.cpp" />

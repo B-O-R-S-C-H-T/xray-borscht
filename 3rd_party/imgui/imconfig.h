@@ -26,11 +26,7 @@
 //#define IMGUI_API __declspec(dllexport)                   // MSVC Windows: DLL export
 //#define IMGUI_API __declspec(dllimport)                   // MSVC Windows: DLL import
 //#define IMGUI_API __attribute__((visibility("default")))  // GCC/Clang: override visibility when set is hidden
-#ifdef IMGUI_EXPORTS
-	#define IMGUI_API __declspec(dllexport)
-#else
-	#define IMGUI_API __declspec(dllimport)
-#endif
+
 //---- Don't define obsolete functions/enums/behaviors. Consider enabling from time to time after updating to clean your code of obsolete function/names.
 //#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
@@ -148,3 +144,25 @@ namespace ImGui
     void MyFunction(const char* name, MyMatrix44* mtx);
 }
 */
+
+#ifdef __BORLANDC__
+#define fmodf	  fmod
+#define powf	  pow
+#define fabsf(a)  fabs(a)
+#define sinf(a)	  sin(a)
+#define asinf(a)  asin(a)
+#define cosf(a)	  cos(a)
+#define acosf(a)  acos(a)
+#define tanf(a)	  tan(a)
+#define atanf(a)  atan(a)
+#define sqrtf(a)  sqrt(a)
+#define expf(a)	  ::exp(a)
+#define floorf(a) floor(a)
+#define atan2f	  atan2
+#define logf	  log
+#define ceilf(a)  ceil(a)
+#endif
+
+#ifdef _ECOREB
+#define IMGUI_API __declspec(dllexport)
+#endif

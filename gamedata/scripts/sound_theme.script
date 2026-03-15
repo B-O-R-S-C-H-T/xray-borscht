@@ -18,7 +18,7 @@ end
 class "npc_sound"
 function npc_sound:__init(snd_ini, section)
 	self.class_id = "npc_sound"
-    --' Параметры вычитывания звука
+	--' Параметры вычитывания звука
 	self.prefix = utils.cfg_get_bool(snd_ini, section, "npc_prefix", nil, false, false)
 	self.path = utils.cfg_get_string(snd_ini, section, "path", nil, true, "")
 	self.shuffle = utils.cfg_get_string(snd_ini, section, "shuffle", nil, false, "", "rnd")
@@ -44,8 +44,8 @@ function npc_sound:__init(snd_ini, section)
 	local avail_communities = parse_names(utils.cfg_get_string(snd_ini, section, "avail_communities", nil, false, "", "csky, stalker, ecolog, bandit, dolg, freedom, army, zombied, monolith, killer"))
 	self.avail_communities = {}
 	for k,v in pairs(avail_communities) do
- 		self.avail_communities[v] = true
- 	end
+		self.avail_communities[v] = true
+	end
 
 
 end
@@ -72,6 +72,7 @@ function npc_sound:is_playing(npc_id)
 	end
 	return obj:active_sound_count() ~= 0
 end
+
 function npc_sound:init_npc(npc)
 	--printf("Init %s snd NPC %s", self.section, npc:name())
 	local npc_id = npc:id()
@@ -84,7 +85,6 @@ function npc_sound:init_npc(npc)
 		character_prefix = npc:sound_prefix()
 		npc:sound_prefix("characters_voice\\")
 	end
-
 
 	self.npc[npc_id].id = id()
 	self.npc[npc_id].max = npc:add_sound(self.path, nstl, snd_type.talk, 2, 1, self.npc[npc_id].id) - 1
@@ -100,14 +100,20 @@ function npc_sound:init_npc(npc)
 			num = num + 1
 		end
 	end
-	if self.npc[npc_id].max < 0 then
-		abort("Couldnt find sounds %s with prefix %s", tostring(self.path), npc:sound_prefix())
-	end
 
+	if self.npc[npc_id].max < 0 then
+		printf("! [sound_theme] No sounds found for theme '%s' with prefix '%s' for NPC '%s', skipping...", self.section, npc:sound_prefix(), npc:name())
+		self.npc[npc_id].max = 0
+		if self.prefix == false then
+			npc:sound_prefix(character_prefix)
+		end
+		return
+	end
 
 	if self.prefix == false then
 		npc:sound_prefix(character_prefix)
 	end
+
 	if self.group_snd then
 		self.can_play_group_sound = true
 	else
@@ -116,6 +122,7 @@ function npc_sound:init_npc(npc)
 		end
 	end
 end
+
 function npc_sound:callback(npc_id)
 	self.played_time = time_global()
 	self.idle_time = math.random(self.min_idle, self.max_idle) * 1000
@@ -184,8 +191,8 @@ function npc_sound:play(npc_id, faction, point, msg)
 	self.played_time = nil
 
 	local npc_data = self.npc[npc_id]
-    if(npc_data==nil) then
-    	--printf("coudnt play nodata!!!")
+	if(npc_data==nil) then
+		--printf("coudnt play nodata!!!")
 		return false
 	end
 	--' Выбор звука, который играть.
@@ -225,9 +232,9 @@ function npc_sound:play(npc_id, faction, point, msg)
 			faction = npc:character_community()
 		end
 		if not point then
-            point = npc:profile_name().."_name"
+			point = npc:profile_name().."_name"
 			if game.translate_string(point) == point then
-	            point = nil
+				point = nil
 			end
 		end
 		news_manager.send_sound(npc, faction, point, snd, snd_st)
@@ -284,7 +291,7 @@ function npc_sound:stop()
 end
 function npc_sound:save(thread)
 --	set_save_marker(thread, "save", false, "npc_sound")
-    thread:w_stringZ(tostring(self.played_id))
+	thread:w_stringZ(tostring(self.played_id))
 
 	if self.group_snd then
 		thread:w_bool(self.can_play_group_sound)
@@ -319,13 +326,14 @@ function npc_sound:load_npc(thread, npc_id)
 	end
 --	set_save_marker(thread, "load", true, "npc_sound_save_npc")
 end
+
 --'--------------------------------------------------------------------------------------------------------------------
 --' Класс "звуковая коллекция игрока"
 --'--------------------------------------------------------------------------------------------------------------------
 class "actor_sound"
 function actor_sound:__init(snd_ini, section)
 	self.class_id = "actor_sound"
-    --' Параметры вычитывания звука
+	--' Параметры вычитывания звука
 	self.stereo = utils.cfg_get_bool(snd_ini, section, "actor_stereo", nil, false, false)
 	self.prefix = utils.cfg_get_bool(snd_ini, section, "npc_prefix", nil, false, false)
 	self.path = utils.cfg_get_string(snd_ini, section, "path", nil, true, "")
@@ -486,7 +494,7 @@ function actor_sound:stop()
 end
 function actor_sound:save(thread)
 --	set_save_marker(thread, "save", false, "actor_sound")
-    thread:w_stringZ(tostring(self.played_id))
+	thread:w_stringZ(tostring(self.played_id))
 --	set_save_marker(thread, "save", true, "actor_sound")
 end
 function actor_sound:load(thread)
@@ -670,7 +678,7 @@ function object_sound:stop()
 end
 function object_sound:save(thread)
 --	set_save_marker(thread, "save", false, "object_sound")
-    thread:w_stringZ(tostring(self.played_id))
+	thread:w_stringZ(tostring(self.played_id))
 --    set_save_marker(thread, "save", true, "object_sound")
 end
 function object_sound:load(thread)

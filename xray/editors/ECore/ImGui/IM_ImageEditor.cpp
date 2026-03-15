@@ -1,11 +1,13 @@
 #include "stdafx.h"
 #pragma hdrstop
 
+#include "IM_ImageEditor.h"
+
+#include <Layers/xrRender/ETextureParams.h>
+#include <imgui.h>
+
 #include "../Editor/ImageManager.h"
 #include "../Editor/ui_main.h"
-#include "IM_ImageEditor.h"
-#include "imgui.h"
-#include <Layers/xrRender/ETextureParams.h>
 
 #pragma package(smart_init)
 
@@ -132,24 +134,22 @@ void IM_ImageEditor::Render()
         m_needupdate = false;
     }
 
-    ImGui::Columns(2);
+    ImGui::Columns(2, "image_editor_cols", true);
 
-    // ImGui::BeginChild("show_buttons", ImVec2(0,0), true);
-    if (ImGui::Checkbox("Image", &m_showimage))
+    if (ImGui::Checkbox("Image##image_show_image", &m_showimage))
         OnShowTypeClick();
     ImGui::SameLine();
-    if (ImGui::Checkbox("Cube", &m_showcube))
+    if (ImGui::Checkbox("Cube##image_show_cube", &m_showcube))
         OnShowTypeClick();
     ImGui::SameLine();
-    if (ImGui::Checkbox("Bump", &m_showbump))
+    if (ImGui::Checkbox("Bump##image_show_bump", &m_showbump))
         OnShowTypeClick();
     ImGui::SameLine();
-    if (ImGui::Checkbox("Normal", &m_shownormal))
+    if (ImGui::Checkbox("Normal##image_show_normal", &m_shownormal))
         OnShowTypeClick();
     ImGui::SameLine();
-    if (ImGui::Checkbox("Terrain", &m_showterrain))
+    if (ImGui::Checkbox("Terrain##image_show_terrain", &m_showterrain))
         OnShowTypeClick();
-    // ImGui::EndChild();
 
     ImGui::BeginChild("ItemList", ImVec2(0, -height), true);
     m_items.Render();
@@ -167,14 +167,14 @@ void IM_ImageEditor::Render()
 
     ImGui::Columns(1);
 
-    ImGui::Indent(ImGui::GetContentRegionAvailWidth() - width);
-    if (ImGui::Button("OK")) {
+    ImGui::Indent(ImGui::GetContentRegionAvail().x - width);
+    if (ImGui::Button("OK##image_ok")) {
         UpdateLib();
         m_open = false;
     }
     auto r = ImGui::GetItemRectSize();
     ImGui::SameLine();
-    if (ImGui::Button("Cancel")) {
+    if (ImGui::Button("Cancel##image_cancel")) {
         m_open = false;
     }
     r = ImGui::GetItemRectSize();

@@ -1,14 +1,15 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "../ECore/ImGui/imgui.h"
-
 #include "IM_FrameShape.h"
-#include "../Edit/scene.h"
-#include "../Edit/EShape.h"
-#include "../Edit/ESceneShapeTools.h"
+
+#include <imgui.h>
+
 #include "../ECore/Editor/ui_main.h"
+#include "../Edit/ESceneShapeTools.h"
+#include "../Edit/EShape.h"
 #include "../Edit/UI_LevelTools.h"
+#include "../Edit/scene.h"
 
 #pragma package(smart_init)
 
@@ -39,24 +40,22 @@ void IM_FrameShape::OnRemove()
 
 void IM_FrameShape::Render()
 {
-	if(ImGui::CollapsingHeader("Append",
-    ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader("Append", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
-    	if(ImGui::Selectable("Box", &m_append_box))
-        	m_append_sphere = !m_append_box;
-        if(ImGui::Selectable("Sphere", &m_append_sphere))
-        	m_append_box = !m_append_sphere;
+        if (ImGui::Selectable("Box##shape_append_box", &m_append_box))
+            m_append_sphere = !m_append_box;
+        if (ImGui::Selectable("Sphere##shape_append_sphere", &m_append_sphere))
+            m_append_box = !m_append_sphere;
     }
 
-    if(ImGui::CollapsingHeader("Edit",
-    ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader("Edit", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
-    	if(ImGui::Selectable("Attach Shape...", &m_attach_shape))
+        if (ImGui::Selectable("Attach Shape...##shape_attach", &m_attach_shape))
         {
         	if(m_attach_shape)
             	ExecCommand(COMMAND_CHANGE_ACTION, etaAdd);
         }
-        if(ImGui::MenuItem("Detach All"))
+        if (ImGui::MenuItem("Detach All##shape_detach_all"))
         {
             ObjectList lst;
     		if(Scene->GetQueryObjects(lst,OBJCLASS_SHAPE,1,1,0))
@@ -68,13 +67,12 @@ void IM_FrameShape::Render()
     	}
     }
 
-    if(ImGui::CollapsingHeader("Level bounds",
-    ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader("Level bounds", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
-    	if(ImGui::Selectable("Edit level bounds", &m_edit_level_bound))
-        	m_parent_tool->OnEditLevelBounds(false);
+        if (ImGui::Selectable("Edit level bounds##shape_edit_bounds", &m_edit_level_bound))
+            m_parent_tool->OnEditLevelBounds(false);
 
-        if(ImGui::MenuItem("Recalc", NULL, false, m_edit_level_bound))
-        	m_parent_tool->OnEditLevelBounds(true);
+        if (ImGui::MenuItem("Recalc##shape_recalc_bounds", NULL, false, m_edit_level_bound))
+            m_parent_tool->OnEditLevelBounds(true);
     }
 }

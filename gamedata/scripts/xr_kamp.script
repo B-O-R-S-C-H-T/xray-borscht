@@ -9,7 +9,8 @@
 kamps = {}
 kamp_stalkers = {} -- могут ли сталкеры в лагере юзаться игроком.
 -- Объявления итераторов
-local k,v,kk,vv = 0,0,0,0
+--local k,v,kk,vv = 0,0,0,0		--.???
+
 ---------------------------------------------------------------------------------------------------------------------
 --Evaluators
 ----------------------------------------------------------------------------------------------------------------------
@@ -18,20 +19,24 @@ class "evaluator_kamp_end" (property_evaluator)
 function evaluator_kamp_end:__init(name, storage) super (nil, name)
 	self.a = storage
 end
+
 function evaluator_kamp_end:evaluate()
 	return not xr_logic.is_active(self.object, self.a)
 end
+
 --' Находимся ли мы на заданной позиции
 class "evaluator_on_position" (property_evaluator)
 function evaluator_on_position:__init(name, storage) super (nil, name)
 	self.a = storage
 end
+
 function evaluator_on_position:evaluate()
 		if self.object:level_vertex_id() == self.a.pos_vertex then
 		return true
 	end
 	return false
 end
+
 ----------------------------------------------------------------------------------------------------------------------
 --Actions
 ----------------------------------------------------------------------------------------------------------------------
@@ -69,8 +74,6 @@ function action_go_position:execute ()
 		local delta_dist = math.random(0,0.5)
  		self.a.pp.x = self.a.pp.x + dir.x * delta_dist
 		self.a.pp.z = self.a.pp.z + dir.z * delta_dist
-
-
 
 		self.object:set_dest_level_vertex_id(self.a.pos_vertex)
 		--printf("vertex_position")
@@ -130,23 +133,11 @@ function action_wait:net_destroy(npc)
 end
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 class "CKampManager"
 function CKampManager:__init(path)
 	self.kamp_name = path
 	self.patrol = patrol(path)
-	--self.center = self.patrol:level_vertex_id(0)
+	--self.center = self.patrol:level_vertex_id(0)		-- !!!
 	self.position = {{dir = vector():set(1, 0, 0),	used = nil},
 					 {dir = vector():set(1, 0, 1),	used = nil},
 					 {dir = vector():set(0, 0, 1),	used = nil},
@@ -245,10 +236,35 @@ function CKampManager:__init(path)
 	-- Хранилище для режиссера лагеря. Режиссерем является сталкер, затеявший необычное поведение
 	self.director = nil
 
-
 	--' Для теста создаем объект истории
 	self.sound_manager = sound_manager.get_sound_manager("kamp_"..path)
+
+	-- Предрасчёт всех возможных вершин
+	self.precomputed_vertices = {}
+	local pp = self.patrol:point(0)
+	local INVALID_VERTEX = 4294967295
+	local num_variants = 5
+	local base_radius = 2
+	for pos_num, pos in pairs(self.position) do
+		self.precomputed_vertices[pos_num] = {}
+		for i = 1, num_variants do
+			local dir = vector():set(pos.dir.x, pos.dir.y, pos.dir.z)
+			dir.x = dir.x + math.random(-1,1)/5
+			dir.z = dir.z + math.random(-1,1)/5
+			dir:normalize()
+			local variant_radius = base_radius + math.random(-0.3,0.3)
+			local tmp_pos = vector():set(0,0,0)
+			tmp_pos.x = pp.x + dir.x * variant_radius
+			tmp_pos.z = pp.z + dir.z * variant_radius
+			tmp_pos.y = pp.y
+			local vertex = level.vertex_id(tmp_pos)
+			if vertex ~= INVALID_VERTEX then
+				table.insert(self.precomputed_vertices[pos_num], vertex)
+			end
+		end
+	end
 end
+
 function CKampManager:selectPosition(npc_id)
 	-- создаем список доступных позиций
 	--printf("KAMP. [%s] called select position", npc_id)
@@ -270,6 +286,7 @@ function CKampManager:selectPosition(npc_id)
 	--printf("KAMP [%s] position table", npc_id)
 	--print_table(self.position)
 end
+
 function CKampManager:getDestVertex(npc, radius)
 	local npc_id = npc:id()
 	--printf("get dest Vertex called [%s]", npc_id)
@@ -282,48 +299,22 @@ function CKampManager:getDestVertex(npc, radius)
 		abort("get dest Vertex: nil [%s]", npc_id)
 		return nil
 	end
-
-	-- высчитываем вертех по направлению
-	-- Берем позицию в заданном направлении, затем берем ниарест точку от нее.
-
-	local pp = self.patrol:point(0)
-	local dir = self.position[self.npc[npc_id].position].dir
-
-	-- Считаем рандомное отклонение направления.
-	dir.x = dir.x + math.random(-1,1)/5
-	dir.z = dir.z + math.random(-1,1)/5
-	dir:normalize()
-
-	radius = radius + math.random(-0.3,0.3)
-
- 	local dest_vertex = 4294967295
-
- 	while dest_vertex == 4294967295 do
- 		local tmp_pos = vector():set(0,0,0)
-		tmp_pos.x = pp.x + dir.x * radius
-		tmp_pos.z = pp.z + dir.z * radius
-		tmp_pos.y = pp.y
-	 	dest_vertex = level.vertex_id(tmp_pos)
-	 	if dest_vertex == 4294967295 then
-	 		if radius < 1 then
-	 			abort("Invalid AI map at kamp point [%s]", self.kamp_name)
-	 		else
-	 			radius = radius - 0.5
-	 		end
-	 	end
- 	end
-
-	if not npc:accessible(dest_vertex) then
-		--printf("vertex_position %s", tostring(dest_vertex))
-		local vp = level.vertex_position(dest_vertex)
-		--printf("Nearest for npc[%s] kamp [%s] position [%s:%s:%s]", npc:name(), tostring(self.kamp_name),tostring(vp.x), tostring(vp.y), tostring(vp.z))
-		local nearest_vertex = npc:accessible_nearest(vp, vector():set(0,0,0))
-		--printf("Nearest for npc[%s] kamp [%s] position [%s:%s:%s]", npc:name(), tostring(self.kamp_name), vec_to_str(nearest_vertex))
-		return nearest_vertex, self.npc[npc_id].position
+	local pos_num = self.npc[npc_id].position
+	local variants = self.precomputed_vertices[pos_num]
+	local dest_vertex
+	if variants and #variants > 0 then
+		dest_vertex = variants[math.random(#variants)]
+	else
+		printf("![xr_kamp] No valid level vertices for kamp point [%s] position %d. Falling back to center vertex.", self.kamp_name, pos_num)
+		dest_vertex = self.patrol:level_vertex_id(0)
 	end
-
-	return dest_vertex, self.npc[npc_id].position
+	if not npc:accessible(dest_vertex) then
+		-- вдруг рестриктор не пускает или типа того
+		printf("![xr_kamp] Level vertex not accessible for [%s] in kamp [%s]", npc:name(), self.kamp_name)
+	end
+	return dest_vertex, pos_num
 end
+
 function CKampManager:proceedState(npc)
 	-- Проверка на таймаут
 	local npc_id = npc:id()

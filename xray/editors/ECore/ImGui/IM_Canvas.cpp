@@ -2,10 +2,12 @@
 #pragma hdrstop
 
 #include "IM_Canvas.h"
-#include "imgui.h"
-#include "../Editor/device.h"
+
 #include <Layers/xrRender/ResourceManager.h>
 #include <Layers/xrRender/SH_RT.h>
+#include <imgui.h>
+
+#include "../Editor/device.h"
 
 #pragma package(smart_init)
 

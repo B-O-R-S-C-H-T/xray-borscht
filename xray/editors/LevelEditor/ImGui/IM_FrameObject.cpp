@@ -2,16 +2,19 @@
 #pragma hdrstop
 
 #include "IM_FrameObject.h"
-#include "../ECore/ImGui/ImGui.h"
-#include "../ECore/ImGui/utf8.h"
-#include "../ECore/ImGui/IM_ChooseForm.h"
+
+#include <imgui.h>
+#include <imgui_user.h>
+#include <random>
+
+#include "../ECore/Editor/EThumbnail.h"
 #include "../ECore/Editor/Library.h"
+#include "../ECore/Editor/ui_main.h"
+#include "../ECore/ImGui/IM_ChooseForm.h"
+#include "../ECore/ImGui/utf8.h"
+#include "../Edit/ESceneObjectTools.h"
 #include "../Edit/Scene.h"
 #include "../Edit/SceneObject.h"
-#include "../Edit/ESceneObjectTools.h"
-#include "../ECore/Editor/ui_main.h"
-#include "../ECore/Editor/EThumbnail.h"
-#include <random>
 
 LPCSTR IM_FrameObject::Current()
 {
@@ -237,7 +240,7 @@ void IM_FrameObject::Render()
 
     if(ImGui::CollapsingPanel("Reference select", &m_show_refselect))
     {
-    	ImGui::Columns(2, "ref_select", false);
+        ImGui::Columns(2, "ref_select_object", false);
 
         ImGui::AlignTextToFramePadding();
     	ImGui::TextUnformatted("Select by Current:\t");
@@ -246,17 +249,17 @@ void IM_FrameObject::Render()
 
         ImGui::NextColumn();
 
-        if(ImGui::Button("+", ImVec2(40,0)))
-        	SelByRefObject(true);
+        if (ImGui::Button("+##sel_by_cur_add", ImVec2(40, 0)))
+            SelByRefObject(true);
         ImGui::SameLine();
-        if(ImGui::Button("-", ImVec2(40,0)))
-        	SelByRefObject(false);
+        if (ImGui::Button("-##sel_by_cur_sub", ImVec2(40, 0)))
+            SelByRefObject(false);
 
-        if(ImGui::Button("=%", ImVec2(40,0)))
-        	MultiSelByRefObject(true);
+        if (ImGui::Button("=%##multi_sel_clear", ImVec2(40, 0)))
+            MultiSelByRefObject(true);
         ImGui::SameLine();
-        if(ImGui::Button("+%", ImVec2(40,0)))
-        	MultiSelByRefObject(false);
+        if (ImGui::Button("+%##multi_sel_add", ImVec2(40, 0)))
+            MultiSelByRefObject(false);
 
         ImGui::Columns(1);
 

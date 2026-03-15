@@ -2,7 +2,8 @@
 #pragma hdrstop
 
 #include "IM_Tree.h"
-#include "imgui.h"
+
+#include <imgui.h>
 
 IM_Tree::ImTreeNode* IM_Tree::GetNode(LPCSTR path, bool must_exist)
 {
@@ -266,7 +267,7 @@ bool IM_Tree::RenameNode(ImTreeNode& parent, LPCSTR oldname, LPCSTR newname)
 
 void IM_Tree::ShowContextMenu(ImTreeNode& node, bool& removed)
 {
-	if(!OnItemRename.empty() && ImGui::MenuItem("Rename"))
+	if(!OnItemRename.empty() && ImGui::MenuItem("Rename##tree_context_rename"))
 	{
 		SelectAll(false);
 		SelectNode(node, true);
@@ -274,9 +275,8 @@ void IM_Tree::ShowContextMenu(ImTreeNode& node, bool& removed)
     	renaming = &node;
 	}
 
-	if(!OnItemRemove.empty() && ImGui::MenuItem("Remove"))
-		OnItemRemove(*node.name, node.child ? TYPE_FOLDER : TYPE_OBJECT,
-		removed);
+	if(!OnItemRemove.empty() && ImGui::MenuItem("Remove##tree_context_remove"))
+		OnItemRemove(*node.name, node.child ? TYPE_FOLDER : TYPE_OBJECT, removed);
 }
 
 void IM_Tree::GetItems(ImTreeNode &node, ListItemsVec &result)

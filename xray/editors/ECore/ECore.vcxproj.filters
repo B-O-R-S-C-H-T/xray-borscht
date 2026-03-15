@@ -414,18 +414,6 @@
     <ClInclude Include="ImGui\IM_Log.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imgui.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui_impl_dx9.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui_internal.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui_user.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Layers\xrRender\D3DUtils.h">
       <Filter>xrRender</Filter>
     </ClInclude>
@@ -498,7 +486,34 @@
     <ClInclude Include="ImGui\IM_ImageEditor.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\ImGuizmo.h">
+    <ClInclude Include="..\..\..\3rd_party\imgui\imgui_user.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx9.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\imgui\imgui.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\imgui\imgui_internal.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\imgui\imstb_rectpack.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\imgui\imstb_textedit.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\imgui\imstb_truetype.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Layers\xrRender\imgui_setup.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\imgui\imconfig.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.h">
       <Filter>imgui</Filter>
     </ClInclude>
   </ItemGroup>
@@ -947,21 +962,6 @@
     <ClCompile Include="ImGui\IM_Log.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\imgui.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_demo.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_draw.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_impl_dx9.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_widgets.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Layers\xrRender\D3DUtils.cpp">
       <Filter>xrRender</Filter>
     </ClCompile>
@@ -1031,7 +1031,31 @@
     <ClCompile Include="ImGui\IM_ImageEditor.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\ImGuizmo.cpp">
+    <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx9.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\imgui\imgui.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\imgui\imgui_demo.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\imgui\imgui_draw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\imgui\imgui_tables.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\imgui\imgui_widgets.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Layers\xrRender\imgui_setup.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\imgui\addons\ImGuizmo\ImGuizmo.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,26 +1,20 @@
 #pragma once
 
-#include "../ECore/ImGui/IM_Window.h"
 #include <variant>
+
+#include "../ECore/ImGui/IM_Window.h"
 
 class ESceneCustomOTool;
 class CCustomObject;
 
-class IM_ObjectListWnd : public IM_Window
-{
+class IM_ObjectListWnd : public IM_Window {
 public:
-	static IM_ObjectListWnd *instance;
-	
-	IM_ObjectListWnd()
-	{
-		instance = this;
-	}
-	
-	~IM_ObjectListWnd()
-	{
-		instance = NULL;
-	}
-	
+	static IM_ObjectListWnd* instance;
+
+	IM_ObjectListWnd() { instance = this; }
+
+	~IM_ObjectListWnd() { instance = NULL; }
+
 public:
     void Render() override;
     void RefreshList();

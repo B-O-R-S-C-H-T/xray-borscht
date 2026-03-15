@@ -1,10 +1,11 @@
 #ifndef IM_TreeH
 #define IM_TreeH
 
-#include "IM_Window.h"
-#include "IM_Canvas.h"
-#include <xrServerEntities/xrEProps.h>
 #include <xrServerEntities/ItemListTypes.h>
+#include <xrServerEntities/xrEProps.h>
+
+#include "IM_Canvas.h"
+#include "IM_Window.h"
 
 typedef fastdelegate::FastDelegate<void(shared_str,shared_str,bool)> IM_TOnNodeSelected;
 typedef fastdelegate::FastDelegate<void(LPCSTR,HDC,const Irect&)> IM_TOnDrawThumbnail;

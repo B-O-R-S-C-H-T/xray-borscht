@@ -2,10 +2,12 @@
 #pragma hdrstop
 
 #include "IM_FrameLight.h"
-#include "..\ECore\ImGui\ImGui.h"
 
-#include "../Edit/Scene.h"
+#include <imgui.h>
+#include <imgui_user.h>
+
 #include "../Edit/ELight.h"
+#include "../Edit/Scene.h"
 
 #pragma package(smart_init)
 
@@ -42,17 +44,17 @@ void IM_FrameLight::Render()
     {
     	ImGui::Columns(2, NULL, false);
 
-        if(ImGui::MenuItem("Enable Sel"))
-        	UseInD3D(false, true);
-        if(ImGui::MenuItem("Disable Sel"))
-        	UseInD3D(false, false);
+        if (ImGui::MenuItem("Enable Sel##light_enable_sel"))
+            UseInD3D(false, true);
+        if (ImGui::MenuItem("Disable Sel##light_disable_sel"))
+            UseInD3D(false, false);
 
         ImGui::NextColumn();
 
-        if(ImGui::MenuItem("Enable All"))
-        	UseInD3D(true, true);
-        if(ImGui::MenuItem("Disable All"))
-        	UseInD3D(true, false);
+        if (ImGui::MenuItem("Enable All##light_enable_all"))
+            UseInD3D(true, true);
+        if (ImGui::MenuItem("Disable All##light_disable_all"))
+            UseInD3D(true, false);
 
         ImGui::Columns(1);
     }

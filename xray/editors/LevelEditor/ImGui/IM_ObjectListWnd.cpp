@@ -1,15 +1,17 @@
 #include "stdafx.h"
+
 #include "IM_ObjectListWnd.h"
+
+#include <imgui.h>
+
 #include "../ECore/Editor/ui_main.h"
-#include "../ECore/ImGui/imgui.h"
 #include "../Edit/Scene.h"
 #include "../Edit/UI_LevelTools.h"
 #include "../Edit/customobject.h"
 
 IM_ObjectListWnd * IM_ObjectListWnd::instance;
 
-void IM_ObjectListWnd::Render()
-{
+void IM_ObjectListWnd::Render() {
     if (m_needRefresh)
         refresh();
     if (m_needRecalcVis)
@@ -21,27 +23,63 @@ void IM_ObjectListWnd::Render()
     int rangeSel_end = -1;
     
     ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(u8"Object List", &open)) {
-        ImGui::Columns(2, nullptr, false);
-        ImGui::SetColumnWidth(1, 150);
-        ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() - 150);
+	if (ImGui::Begin(u8"Object List", &open, ImGuiWindowFlags_MenuBar)) {
         ImGui::PushItemWidth(-1);
-        if (ImGui::InputText("##filter", m_filter, sizeof(m_filter) - 1))
+		if (ImGui::InputTextWithHint("##filter", "Search...", m_filter, sizeof(m_filter) - 1))
             m_needRefresh = true;
         ImGui::PopItemWidth();
+
+		if (ImGui::BeginMenuBar()) {
+			if (ImGui::BeginMenu("Tools")) {
+				if (ImGui::MenuItem("All", nullptr, m_filterTools == 0)) {
+					m_filterTools = 0;
+					m_needRefresh = true;
+				}
+				if (ImGui::MenuItem("Current", nullptr, m_filterTools == 1)) {
+					m_filterTools = 1;
+					m_needRefresh = true;
+				}
+				ImGui::EndMenu();
+			}
+			if (ImGui::BeginMenu("Show")) {
+				if (ImGui::MenuItem("All", nullptr, m_showOptions == 0)) {
+					m_showOptions = 0;
+					m_needRefresh = true;
+				}
+				if (ImGui::MenuItem("Visible Only", nullptr, m_showOptions == 1)) {
+					m_showOptions = 1;
+					m_needRefresh = true;
+				}
+				if (ImGui::MenuItem("Invisible Only", nullptr, m_showOptions == 2)) {
+					m_showOptions = 2;
+					m_needRefresh = true;
+				}
+				ImGui::EndMenu();
+			}
+			if (ImGui::BeginMenu("Edit")) {
+				if (ImGui::MenuItem("Refresh List")) {
+					m_needRefresh = true;
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenuBar();
+		}
+
         ImGui::BeginChild("##items", ImVec2(0, 0), true);
-        ImGuiListClipper clipper(m_vis.size(), ImGui::GetTextLineHeightWithSpacing());
+
+		ImGuiListClipper clipper;
+		clipper.Begin(m_vis.size(), ImGui::GetTextLineHeightWithSpacing());
         while (clipper.Step()) {
             ImGui::Indent();
             for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
                 const auto& vis = m_vis[i];
+
                 if (vis.second == -1) {
                     auto& group = m_items[vis.first];
                     ImGui::Unindent();
                     if (!group.Objects.empty()) {
-                        bool opened = ImGui::TreeNodeEx(group.Tool,
-                            ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen, "%ss",
-                            group.Tool->ClassDesc());
+						bool opened =
+							ImGui::TreeNodeEx(group.Tool, ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen, "%ss", group.Tool->ClassDesc());
                         if (opened != group.Opened) {
                             m_needRecalcVis = true;
                             group.Opened = opened;
@@ -52,9 +90,13 @@ void IM_ObjectListWnd::Render()
                     ImGui::Indent();
                 } else {
                     auto& object = m_items[vis.first].Objects[vis.second];
-                    bool vis = object.Obj->Visible();
-                    if (!vis)
-                        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+					bool	visible = object.Obj->Visible();
+
+					ImGui::PushID(object.Obj);
+
+					if (!visible)
+						ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+
                     if (ImGui::Selectable(object.Obj->GetName(), object.Selected)) {
                     	if(ImGui::GetIO().KeyShift && (rangeSel_top = getTopSelInGroup(m_vis[i].first)) >= 0) {
                     		/* range select */
@@ -71,45 +113,37 @@ void IM_ObjectListWnd::Render()
 								object.Selected = true;
 								object.Obj->Select(true);
 							}
-	                    }
-                    }
-                    if (!vis)
-                        ImGui::PopStyleColor();
-                }
-            }
+						}
+					}
+
+					if (!visible)
+						ImGui::PopStyleColor();
+
+					if (ImGui::BeginPopupContextItem()) {
+						if (visible) {
+							if (ImGui::MenuItem("Hide Selected"))
+								showSelected(false);
+						} else {
+							if (ImGui::MenuItem("Show Selected"))
+								showSelected(true);
+						}
+
+						ImGui::Separator();
+
+						if (ImGui::MenuItem("Properties..."))
+							ExecCommand(COMMAND_SHOW_PROPERTIES);
+
+						ImGui::EndPopup();
+					}
+
+					ImGui::PopID();
+				}
+			}
             ImGui::Unindent();
         }
+		clipper.End();
+
         ImGui::EndChild();
-
-        ImGui::NextColumn();
-
-        ImGui::BeginChild("options", ImVec2(0, -2.0f * ImGui::GetFrameHeightWithSpacing()));
-        ImGui::Text("Tools");
-        if (ImGui::RadioButton("All##Tools", &m_filterTools, 0))
-            m_needRefresh = true;
-        if (ImGui::RadioButton("Current", &m_filterTools, 1))
-            m_needRefresh = true;
-        ImGui::NewLine();
-        ImGui::Text("Show Options");
-        if (ImGui::RadioButton("All##Show", &m_showOptions, 0))
-            m_needRefresh = true;
-        if (ImGui::RadioButton("Visible Only", &m_showOptions, 1))
-            m_needRefresh = true;
-        if (ImGui::RadioButton("Invisible Only", &m_showOptions, 2))
-            m_needRefresh = true;
-        ImGui::NewLine();
-        if (ImGui::Button("Show Selected", { -1, 0 }))
-            showSelected(true);
-        if (ImGui::Button("Hide Selected", { -1, 0 }))
-            showSelected(false);
-        if (ImGui::Button("Show Properties", { -1, 0 }))
-            ExecCommand(COMMAND_SHOW_PROPERTIES);
-        ImGui::EndChild();
-
-        if (ImGui::Button("Refresh List", { -1, 0 }))
-            m_needRefresh = true;
-        if (ImGui::Button("Close", { -1, 0 }))
-            open = false;
     }
     ImGui::End();
     

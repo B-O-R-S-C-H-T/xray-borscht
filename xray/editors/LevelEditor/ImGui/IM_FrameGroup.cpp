@@ -1,17 +1,17 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "../ECore/ImGui/imgui.h"
-#include "../ECore/ImGui/IM_ChooseForm.h"
-
 #include "IM_FrameGroup.h"
+
+#include <imgui.h>
+#include <random>
+
+#include "../ECore/ImGui/IM_ChooseForm.h"
+#include "../Edit/ESceneGroupTools.h"
+#include "../Edit/GroupObject.h"
+#include "../Edit/UI_LevelMain.h"
 #include "../Edit/UI_LevelTools.h"
 #include "../Edit/scene.h"
-#include "../Edit/ESceneGroupTools.h"
-#include "../Edit/UI_LevelTools.h"
-#include "../Edit/UI_LevelMain.h"
-#include "../Edit/GroupObject.h"
-#include <random>
 
 #pragma package(smart_init)
 
@@ -100,29 +100,28 @@ void IM_FrameGroup::Render()
 	if(ImGui::CollapsingHeader("Commands",
     ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
     {
-    	ImGui::Columns(2);
+        ImGui::Columns(2, "group_commands_cols", false);
 
-        if(ImGui::MenuItem("Group"))
-        	m_parent_tool->GroupObjects();
-        if(ImGui::MenuItem("Ungroup"))
-        	m_parent_tool->UngroupObjects();
+        if (ImGui::MenuItem("Group##group_group"))
+            m_parent_tool->GroupObjects();
+        if (ImGui::MenuItem("Ungroup##group_ungroup"))
+            m_parent_tool->UngroupObjects();
 
         ImGui::NextColumn();
 
-        if(ImGui::MenuItem("Make Thumbnail"))
-        	m_parent_tool->MakeThumbnail();
-        if(ImGui::MenuItem("Save AS..."))
-        	m_parent_tool->SaveSelectedObject();
+        if (ImGui::MenuItem("Make Thumbnail##group_make_thumb"))
+            m_parent_tool->MakeThumbnail();
+        if (ImGui::MenuItem("Save AS...##group_save_as"))
+            m_parent_tool->SaveSelectedObject();
 
         ImGui::Columns(1);
     }
 
-	if(ImGui::CollapsingHeader("Current Object",
-    ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("Current Object", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
-    	ImGui::Columns(2);
+        ImGui::Columns(2, "group_current_cols", false);
 
-        if(ImGui::MenuItem("Select..."))
+        if (ImGui::MenuItem("Select...##group_select"))
         {
 			IM_ChooseForm* cf = new IM_ChooseForm(smGroup, 1);
 			cf->OnOK.bind(this, &IM_FrameGroup::OnGroupSelected);
@@ -131,7 +130,7 @@ void IM_FrameGroup::Render()
 
         ImGui::NextColumn();
 
-        if(ImGui::MenuItem("Reload Refs"))
+        if (ImGui::MenuItem("Reload Refs##group_reload_refs"))
         {
         	extern BOOL bForceInitListBox;
             m_parent_tool->ReloadRefsSelectedObject();
@@ -147,10 +146,9 @@ void IM_FrameGroup::Render()
 			ImGui::SetTooltip("%s", m_current.c_str());
     }
 
-	if(ImGui::CollapsingHeader("Reference Select",
-    ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader("Reference Select", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
-    	ImGui::Columns(2, "ref_select", false);
+        ImGui::Columns(2, "group_refselect_cols", false);
 
         ImGui::AlignTextToFramePadding();
     	ImGui::TextUnformatted("Select by Current:\t");
@@ -159,25 +157,24 @@ void IM_FrameGroup::Render()
 
         ImGui::NextColumn();
 
-        if(ImGui::Button("+", ImVec2(40,0)))
-        	SelByRefObject(true);
+        if (ImGui::Button("+##group_sel_by_cur_add", ImVec2(40, 0)))
+            SelByRefObject(true);
         ImGui::SameLine();
-        if(ImGui::Button("-", ImVec2(40,0)))
-        	SelByRefObject(false);
+        if (ImGui::Button("-##group_sel_by_cur_sub", ImVec2(40, 0)))
+            SelByRefObject(false);
 
-        if(ImGui::Button("=%", ImVec2(40,0)))
-        	MultiSelByRefObject(true);
+        if (ImGui::Button("=%##group_multi_sel_clear", ImVec2(40, 0)))
+            MultiSelByRefObject(true);
         ImGui::SameLine();
-        if(ImGui::Button("+%", ImVec2(40,0)))
-        	MultiSelByRefObject(false);
+        if (ImGui::Button("+%##group_multi_sel_add", ImVec2(40, 0)))
+            MultiSelByRefObject(false);
 
         ImGui::Columns(1);
 
         ImGui::SliderInt("%", &m_select_percent, 0, 100);
     }
 
-	if(ImGui::CollapsingHeader("Pivot Alignment",
-    ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader("Pivot Alignment", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
     {
     	if(ImGui::MenuItem("Center to Group"))
         	m_parent_tool->CenterToGroup();

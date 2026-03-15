@@ -1,5 +1,7 @@
 /* ImGui extensions */
 
+#include <imgui.h>
+
 namespace ImGui
 {
     static inline bool CollapsingPanel(const char* label, bool* p_open, ImGuiTreeNodeFlags flags = 0)

@@ -10,11 +10,10 @@
 #include "scene.h"
 #include "../ECore/Editor/ui_main.h"
 
-#include "ImGui\IM_LeftBar.h"
+#include "ImGui\IM_Sidebar.h"
 
 using namespace std::placeholders;
 
-//---------------------------------------------------------------------------
 TUI_ControlShapeAdd::TUI_ControlShapeAdd(int st, int act, ESceneToolBase* parent):TUI_CustomControl(st,act,parent)
 {
 }
@@ -39,7 +38,7 @@ bool TUI_ControlShapeAdd::AfterAppendCallback(TShiftState Shift, CCustomObject* 
     	ELog.DlgMsg(mtInformation,"Select shape type at first.");
     }
 #else
-	IM_FrameShape& F 	= imLeftBar.fraShape;
+	IM_FrameShape& F = imSidebar.fraShape;
 	if (F.m_append_sphere){
     	Fsphere S;	S.identity();
     	shape->add_sphere(S);
@@ -81,7 +80,7 @@ bool TUI_ControlShapeAdd::Start(TShiftState Shift)
     }else
 	    DefaultAddObject(Shift,0,std::bind(&TUI_ControlShapeAdd::AfterAppendCallback,this,_1,_2));
 #else
-	IM_FrameShape& F 	= imLeftBar.fraShape;
+	IM_FrameShape& F = imSidebar.fraShape;
 	if (F.m_attach_shape){
 		CEditShape* from = dynamic_cast<CEditShape*>(Scene->RayPickObject(UI->ZFar(),UI->m_CurrentRStart, UI->m_CurrentRNorm, OBJCLASS_SHAPE, 0, 0));
         if (from){
