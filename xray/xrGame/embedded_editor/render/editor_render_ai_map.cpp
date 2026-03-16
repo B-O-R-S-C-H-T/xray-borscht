@@ -6,6 +6,8 @@
 #include "../Include/xrRender/UIShader.h"
 #include "ui_defs.h"
 
+bool isRenderAiMap = false;
+
 typedef Fvector2 t_node_tc[4];
 static t_node_tc node_tc[16] = {
     { { 0.00f, 0.25f }, { 0.25f, 0.25f }, { 0.25f, 0.00f }, { 0.00f, 0.00f } },

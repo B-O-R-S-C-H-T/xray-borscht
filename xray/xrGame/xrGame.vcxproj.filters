@@ -7500,9 +7500,6 @@
     <ClInclude Include="embedded_editor\embedded_editor_hud.h">
       <Filter>Embedded Editor</Filter>
     </ClInclude>
-    <ClInclude Include="embedded_editor\embedded_editor_le.h">
-      <Filter>Embedded Editor</Filter>
-    </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor_se.h">
       <Filter>Embedded Editor</Filter>
     </ClInclude>
@@ -11205,9 +11202,6 @@
       <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_hud.cpp">
-      <Filter>Embedded Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="embedded_editor\embedded_editor_le.cpp">
       <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_se.cpp">
