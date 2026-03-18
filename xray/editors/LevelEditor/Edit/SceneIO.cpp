@@ -239,7 +239,7 @@ BOOL EScene::LoadLevelPartLTX(ESceneToolBase* M, LPCSTR map_name)
         if (EFS.CheckLocking(map_name,false,false))
         {
             M->m_EditFlags.set(ESceneToolBase::flReadonly,TRUE);
-            Msg				("!Level part '%s' locked by <unknown> user.",M->ClassDesc());
+			ELog.Msg(mtError, "Level part '%s' locked by <unknown> user.", M->ClassDesc());
         }else
         {
             M->m_EditFlags.set(ESceneToolBase::flReadonly,FALSE);
@@ -256,7 +256,7 @@ BOOL EScene::LoadLevelPartLTX(ESceneToolBase* M, LPCSTR map_name)
         if (guid!=m_GUID)
         {
         	EFS.UnlockFile	(map_name);
-            ELog.DlgMsg		(mtError,"Skipping invalid version of level part: '%s\\%s.part'",EFS.ExtractFileName(map_name).c_str(),M->ClassName());
+            ELog.DlgMsg		(mtError,"Skipping invalid version of level part: '%s\\%s.part'", EFS.ExtractFileName(map_name).c_str(), M->ClassName());
             return 			FALSE;
         }
         // read data
@@ -278,7 +278,7 @@ BOOL EScene::LoadLevelPart(ESceneToolBase* M, LPCSTR map_name)
         if (EFS.CheckLocking(map_name,false,false))
         {
             M->m_EditFlags.set(ESceneToolBase::flReadonly,TRUE);
-            Msg				("!Level part '%s' locked by <unknown> user.",M->ClassDesc());
+			ELog.Msg(mtError, "Level part '%s' locked by <unknown> user.", M->ClassDesc());
         }else
         {
             M->m_EditFlags.set(ESceneToolBase::flReadonly,FALSE);
@@ -294,7 +294,7 @@ BOOL EScene::LoadLevelPart(ESceneToolBase* M, LPCSTR map_name)
         if (guid!=m_GUID)
         {
         	EFS.UnlockFile	(map_name);
-            ELog.DlgMsg		(mtError,"Skipping invalid version of level part: '%s\\%s.part'",EFS.ExtractFileName(map_name).c_str(),M->ClassName());
+            ELog.DlgMsg		(mtError, "Skipping invalid version of level part: '%s\\%s.part'", EFS.ExtractFileName(map_name).c_str(), M->ClassName());
         	FS.r_close		(R);
             return 			FALSE;
         }
@@ -307,7 +307,7 @@ BOOL EScene::LoadLevelPart(ESceneToolBase* M, LPCSTR map_name)
         }else
         {
         	EFS.UnlockFile	(map_name);
-            ELog.DlgMsg		(mtError,"Skipping corrupted version of level part: '%s\\%s.part'",EFS.ExtractFileName(map_name).c_str(),M->ClassName());
+            ELog.DlgMsg		(mtError, "Skipping corrupted version of level part: '%s\\%s.part'", EFS.ExtractFileName(map_name).c_str(), M->ClassName());
             FS.r_close		(R);
             return 			FALSE;
         }
@@ -506,7 +506,7 @@ void EScene::SaveLTX(LPCSTR map_name, bool bForUndo, bool bForceSaveAll)
         	EFS.LockFile(map_name,false);
 
     	m_RTFlags.set	(flRT_Unsaved,FALSE);
-    	Msg				("Saving time: %3.2f sec",T.GetElapsed_sec());
+		ELog.Msg(mtInformation, "Scene saved in %.2f seconds", T.GetElapsed_sec());
     }
 }
 //--------------------------------------------------------------------------------------------------
@@ -725,7 +725,7 @@ bool EScene::ReadObjectsLTX(CInifile& ini,  LPCSTR sect_name_parent, LPCSTR sect
                     {
                        bool res = RemoveObject		(existing, true, true);
                         if(!res)
-                            Msg("! RemoveObject [%s] failed", existing->GetName());
+						   ELog.Msg(mtError, "RemoveObject [%s] failed", existing->GetName());
                          else
                             xr_delete(existing);
                     }break;
@@ -789,7 +789,7 @@ bool EScene::ReadObjectsStream(IReader& F, u32 chunk_id, TAppendObject on_append
                         {
                            bool res = RemoveObject		(existing, true, true);
 							if(!res)
-                            	Msg("! RemoveObject [%s] failed", existing->GetName());
+							   ELog.Msg(mtError, "RemoveObject [%s] failed", existing->GetName());
                              else
                              	xr_delete(existing);
                         }break;
@@ -843,7 +843,7 @@ bool EScene::LoadLTX(LPCSTR map_name, bool bUndo)
     xr_string 		full_name;
     full_name 		= map_name;
 
-	ELog.Msg( mtInformation, "EScene: loading '%s'", map_name);
+	ELog.Msg(mtInformation, "\t%s", map_name);
     if (FS.exist(full_name.c_str()))
     {
         CTimer T; T.Start();
@@ -857,7 +857,7 @@ bool EScene::LoadLTX(LPCSTR map_name, bool bUndo)
 
         if (version!=CURRENT_FILE_VERSION)
         {
-            ELog.DlgMsg( mtError, "EScene: unsupported file version. Can't load Level.");
+            ELog.DlgMsg(mtError, "Unsupported file version. Can't load scene.");
             UI->UpdateScene();
             return false;
         }
@@ -901,14 +901,14 @@ bool EScene::LoadLTX(LPCSTR map_name, bool bUndo)
             {
                 CCustomObject* 	O = FindObjectByName(Si->first.c_str(),OBJCLASS_SCENEOBJECT);
                 if (!O)
-                    ELog.Msg(mtError,"EScene: Can't find snap object '%s'.",Si->second.c_str());
+                    ELog.Msg(mtError, "Can't find snap object '%s'", Si->second.c_str());
                 else
                 	m_ESO_SnapObjects.push_back(O);
             }
             UpdateSnapList();
         }
 
-        Msg("EScene: %d objects loaded, %3.2f sec", ObjCount(), T.GetElapsed_sec() );
+        ELog.Msg(mtInformation, "Scene loaded:\n\t%d objects in %.2f seconds", ObjCount(), T.GetElapsed_sec() );
 
     	UI->UpdateScene(true);
 
@@ -920,7 +920,7 @@ bool EScene::LoadLTX(LPCSTR map_name, bool bUndo)
 		return true;
     }else
     {
-    	ELog.Msg(mtError,"Can't find file: '%s'",map_name);
+    	ELog.Msg(mtError, "Can't find file: '%s'", map_name);
     }
 	return false;
 }
@@ -934,7 +934,7 @@ bool EScene::Load(LPCSTR map_name, bool bUndo)
     xr_string 		full_name;
     full_name 		= map_name;
 
-	ELog.Msg( mtInformation, "EScene: loading '%s'", map_name);
+	ELog.Msg(mtInformation, "\t%s", map_name);
     if (FS.exist(full_name.c_str()))
     {
         CTimer T; T.Start();
@@ -948,7 +948,7 @@ bool EScene::Load(LPCSTR map_name, bool bUndo)
         R_ASSERT	(F->r_chunk(CHUNK_VERSION, &version));
         if (version!=CURRENT_FILE_VERSION)
         {
-            ELog.DlgMsg( mtError, "EScene: unsupported file version. Can't load Level.");
+            ELog.DlgMsg(mtError, "Unsupported file version. Can't load scene.");
             UI->UpdateScene();
             FS.r_close(F);
             return false;
@@ -962,7 +962,7 @@ bool EScene::Load(LPCSTR map_name, bool bUndo)
         	LOP->close		();
         }else
         {
-			ELog.DlgMsg		(mtError, "Skipping old version of level options.\nCheck level options after loading.");
+			ELog.DlgMsg(mtError, "Skipping old version of level options.\nCheck level options after loading.");
 	    }
 
         //
@@ -1030,7 +1030,7 @@ bool EScene::Load(LPCSTR map_name, bool bUndo)
                     F->r_stringZ		(buf);
                     CCustomObject* 	O = FindObjectByName(buf.c_str(),OBJCLASS_SCENEOBJECT);
                     if (!O)
-                    	ELog.Msg(mtError,"EScene: Can't find snap object '%s'.",buf.c_str());
+                    	ELog.Msg(mtError,"Can't find snap object '%s'", buf.c_str());
 
                     else
                     m_ESO_SnapObjects.push_back(O);
@@ -1039,7 +1039,7 @@ bool EScene::Load(LPCSTR map_name, bool bUndo)
             UpdateSnapList();
         }
 
-        Msg("EScene: %d objects loaded, %3.2f sec", ObjCount(), T.GetElapsed_sec() );
+        ELog.Msg(mtInformation, "Scene loaded:\n\t%d objects in %.2f seconds", ObjCount(), T.GetElapsed_sec());
 
     	UI->UpdateScene(true); 
 
@@ -1121,7 +1121,7 @@ bool EScene::LoadSelection( LPCSTR fname )
     xr_string 		full_name;
     full_name 		= fname;
 
-	ELog.Msg( mtInformation, "EScene: loading part %s...", fname );
+	ELog.Msg(mtInformation, "Loading part %s...", fname);
 
     bool res = true;
 
@@ -1133,7 +1133,7 @@ bool EScene::LoadSelection( LPCSTR fname )
         // Version
         R_ASSERT(F->r_chunk(CHUNK_VERSION, &version));
         if (version!=CURRENT_FILE_VERSION){
-            ELog.DlgMsg( mtError, "EScene: unsupported file version. Can't load Level.");
+            ELog.DlgMsg(mtError, "Unsupported file version! Cannot load the scene.");
             UI->UpdateScene();
             FS.r_close(F);
             return false;
@@ -1142,7 +1142,7 @@ bool EScene::LoadSelection( LPCSTR fname )
         // Objects
         if (!ReadObjectsStream(*F,CHUNK_OBJECT_LIST,std::bind(&EScene::OnLoadSelectionAppendObject,this,_1),0))
         {
-            ELog.DlgMsg(mtError,"EScene. Failed to load selection.");
+            ELog.DlgMsg(mtError, "Failed to load selection!");
             res = false;
         }
 

@@ -371,7 +371,7 @@ bool EDetailManager::UpdateSlotObjects(int x, int z){
     }
 
     // заполним палитру и установим Random'ы
-//	Msg("Slot: %d %d",x,z);
+//	ELog.Msg(mtInformation, "Slot: %d %d",x,z);
     for(u32 k=0; k<best.size(); k++){
      	// objects
 		ColorIndexPairIt CI=m_ColorIndices.find(best[k].index); R_ASSERT(CI!=m_ColorIndices.end());

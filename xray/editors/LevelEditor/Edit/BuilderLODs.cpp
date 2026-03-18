@@ -79,20 +79,20 @@ int	SceneBuilder::BuildObjectLOD(const Fmatrix& parent, CEditableObject* E, int 
     u32 w,h;     
     int age;
     if (!ImageLib.LoadTextureData(l_name.c_str(),b.data,w,h,&age)){
-    	Msg("!Can't find LOD texture: '%s'",l_name.c_str());
+		ELog.Msg(mtInformation, "Cannot find LOD texture: '%s'", l_name.c_str());
     	return -2;
     }
 /*    if (age!=E->Version()){
-    	Msg("!Invalid LOD texture version: '%s'",l_name.c_str());
+    	ELog.Msg(mtInformation, "Invalid LOD texture version: '%s'",l_name.c_str());
     	return -2;
     }*/
     l_name 			+= "_nm";
     if (!ImageLib.LoadTextureData(l_name.c_str(),b.ndata,w,h,&age)){
-    	Msg("!Can't find LOD texture: '%s'",l_name.c_str());
+		ELog.Msg(mtInformation, "Cannot find LOD texture: '%s'", l_name.c_str());
     	return -2;
     }
 /*    if (age!=E->Version()){
-    	Msg("!Invalid LOD texture version: '%s'",l_name.c_str());
+    	ELog.Msg(mtInformation, "Invalid LOD texture version: '%s'",l_name.c_str());
     	return -2;
     }*/
 //    b.data
@@ -247,7 +247,7 @@ tH+=TT.Stop();
         }
     }
 
-	Msg("Normal: %3.2fsec, Hemi: %3.2f, PC: %3.2f, RP: %3.2f",tN,tH,tT,tR);
+	ELog.Msg(mtInformation, "Normal: %3.2fsec, Hemi: %3.2f, PC: %3.2f, RP: %3.2f",tN,tH,tT,tR);
 	ImageLib.ApplyBorders			(b.ndata,	LOD_IMAGE_SIZE*LOD_SAMPLE_COUNT,LOD_IMAGE_SIZE);
     // fill alpha to N-channel
     for (int px_idx=0; px_idx<int(b.ndata.size()); px_idx++)

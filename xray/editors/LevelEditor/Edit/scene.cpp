@@ -95,12 +95,12 @@ void EScene::OnCreate()
     
 	m_LastAvailObject 		= 0;
     m_LevelOp.Reset			();
-	ELog.Msg				( mtInformation, "Scene: initialized" );
+	ELog.Msg				( mtInformation, "Empty scene has been initialized." );
 	m_Valid 				= true;
     m_RTFlags.zero			();
     ExecCommand				(COMMAND_UPDATE_CAPTION);
 
-	m_SummaryInfo       = xr_new<IM_PropertiesWnd>("Level Summary Info");
+	m_SummaryInfo       = xr_new<IM_PropertiesWnd>("Scene Summary Info");
 	UI->AddIMWindow     (m_SummaryInfo);
 }
 
@@ -111,7 +111,7 @@ void EScene::OnDestroy()
 
     Unload					(FALSE);
     UndoClear				();
-	ELog.Msg				( mtInformation, "Scene: cleared" );
+	ELog.Msg				( mtInformation, "Scene cleared" );
 	m_LastAvailObject 		= 0;
 	m_Valid 				= false;
     DestroySceneTools		();
@@ -395,7 +395,7 @@ bool EScene::Validate(bool bNeedOkMsg, bool bTestPortal, bool bTestHOM, bool bTe
             if (O->m_objectFlags.is(CEditableObject::eoHOM)){ bHasHOM = true; break; }
         }
         if (!bHasHOM)
-			Msg("!Level doesn't contain HOM objects!");
+			ELog.Msg(mtInformation, "!Level doesn't contain HOM objects!");
 //.			if (mrNo==ELog.DlgMsg(mtConfirmation,TMsgDlgButtons() << mbYes << mbNo,"Level doesn't contain HOM.\nContinue anyway?"))
 //.				return false;
     }
@@ -589,7 +589,7 @@ void EScene::RegisterSubstObjectName(const xr_string& _from, const xr_string& _t
     xr_string _tmp;
     bool b = GetSubstObjectName(_from, _tmp);
     if(b)
-       	Msg("! subst for '%s' already exist -'%s'",_from.c_str(), _tmp.c_str());
+		ELog.Msg(mtError, "Subst for '%s' already exist:'%s'", _from.c_str(), _tmp.c_str());
 
     TSubstPairs_it It      = m_subst_pairs.begin();
     TSubstPairs_it It_e    = m_subst_pairs.end();

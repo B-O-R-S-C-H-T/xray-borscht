@@ -461,7 +461,10 @@ void CWayObject::MoveTo(const Fvector& pos, const Fvector& up)
     	CWayPoint* sel_point = 0;
         for (WPIt it=m_WayPoints.begin(); it!=m_WayPoints.end(); it++) 
         	if ((*it)->m_bSelected){ 
-        		if (sel_point){ Msg("!Only one selected way point supported."); return; }
+        		if (sel_point) {
+					ELog.Msg(mtError, "Only one selected way point supported.");
+					return;
+				}
             	sel_point=*it;
         	}
         if (sel_point) sel_point->m_vPosition.set(pos);

@@ -233,7 +233,7 @@ CCommandVar CommandLoad(CCommandVar p1, CCommandVar p2)
             if (!Scene->IfModified())
             	return FALSE;
             
-            UI->SetStatus			("Level loading...");
+            UI->SetStatus			("Loading scene from:");
             ExecCommand				(COMMAND_CLEAR);
 
 			IReader* R = FS.r_open	(temp_fn.c_str());
@@ -311,7 +311,7 @@ CCommandVar CommandSave(CCommandVar p1, CCommandVar p2)
             {
                 xr_strlwr		(temp_fn);
 
-                UI->SetStatus	("Level saving...");
+                UI->SetStatus	("Saving scene...");
 
                 Scene->SaveLTX	(temp_fn.c_str(), false, (p2==66));
 

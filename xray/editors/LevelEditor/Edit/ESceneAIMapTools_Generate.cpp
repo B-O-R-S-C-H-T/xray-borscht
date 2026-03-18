@@ -51,7 +51,7 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
         {
             CDB::TRI* tri = (m_CFModel->get_tris()+i);
             if(tri->material!=0)
-            	Msg("non-default material");
+            	ELog.Msg(mtInformation, "non-default material");
         }
         */
     	Scene->BoxQuery(PQ,BB,CDB::OPT_FULL_TEST,m_CFModel);
@@ -88,7 +88,7 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 
             if(std::find(m_ignored_materials.begin(), m_ignored_materials.end(), mtl_id) != m_ignored_materials.end() )
             {
-//.                Msg("--ignore");
+//.                ELog.Msg(mtInformation, "--ignore");
                 continue;
             }
         }
@@ -140,13 +140,13 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 		}
 	}
 	if (points.size()<3) {
-//		Msg		("Failed to create node at [%f,%f,%f].",vAt.x,vAt.y,vAt.z);
+//		ELog.Msg(mtInformation, "Failed to create node at [%f,%f,%f].",vAt.x,vAt.y,vAt.z);
 		return	FALSE;
 	}
 //.
 	float rc_lim = bIC?0.015f:0.7f;
 	if (float(points.size())/float(RCAST_Total) < rc_lim) {
-//		Msg		("Partial chasm at [%f,%f,%f].",vAt.x,vAt.y,vAt.z);
+//		ELog.Msg(mtInformation, "Partial chasm at [%f,%f,%f].",vAt.x,vAt.y,vAt.z);
 		return	FALSE;
 	}
 
@@ -241,7 +241,7 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 //.		if (!bIC&&(perc < 0.5f)){
 		float perc_lim = bIC?0.015f:0.5f;
 		if (perc < perc_lim){
-			//			Msg		("Floating node.");
+//			ELog.Msg(mtInformation, "Floating node.");
 			return	FALSE;
 		}
 	}
@@ -683,9 +683,9 @@ tm.Start();
         BuildNodes			(bFromSelectedOnly);
 tm.GetElapsed_sec();
         Scene->unlock		();
-//.        Log("-test time: ",	g_tm.GetElapsed_sec());
+        Log("-test time: ",	tm.GetElapsed_sec());
 		Log("-building time: ",tm.GetElapsed_sec());
-//.        Msg("-Rate: %3.2f Count: %d",(g_tm.GetElapsed_sec()/tm.GetElapsed_sec())*100.f,g_tm.count);
+        ELog.Msg(mtInformation, "-Rate: %.2f",(tm.GetElapsed_sec()/tm.GetElapsed_sec())*100.f);
 
         // unload CFModel
 		ETOOLS::destroy_model(m_CFModel);

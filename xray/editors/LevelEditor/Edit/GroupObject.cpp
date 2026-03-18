@@ -100,7 +100,7 @@ bool CGroupObject::AppendObjectLoadCB(CCustomObject* object)
     LPCSTR N = object->GetName();
     if (xr_strcmp(N,buf)!=0)
     {
-       	Msg					("Load_Append name changed from[%s] to[%s]",object->GetName(), buf);
+		ELog.Msg(mtInformation, "Load_Append name changed from[%s] to[%s]", object->GetName(), buf);
         object->SetName		(buf);
     }
 
@@ -442,7 +442,7 @@ void CGroupObject::OnSceneUpdate()
                 Scene->GenObjectName(CO->ClassID, buf, CO->GetName());
                 if (CO->GetName()!=buf)// TODO replace comparing pointers to comparing strings
                 {
-                	Msg("OG name changed from[%s] to[%s]",CO->GetName(), buf);
+					ELog.Msg(mtInformation, "OG name changed from[%s] to[%s]", CO->GetName(), buf);
                     CO->SetName		(buf);
 					it->ObjectName	= buf;
                 }
@@ -470,7 +470,8 @@ bool CGroupObject::CanUngroup(bool bMsg)
     	ESceneToolBase* tool = Scene->GetTool(it->pObject->ClassID);
     	if ( !tool->IsEditable()  )
         {
-        	if (bMsg) Msg("!.Can't detach object '%s'. Target '%s' in readonly mode.",it->pObject->GetName(), tool->ClassDesc());
+			if (bMsg)
+				ELog.Msg(mtError, "Cannot detach object '%s'. Target '%s' in read-only mode.", it->pObject->GetName(), tool->ClassDesc());
         	res = false;
         }
     }
