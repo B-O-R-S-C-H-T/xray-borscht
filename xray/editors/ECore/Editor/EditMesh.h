@@ -275,9 +275,6 @@ protected:
 
 	void 			RecurseTri				(int id);
 
-
-	// mesh optimize routine
-	bool 			OptimizeFace			(st_Face& face);
 public:
 	void			RecomputeBBox			();
 	void 			OptimizeMesh			(BOOL NoOpt);
