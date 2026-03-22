@@ -5,20 +5,19 @@
 
 class CTexture;
 
-class IM_TopBar : public IM_Window
-{
-    public:
-    CTexture* m_ui_texture;
+class IM_TopBar : public IM_Window {
+public:
+	CTexture* m_ui_texture;
 
-    bool m_vertical;
+	bool m_vertical;
 
-    bool Button(int image_id, const char* tooltip = NULL, bool selected = false);
-    void Separator();
+	bool Button(int image_id, const char* tooltip = NULL, bool selected = false);
+	void Separator();
 
-    public:
-    virtual void OnAdd();
-    virtual void OnRemove();
-    virtual void Render();
+public:
+	virtual void OnAdd();
+	virtual void OnRemove();
+	virtual void Render();
 };
 
 extern IM_TopBar imTopBar;

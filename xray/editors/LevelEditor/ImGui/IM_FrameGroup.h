@@ -6,29 +6,23 @@
 class ESceneGroupTool;
 class IM_ChooseForm;
 
-class IM_FrameGroup : public IM_Window
-{
-	public:
-    ESceneGroupTool *m_parent_tool;
-    xr_string m_current;
-    int m_select_percent;
+class IM_FrameGroup : public IM_Window {
+public:
+	ESceneGroupTool* m_parent_tool;
+	xr_string		 m_current;
+	int				 m_select_percent;
 
-	public:
-    IM_FrameGroup()
-    	: m_parent_tool(NULL),
-          m_current(""),
-          m_select_percent(0)
-    {
-    }
+public:
+	IM_FrameGroup() : m_parent_tool(NULL), m_current(""), m_select_percent(0) {}
 
-    void OnGroupSelected(IM_ChooseForm* form);
+	void OnGroupSelected(IM_ChooseForm* form);
 
-    void MultiSelByRefObject(bool clear_prev);
-    void SelByRefObject(bool flag);
+	void MultiSelByRefObject(bool clear_prev);
+	void SelByRefObject(bool flag);
 
-    virtual void OnAdd();
-    virtual void OnRemove();
-    virtual void Render();
+	virtual void OnAdd();
+	virtual void OnRemove();
+	virtual void Render();
 };
 
 #endif

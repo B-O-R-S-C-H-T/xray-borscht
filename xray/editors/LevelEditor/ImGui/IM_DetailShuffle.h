@@ -4,16 +4,15 @@
 
 class EDetailManager;
 
-class IM_DetailShuffle : public IM_Window
-{
+class IM_DetailShuffle : public IM_Window {
 public:
-    IM_DetailShuffle(EDetailManager* dm);
+	IM_DetailShuffle(EDetailManager* dm);
 
-    void Render() override;
+	void Render() override;
 
 private:
-    EDetailManager* m_dm;
-    bool m_needRefresh = false;
+	EDetailManager* m_dm;
+	bool			m_needRefresh = false;
 
-    void refresh();
+	void			refresh();
 };

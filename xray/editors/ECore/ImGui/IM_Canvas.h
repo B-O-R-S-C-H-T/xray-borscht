@@ -3,35 +3,32 @@
 
 #include "IM_Window.h"
 
-class ECORE_API IM_Canvas : public IM_Window
-{
-	private:
-	int m_width, m_height;
-	CRT* m_texture;
-    HDC m_hdc;
-    HBITMAP m_hbitmap, m_holdbm;
+class ECORE_API IM_Canvas : public IM_Window {
+private:
+	int		m_width, m_height;
+	CRT*	m_texture;
+	HDC		m_hdc;
+	HBITMAP m_hbitmap, m_holdbm;
 
-	public:
-    IM_Canvas(int width, int height);
-    ~IM_Canvas();
+public:
+	IM_Canvas(int width, int height);
+	~IM_Canvas();
 
-    void DestroyTexture();
+	void DestroyTexture();
 
-    private:
-    void CreateTexture();
+private:
+	void CreateTexture();
 
+public:
+	int		Width() { return m_width; }
+	int		Height() { return m_height; }
 
-    public:
+	void	Clear();
 
-    int Width() { return m_width; }
-    int Height() { return m_height; }
+	HDC		BeginPaint();
+	void	EndPaint();
 
-    void Clear();
-
-    HDC BeginPaint();
-    void EndPaint();
-
-    virtual void Render();
+	virtual void Render();
 };
 
 #endif

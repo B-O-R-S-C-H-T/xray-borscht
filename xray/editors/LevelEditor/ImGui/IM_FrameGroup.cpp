@@ -17,168 +17,155 @@
 
 BOOL bForceInitListBox = FALSE;
 
-void IM_FrameGroup::OnGroupSelected(IM_ChooseForm* form)
-{
+void IM_FrameGroup::OnGroupSelected(IM_ChooseForm* form) {
 	m_current = form->GetSelected().c_str();
-    m_parent_tool->SetCurrentObject(m_current.c_str());
+	m_parent_tool->SetCurrentObject(m_current.c_str());
 }
 
-void IM_FrameGroup::MultiSelByRefObject(bool clear_prev)
-{
-    ObjectList 	objlist;
-    LPU32Vec 	sellist;
-    if (Scene->GetQueryObjects(objlist,OBJCLASS_GROUP,1,1,-1)){
-    	for (ObjectIt it=objlist.begin(); it!=objlist.end(); it++){
-	        LPCSTR N = ((CGroupObject*)*it)->RefName();
-            ObjectIt _F = Scene->FirstObj(OBJCLASS_GROUP);
-            ObjectIt _E = Scene->LastObj(OBJCLASS_GROUP);
-            for(;_F!=_E;_F++){
-	            CGroupObject *_O = (CGroupObject *)(*_F);
-                if((*_F)->Visible()&&_O->RefCompare(N)){
-                	if (clear_prev){
-                    	_O->Select( false );
-	                    sellist.push_back((u32*)_O);
-                    }else{
-                    	if (!_O->Selected())
-                        	sellist.push_back((u32*)_O);
-                    }
-                }
-            }
-        }
-        std::sort			(sellist.begin(),sellist.end());
-        sellist.erase		(std::unique(sellist.begin(),sellist.end()),sellist.end());
-        std::shuffle	    (sellist.begin(),sellist.end(), std::random_device());
-        int max_k		= iFloor(float(sellist.size())/100.f*float(m_select_percent)+0.5f);
-        int k			= 0;
-        for (LPU32It o_it=sellist.begin(); k<max_k; o_it++,k++){
-            CGroupObject *_O = (CGroupObject *)(*o_it);
-            _O->Select( true );
-        }
-    }
+void IM_FrameGroup::MultiSelByRefObject(bool clear_prev) {
+	ObjectList objlist;
+	LPU32Vec   sellist;
+	if (Scene->GetQueryObjects(objlist, OBJCLASS_GROUP, 1, 1, -1)) {
+		for (ObjectIt it = objlist.begin(); it != objlist.end(); it++) {
+			LPCSTR	 N	= ((CGroupObject*)*it)->RefName();
+			ObjectIt _F = Scene->FirstObj(OBJCLASS_GROUP);
+			ObjectIt _E = Scene->LastObj(OBJCLASS_GROUP);
+			for (; _F != _E; _F++) {
+				CGroupObject* _O = (CGroupObject*)(*_F);
+				if ((*_F)->Visible() && _O->RefCompare(N)) {
+					if (clear_prev) {
+						_O->Select(false);
+						sellist.push_back((u32*)_O);
+					} else {
+						if (!_O->Selected())
+							sellist.push_back((u32*)_O);
+					}
+				}
+			}
+		}
+		std::sort(sellist.begin(), sellist.end());
+		sellist.erase(std::unique(sellist.begin(), sellist.end()), sellist.end());
+		std::shuffle(sellist.begin(), sellist.end(), std::random_device());
+		int max_k = iFloor(float(sellist.size()) / 100.f * float(m_select_percent) + 0.5f);
+		int k	  = 0;
+		for (LPU32It o_it = sellist.begin(); k < max_k; o_it++, k++) {
+			CGroupObject* _O = (CGroupObject*)(*o_it);
+			_O->Select(true);
+		}
+	}
 }
 
-void IM_FrameGroup::SelByRefObject(bool flag)
-{
-	if (m_current.length()){
-    	ObjectList objlist;
-        LPCSTR N = m_current.c_str();
+void IM_FrameGroup::SelByRefObject(bool flag) {
+	if (m_current.length()) {
+		ObjectList objlist;
+		LPCSTR	   N  = m_current.c_str();
 
-        ObjectIt _F = Scene->FirstObj(OBJCLASS_GROUP);
-        ObjectIt _E = Scene->LastObj(OBJCLASS_GROUP);
-        for(;_F!=_E;_F++){
-            if((*_F)->Visible() ){
-                CGroupObject *_O = (CGroupObject*)(*_F);
-                if(_O->RefCompare(N)) _O->Select( flag );
-            }
-        }
-    }
+		ObjectIt   _F = Scene->FirstObj(OBJCLASS_GROUP);
+		ObjectIt   _E = Scene->LastObj(OBJCLASS_GROUP);
+		for (; _F != _E; _F++) {
+			if ((*_F)->Visible()) {
+				CGroupObject* _O = (CGroupObject*)(*_F);
+				if (_O->RefCompare(N))
+					_O->Select(flag);
+			}
+		}
+	}
 }
 
-void IM_FrameGroup::OnAdd()
-{
+void IM_FrameGroup::OnAdd() {
 	m_parent_tool = dynamic_cast<ESceneGroupTool*>(Scene->GetTool(OBJCLASS_GROUP));
 	VERIFY(m_parent_tool);
 
-    IM_Storage storage(false, "level.ini", "IM_FrameGroup");
+	IM_Storage storage(false, "level.ini", "IM_FrameGroup");
 
-    m_select_percent = storage.GetInt("select_percent", 0);
-    m_current = storage.GetString("current", "");
-    if(!m_current.empty())
-    	m_parent_tool->SetCurrentObject(m_current.c_str());
+	m_select_percent = storage.GetInt("select_percent", 0);
+	m_current		 = storage.GetString("current", "");
+	if (!m_current.empty())
+		m_parent_tool->SetCurrentObject(m_current.c_str());
 }
 
-void IM_FrameGroup::OnRemove()
-{
+void IM_FrameGroup::OnRemove() {
 	IM_Storage storage(true, "level.ini", "IM_FrameGroup");
 
-    storage.PutInt("select_percent", m_select_percent);
-    storage.PutString("current", m_current);
+	storage.PutInt("select_percent", m_select_percent);
+	storage.PutString("current", m_current);
 }
 
-void IM_FrameGroup::Render()
-{
-	if(ImGui::CollapsingHeader("Commands",
-    ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        ImGui::Columns(2, "group_commands_cols", false);
+void IM_FrameGroup::Render() {
+	if (ImGui::CollapsingHeader("Commands", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+		ImGui::Columns(2, "group_commands_cols", false);
 
-        if (ImGui::MenuItem("Group##group_group"))
-            m_parent_tool->GroupObjects();
-        if (ImGui::MenuItem("Ungroup##group_ungroup"))
-            m_parent_tool->UngroupObjects();
+		if (ImGui::MenuItem("Group##group_group"))
+			m_parent_tool->GroupObjects();
+		if (ImGui::MenuItem("Ungroup##group_ungroup"))
+			m_parent_tool->UngroupObjects();
 
-        ImGui::NextColumn();
+		ImGui::NextColumn();
 
-        if (ImGui::MenuItem("Make Thumbnail##group_make_thumb"))
-            m_parent_tool->MakeThumbnail();
-        if (ImGui::MenuItem("Save AS...##group_save_as"))
-            m_parent_tool->SaveSelectedObject();
+		if (ImGui::MenuItem("Make Thumbnail##group_make_thumb"))
+			m_parent_tool->MakeThumbnail();
+		if (ImGui::MenuItem("Save AS...##group_save_as"))
+			m_parent_tool->SaveSelectedObject();
 
-        ImGui::Columns(1);
-    }
+		ImGui::Columns(1);
+	}
 
-	if (ImGui::CollapsingHeader("Current Object", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        ImGui::Columns(2, "group_current_cols", false);
+	if (ImGui::CollapsingHeader("Current Object", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+		ImGui::Columns(2, "group_current_cols", false);
 
-        if (ImGui::MenuItem("Select...##group_select"))
-        {
+		if (ImGui::MenuItem("Select...##group_select")) {
 			IM_ChooseForm* cf = new IM_ChooseForm(smGroup, 1);
 			cf->OnOK.bind(this, &IM_FrameGroup::OnGroupSelected);
-            UI->AddIMWindow(cf);
-        }
+			UI->AddIMWindow(cf);
+		}
 
-        ImGui::NextColumn();
+		ImGui::NextColumn();
 
-        if (ImGui::MenuItem("Reload Refs##group_reload_refs"))
-        {
-        	extern BOOL bForceInitListBox;
-            m_parent_tool->ReloadRefsSelectedObject();
-    		bForceInitListBox = TRUE;
-    		Tools->UpdateProperties(TRUE);
-        }
+		if (ImGui::MenuItem("Reload Refs##group_reload_refs")) {
+			extern BOOL bForceInitListBox;
+			m_parent_tool->ReloadRefsSelectedObject();
+			bForceInitListBox = TRUE;
+			Tools->UpdateProperties(TRUE);
+		}
 
-        ImGui::Columns(1);
+		ImGui::Columns(1);
 
-        ImGui::Text("Current: %s",
-        m_current.length() ? m_current.c_str() : "<empty>");
-        if(ImGui::IsItemHovered())
+		ImGui::Text("Current: %s", m_current.length() ? m_current.c_str() : "<empty>");
+		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("%s", m_current.c_str());
-    }
+	}
 
-    if (ImGui::CollapsingHeader("Reference Select", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        ImGui::Columns(2, "group_refselect_cols", false);
+	if (ImGui::CollapsingHeader("Reference Select", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+		ImGui::Columns(2, "group_refselect_cols", false);
 
-        ImGui::AlignTextToFramePadding();
-    	ImGui::TextUnformatted("Select by Current:\t");
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Select by Selected:\t");
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("Select by Current:\t");
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("Select by Selected:\t");
 
-        ImGui::NextColumn();
+		ImGui::NextColumn();
 
-        if (ImGui::Button("+##group_sel_by_cur_add", ImVec2(40, 0)))
-            SelByRefObject(true);
-        ImGui::SameLine();
-        if (ImGui::Button("-##group_sel_by_cur_sub", ImVec2(40, 0)))
-            SelByRefObject(false);
+		if (ImGui::Button("+##group_sel_by_cur_add", ImVec2(40, 0)))
+			SelByRefObject(true);
+		ImGui::SameLine();
+		if (ImGui::Button("-##group_sel_by_cur_sub", ImVec2(40, 0)))
+			SelByRefObject(false);
 
-        if (ImGui::Button("=%##group_multi_sel_clear", ImVec2(40, 0)))
-            MultiSelByRefObject(true);
-        ImGui::SameLine();
-        if (ImGui::Button("+%##group_multi_sel_add", ImVec2(40, 0)))
-            MultiSelByRefObject(false);
+		if (ImGui::Button("=%##group_multi_sel_clear", ImVec2(40, 0)))
+			MultiSelByRefObject(true);
+		ImGui::SameLine();
+		if (ImGui::Button("+%##group_multi_sel_add", ImVec2(40, 0)))
+			MultiSelByRefObject(false);
 
-        ImGui::Columns(1);
+		ImGui::Columns(1);
 
-        ImGui::SliderInt("%", &m_select_percent, 0, 100);
-    }
+		ImGui::SliderInt("%", &m_select_percent, 0, 100);
+	}
 
-    if (ImGui::CollapsingHeader("Pivot Alignment", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
-    {
-    	if(ImGui::MenuItem("Center to Group"))
-        	m_parent_tool->CenterToGroup();
-        if(ImGui::MenuItem("Align to Object..."))
-        	m_parent_tool->AlignToObject();
-    }
+	if (ImGui::CollapsingHeader("Pivot Alignment", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+		if (ImGui::MenuItem("Center to Group"))
+			m_parent_tool->CenterToGroup();
+		if (ImGui::MenuItem("Align to Object..."))
+			m_parent_tool->AlignToObject();
+	}
 }

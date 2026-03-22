@@ -13,80 +13,65 @@
 #endif
 #include "../ECore/Editor/ui_main.h"
 
-void IM_FrameDetail::Render()
-{
-	if(!parent_tool)
-    {
-    	parent_tool = dynamic_cast<EDetailManager*>(Scene->GetTool(OBJCLASS_DO));
-        VERIFY(parent_tool);
-    }
+void IM_FrameDetail::Render() {
+	if (!parent_tool) {
+		parent_tool = dynamic_cast<EDetailManager*>(Scene->GetTool(OBJCLASS_DO));
+		VERIFY(parent_tool);
+	}
 
-    if(ImGui::CollapsingHeader("DO Commands",
-    ImGuiTreeNodeFlags_Framed|ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        if (ImGui::MenuItem("First Initialize##detail_first_init"))
-        {
-        	if(parent_tool->Initialize())
-            	Scene->UndoSave();
-        }
-        if (ImGui::MenuItem("Reinitialize All##detail_reinit_all"))
-        {
-        	if(parent_tool->Reinitialize())
-            	Scene->UndoSave();
-        }
-        if (ImGui::MenuItem("Reinitialize Objects Only##detail_reinit_objs"))
-        {
-        	if(parent_tool->UpdateObjects(true, false))
-            	Scene->UndoSave();
-        }
-        if (ImGui::MenuItem("Reinitialize Selected Slot Objects##detail_reinit_sel_slots"))
-        {
-        	if(parent_tool->UpdateObjects(false, true))
-            	Scene->UndoSave();
-        }
-
-        ImGui::Separator();
-
-        if (ImGui::MenuItem("Update Renderer##detail_update_renderer"))
-        {
-        	parent_tool->InvalidateCache();
-            Scene->UndoSave();
-        }
-
-        ImGui::Separator();
-
-        if (ImGui::MenuItem("Clear Slots##detail_clear_slots"))
-        {
-        	if(ELog.DlgMsg(mtConfirmation, TMsgDlgButtons() << mbYes << mbNo, "Are you sure to reset slots?") == mrYes)
-            {
-    			parent_tool->ClearSlots();
+	if (ImGui::CollapsingHeader("DO Commands", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+		if (ImGui::MenuItem("First Initialize##detail_first_init")) {
+			if (parent_tool->Initialize())
 				Scene->UndoSave();
-    		}
-    	}
-        if (ImGui::MenuItem("Clear Details##detail_clear_details"))
-        {
-        	if(ELog.DlgMsg(mtConfirmation, TMsgDlgButtons() << mbYes << mbNo, "Are you sure to clear details?") == mrYes)
-            {
-    			ExecCommand(COMMAND_UPDATE_PROPERTIES);
+		}
+		if (ImGui::MenuItem("Reinitialize All##detail_reinit_all")) {
+			if (parent_tool->Reinitialize())
+				Scene->UndoSave();
+		}
+		if (ImGui::MenuItem("Reinitialize Objects Only##detail_reinit_objs")) {
+			if (parent_tool->UpdateObjects(true, false))
+				Scene->UndoSave();
+		}
+		if (ImGui::MenuItem("Reinitialize Selected Slot Objects##detail_reinit_sel_slots")) {
+			if (parent_tool->UpdateObjects(false, true))
+				Scene->UndoSave();
+		}
+
+		ImGui::Separator();
+
+		if (ImGui::MenuItem("Update Renderer##detail_update_renderer")) {
+			parent_tool->InvalidateCache();
+			Scene->UndoSave();
+		}
+
+		ImGui::Separator();
+
+		if (ImGui::MenuItem("Clear Slots##detail_clear_slots")) {
+			if (ELog.DlgMsg(mtConfirmation, TMsgDlgButtons() << mbYes << mbNo, "Are you sure to reset slots?") == mrYes) {
+				parent_tool->ClearSlots();
+				Scene->UndoSave();
+			}
+		}
+		if (ImGui::MenuItem("Clear Details##detail_clear_details")) {
+			if (ELog.DlgMsg(mtConfirmation, TMsgDlgButtons() << mbYes << mbNo, "Are you sure to clear details?") == mrYes) {
+				ExecCommand(COMMAND_UPDATE_PROPERTIES);
 				parent_tool->Clear();
 				Scene->UndoSave();
-    		}
-    	}
+			}
+		}
 
-        ImGui::Separator();
+		ImGui::Separator();
 
-        if (ImGui::MenuItem("Object List##detail_object_list"))
-        {
+		if (ImGui::MenuItem("Object List##detail_object_list")) {
 #ifdef NO_VCL
-            auto wnd = xr_new<IM_DetailShuffle>(dynamic_cast<EDetailManager*>(Scene->GetTool(OBJCLASS_DO)));
-            UI->AddIMWindow(wnd);
+			auto wnd = xr_new<IM_DetailShuffle>(dynamic_cast<EDetailManager*>(Scene->GetTool(OBJCLASS_DO)));
+			UI->AddIMWindow(wnd);
 #else
-        	if(TfrmDOShuffle::Run())
-            	Scene->UndoSave();
+			if (TfrmDOShuffle::Run())
+				Scene->UndoSave();
 #endif
-        }
-    }
+		}
+	}
 }
 
 #pragma package(smart_init)
- 
