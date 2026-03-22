@@ -1,4 +1,3 @@
-//---------------------------------------------------------------------------
 #include "stdafx.h"
 #pragma hdrstop
 
@@ -39,6 +38,7 @@
 
 #include "StatusBar.h"
 #include "ImGui/IM_ContextMenu.h"
+#include "ImGui/IM_EditLibrary.h"
 
 #ifdef _LEVEL_EDITOR
 //.    if (m_Cursor->GetVisible()) RedrawScene();
@@ -60,8 +60,6 @@ CLevelMain::~CLevelMain()
     TClipMaker::DestroyForm(g_clip_maker);
 #endif
 }
-
-
 
 //------------------------------------------------------------------------------
 // Tools commands
@@ -88,19 +86,19 @@ CCommandVar CLevelTool::CommandShowObjectList(CCommandVar p1, CCommandVar p2)
 //------------------------------------------------------------------------------
 CCommandVar CommandLibraryEditor(CCommandVar p1, CCommandVar p2)
 {
-    if (Scene->ObjCount()||(LUI->GetEState()!=esEditScene)){
-        if (LUI->GetEState() == esEditLibrary) {
-#ifndef NO_VCL
-            TfrmEditLibrary::ShowEditor();
-#endif
-        } else									ELog.DlgMsg(mtError, "Scene must be empty before editing library!");
-    }else{
-#ifndef NO_VCL
-        TfrmEditLibrary::ShowEditor();
-#endif
-    }
-    return TRUE;
+	if (Scene->ObjCount() || (LUI->GetEState() != esEditScene)) {
+		if (LUI->GetEState() == esEditLibrary) {
+			IM_EditLibrary::ShowEditor();
+		} else {
+			ELog.DlgMsg(mtError, "Scene must be empty before editing library!");
+		}
+	} else {
+		IM_EditLibrary::ShowEditor();
+	}
+
+	return TRUE;
 }
+
 CCommandVar CommandLAnimEditor(CCommandVar p1, CCommandVar p2)
 {
 #ifndef NO_VCL
@@ -108,6 +106,7 @@ CCommandVar CommandLAnimEditor(CCommandVar p1, CCommandVar p2)
 #endif
     return TRUE;
 }
+
 CCommandVar CommandFileMenu(CCommandVar p1, CCommandVar p2)
 {
 #ifndef NO_VCL
@@ -115,6 +114,7 @@ CCommandVar CommandFileMenu(CCommandVar p1, CCommandVar p2)
 #endif
     return TRUE;
 }
+
 CCommandVar CLevelTool::CommandEnableTarget(CCommandVar p1, CCommandVar p2)
 {
 	ESceneToolBase* M 	= Scene->GetTool(p1);
@@ -1083,18 +1083,20 @@ bool CLevelMain::PickGround(Fvector& hitpoint, const Fvector& start, const Fvect
         bool bPickObject;
         SRayPickInfo pinf;
 	    EEditorState est = GetEState();
-        switch(est){
-        case esEditLibrary:{
-#ifndef NO_VCL
-        	bPickObject = !!TfrmEditLibrary::RayPick(start,direction,&pinf);
-#endif
-        }break;
-        case esEditScene:{
-        	bPickObject = !!Scene->RayPickObject(pinf.inf.range, start,direction,OBJCLASS_SCENEOBJECT,&pinf,Scene->GetSnapList(false)); break;
-        }
-        default: return false;
-        }
-        if (bPickObject){
+		switch (est) {
+			case esEditLibrary:
+			{
+				bPickObject = !!IM_EditLibrary::RayPick(start, direction, &pinf);
+			} break;
+			case esEditScene:
+			{
+				bPickObject = !!Scene->RayPickObject(pinf.inf.range, start, direction, OBJCLASS_SCENEOBJECT, &pinf, Scene->GetSnapList(false));
+				break;
+			}
+			default:
+				return false;
+		}
+		if (bPickObject){
 		    if (Tools->GetSettings(etfVSnap)&&bSnap){
                 Fvector pn;
                 float u = pinf.inf.u;

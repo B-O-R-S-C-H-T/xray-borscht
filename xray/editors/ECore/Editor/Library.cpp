@@ -224,31 +224,37 @@ void ELibrary::RemoveObject(LPCSTR _fname, EItemType type, bool& res)
 
 void ELibrary::RenameObject(LPCSTR nm0, LPCSTR nm1, EItemType type)
 {
-	if (TYPE_FOLDER==type){
-    	FS.dir_delete			(_objects_,nm0,FALSE);
-    }else if (TYPE_OBJECT==type){
-        string_path fn0,fn1,temp;
+    if (TYPE_FOLDER == type) {
+        FS.dir_delete(_objects_, nm0, FALSE);
+        return;
+    }
+
+    if (TYPE_OBJECT == type) {
+        string_path fn0, fn1;
+
         // rename base file
-        FS.update_path(fn0,_objects_,nm0);
-        strcat(fn0,".object");
-        FS.update_path(fn1,_objects_,nm1);
-        strcat(fn1,".object");
-        FS.file_rename(fn0,fn1,false);
+        FS.update_path(fn0, _objects_, nm0);
+        strcat(fn0, ".object");
+        FS.update_path(fn1, _objects_, nm1);
+        strcat(fn1, ".object");
+        FS.file_rename(fn0, fn1, false);
 
         // rename thm
-        FS.update_path(fn0,_objects_,nm0);
-        strcat(fn0,".thm");
-        FS.update_path(fn1,_objects_,nm1);
-        strcat(fn1,".thm");
-        FS.file_rename(fn0,fn1,false);
+        FS.update_path(fn0, _objects_, nm0);
+        strcat(fn0, ".thm");
+        FS.update_path(fn1, _objects_, nm1);
+        strcat(fn1, ".thm");
+        FS.file_rename(fn0, fn1, false);
 
         // rename in cache
-        EditObjPairIt it 	= m_EditObjects.find(nm0);
-	    if (it!=m_EditObjects.end()){
-            m_EditObjects[nm1]	= it->second;
-            m_EditObjects.erase	(it);
+        EditObjPairIt it = m_EditObjects.find(nm0);
+        if (it != m_EditObjects.end()) {
+            CEditableObject* obj = it->second;
+            m_EditObjects[nm1] = obj;
+            obj->m_LibName = nm1;
+            m_EditObjects.erase(it);
         }
-	}
+    }
 }
 //---------------------------------------------------------------------------
 

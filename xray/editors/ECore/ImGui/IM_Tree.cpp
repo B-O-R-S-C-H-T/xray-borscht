@@ -44,6 +44,12 @@ IM_Tree::ImTreeNode* IM_Tree::GetNode(LPCSTR path, bool must_exist) {
 	return node;
 }
 
+inline xr_string GetBasename(const shared_str& full_path) {
+	xr_string s	  = *full_path;
+	size_t	  pos = s.rfind('\\');
+	return (pos != xr_string::npos) ? s.substr(pos + 1) : s;
+}
+
 void IM_Tree::RenderNode(ImTreeNode& parent) {
 	if (!parent.child)
 		return;
@@ -55,71 +61,65 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 		bool		rename = false;
 
 		if (node.item && !node.item->Visible()) {
-			it++;
+			++it;
 			continue;
 		}
-
 		if (renaming == &node) {
-			ImGui::PushID(*node.name);
-			ImGui::InputText("", newname, sizeof(newname));
+			ImGui::PushID(static_cast<void*>(&node));
+			xr_string current_input(newname);
+			if (current_input.empty() || current_input.find('\\') != xr_string::npos) {
+				xr_string basename_only = GetBasename(node.name);
+				strcpy(newname, basename_only.c_str());
+			}
+			ImGui::InputText("##rename_input", newname, sizeof(newname));
 			ImGui::SameLine();
 			bool ok = ImGui::Button("OK");
 			ImGui::PopID();
-
 			if (GetAsyncKeyState(VK_RETURN) & 0x8000 || ok) {
-				if (parent.child->find(newname) == parent.child->end()) {
+				xr_string new_key(newname);
+				if (parent.child->find(new_key) == parent.child->end()) {
 					rename	 = true;
-					renaming = NULL;
-				} else
-					ELog.Msg(mtError, "Item '%s' already exists", newname);
+					renaming = nullptr;
+				} else {
+					ELog.Msg(mtError, u8"Element '%s' already exists", newname);
+				}
 			}
-		} else if (node.child) // folder
-		{
+		// folder
+		} else if (node.child) {
 			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 			if (node.selected)
 				flags |= ImGuiTreeNodeFlags_Selected;
-
 			bool open = ImGui::TreeNodeEx(it->first.c_str(), flags);
-/*
-					if(ImGui::IsItemClicked())
-					{
-						if(!multiselect || (multiselect && !ImGui::GetIO().KeyCtrl))
-							SelectAll(false);
-
-						SelectNode(node);
-					}
-*/
-
 			if (ImGui::BeginPopupContextItem()) {
 				ShowContextMenu(node, remove);
 				ImGui::EndPopup();
 			}
-
 			if (open) {
 				RenderNode(node);
 				ImGui::TreePop();
 			}
-		} else // file
-		{
+		// file
+		} else {
+			xr_string display_name = GetBasename(node.name);
 			if (DrawBullets)
 				ImGui::Bullet();
+			bool clicked = ImGui::Selectable(display_name.c_str(), node.selected);
 
-			bool clicked = false;
-			if (CheckmarkMode)
-				clicked = ImGui::MenuItem(it->first.c_str(), NULL, node.selected);
-			else
-				clicked = ImGui::Selectable(it->first.c_str(), node.selected);
+			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && !OnItemRename.empty()) {
+				SelectAll(false);
+				SelectNode(node, true);
+				strcpy(newname, GetBasename(node.name).c_str());
+				renaming = &node;
+			}
 
 			if (ImGui::BeginPopupContextItem()) {
 				ShowContextMenu(node, remove);
 				ImGui::EndPopup();
 			}
-
 			if (DrawThumbnails && !OnDrawThumbnail.empty()) {
 				if (!node.canvas) {
 					const int w = 150, h = 150;
 					node.canvas = xr_new<IM_Canvas>(w, h);
-
 					HDC hdc		= node.canvas->BeginPaint();
 					OnDrawThumbnail(*node.name, hdc, Irect().set(0, 0, w, h));
 					node.canvas->EndPaint();
@@ -130,15 +130,21 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 			}
 
 			if (clicked) {
-				if (!CheckmarkMode) {
-					if (!multiselect || (multiselect && !ImGui::GetIO().KeyCtrl))
-						SelectAll(false);
+				bool was_selected = node.selected;
 
-					if (MaxSelectedCount < 0 || GetSelectedCount() < MaxSelectedCount)
-						SelectNode(node);
+				if (!CheckmarkMode) {
+					if (ImGui::GetIO().KeyCtrl) {
+						SelectNode(node, !node.selected);
+					} else if (ImGui::GetIO().KeyShift && m_lastClickedNode) {
+						SelectRange(m_lastClickedNode, &node);
+					} else {
+						if (!multiselect || !ImGui::GetIO().KeyCtrl)
+							SelectAll(false);
+						SelectNode(node, true);
+						m_lastClickedNode = &node;
+					}
 				} else {
 					bool select = !node.selected;
-
 					if ((select && (MaxSelectedCount < 0 || GetSelectedCount() < MaxSelectedCount)) || !select)
 						SelectNode(node, select);
 				}
@@ -147,17 +153,16 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 					node.item->OnClickEvent(node.item);
 			}
 		}
-
 		if (remove) {
-			xr_map<xr_string, ImTreeNode>::iterator rm = it;
-			it++;
+			auto rm = it;
+			++it;
 			parent.child->erase(rm);
 		} else if (rename) {
 			xr_string nm = it->first;
-			it++;
+			++it;
 			RenameNode(parent, nm.c_str(), newname);
 		} else
-			it++;
+			++it;
 	}
 }
 
@@ -165,13 +170,10 @@ void IM_Tree::SelectNode(ImTreeNode& node, bool select) {
 	if (node.selected && !select) {
 		selected.remove(&node);
 		node.selected = false;
-
 		if (!OnNodeSelected.empty())
 			OnNodeSelected(node.name, node.value, select);
-
-		if (renaming == &node) {
+		if (renaming == &node)
 			renaming = NULL;
-		}
 	} else if (!node.selected && select) {
 		selected.push_back(&node);
 		node.selected = true;
@@ -179,53 +181,60 @@ void IM_Tree::SelectNode(ImTreeNode& node, bool select) {
 		// so much callbacks ...
 		if (!OnNodeSelected.empty())
 			OnNodeSelected(node.name, node.value, select);
-
 		if (node.item && !node.item->OnItemFocused.empty())
 			node.item->OnItemFocused(node.item);
-
 		if (OnItemFocused)
 			OnItemFocused(NULL);
+	}
 
-		if (OnItemsFocused) {
-			ListItemsVec vec;
-			GetSelected(vec);
-			OnItemsFocused(vec);
-		}
+	if (OnItemsFocused) {
+		ListItemsVec vec;
+		GetSelected(vec);
+		OnItemsFocused(vec);
 	}
 }
 
 bool IM_Tree::RenameNode(ImTreeNode& parent, LPCSTR oldname, LPCSTR newname) {
 	if (!parent.child || parent.child->find(oldname) == parent.child->end())
 		return false;
-	if (parent.child->find(newname) != parent.child->end())
-		return false; // already exists
+
+	xr_string new_key;
+	xr_string new_full_path;
+
+	if (strchr(newname, '\\') || strchr(newname, '/')) {
+		new_full_path = newname;
+		size_t pos	  = new_full_path.rfind('\\');
+		new_key		  = (pos != xr_string::npos) ? new_full_path.substr(pos + 1) : new_full_path;
+	} else {
+		new_key			   = newname;
+		xr_string old_full = *(*parent.child)[oldname].name;
+		size_t	  pos	   = old_full.rfind('\\');
+		if (pos != xr_string::npos)
+			new_full_path = old_full.substr(0, pos + 1) + newname;
+		else
+			new_full_path = newname;
+	}
+
+	if (parent.child->find(new_key) != parent.child->end())
+		return false;
 
 	ImTreeNode& n = (*parent.child)[oldname];
 	SelectNode(n, false);
 
-	(*parent.child)[newname] = n;
-	ImTreeNode& n2			 = (*parent.child)[newname];
+	(*parent.child)[new_key] = n;
+	ImTreeNode& n2			 = (*parent.child)[new_key];
 
-	xr_string	oldpath		 = *n.name;
-	xr_string	newpath;
-	size_t		pos = oldpath.rfind('\\');
-	if (pos != xr_string::npos)
-		newpath = oldpath.substr(0, pos + 1) + newname;
-	else
-		newpath = newname;
-
-	n2.name = newname;
+	n2.name					 = new_full_path.c_str();
 	if (n2.item)
-		n2.item->SetName(n2.name.c_str());
+		n2.item->SetName(new_key.c_str());
 
 	if (!OnItemRename.empty())
-		OnItemRename(oldpath.c_str(), newpath.c_str(), n2.child ? TYPE_FOLDER : TYPE_OBJECT);
+		OnItemRename(n.name.c_str(), new_full_path.c_str(), n2.child ? TYPE_FOLDER : TYPE_OBJECT);
 
 	n.ClearNotFree();
 	parent.child->erase(oldname);
 
 	SelectNode(n2, true);
-
 	return true;
 }
 
@@ -250,6 +259,49 @@ void IM_Tree::GetItems(ImTreeNode& node, ListItemsVec& result) {
 		if (it->second.item)
 			result.push_back(it->second.item);
 		GetItems(it->second, result);
+	}
+}
+
+void IM_Tree::CollectLinearOrder(ImTreeNode* node, std::vector<ImTreeNode*>& out) {
+	if (!node)
+		return;
+	if (!node->child) {
+		out.push_back(node);
+		return;
+	}
+	for (auto& pair : *node->child)
+		CollectLinearOrder(&pair.second, out);
+}
+
+void IM_Tree::SelectRange(ImTreeNode* from, ImTreeNode* to) {
+	if (!from || !to)
+		return;
+
+	std::vector<ImTreeNode*> linear;
+	CollectLinearOrder(&root, linear);
+
+	auto it_from = std::find(linear.begin(), linear.end(), from);
+	auto it_to	 = std::find(linear.begin(), linear.end(), to);
+
+	if (it_from == linear.end() || it_to == linear.end())
+		return;
+
+	if (it_from > it_to)
+		std::swap(it_from, it_to);
+
+	for (auto it = it_from; it <= it_to; ++it) {
+		if (!(*it)->selected) {
+			(*it)->selected = true;
+			selected.push_back(*it);
+			if ((*it)->item && !(*it)->item->OnItemFocused.empty())
+				(*it)->item->OnItemFocused((*it)->item);
+		}
+	}
+
+	if (OnItemsFocused) {
+		ListItemsVec vec;
+		GetSelected(vec);
+		OnItemsFocused(vec);
 	}
 }
 

@@ -2,13 +2,14 @@
 #pragma hdrstop
 
 #include "ImageManager.h"
-#include "Image.h"
+#include "Engine/Image.h"
 #include "editobject.h"
 #include "editmesh.h"
 #include "ui_main.h"
-#include "xrHemisphere.h"
-#include "xrImage_Resampler.h"
-#include "ETools.h"
+#include "../../xrEngine/xrImage_Resampler.h"
+#include "utils/ETools/ETools.h"
+#include "../../xrEngine/xrHemisphere.h"
+
 /*
 IC void SetCamera(float angle, const Fvector& C, float height, float radius, float dist)
 {

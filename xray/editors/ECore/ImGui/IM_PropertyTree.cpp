@@ -33,6 +33,7 @@
 	PROP_WAVE,
 	PROP_CANVAS,    // yes
 	PROP_TIME,      // yes
+
 	PROP_CTEXT,     // yes
 	PROP_CLIST,     // yes
 	PROP_SH_TOKEN,
@@ -85,84 +86,65 @@ void IM_PropertyTree::RenderNode(ImTreeNode& node) {
 
 	xr_list<ImTreeNode>::iterator it, end;
 	for (it = node.child->begin(), end = node.child->end(); it != end; it++) {
-		ImTreeNode& node	= *it;
+		ImTreeNode& current = *it;
 		bool		clicked = false;
-
-		//bool disabled = node.item ? node.item->m_Flags.is(PropItem::flDisabled) : false;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 3));
 		ImGui::Separator();
 		ImGui::PopStyleVar(1);
 
-		if (node.child) // folder
-		{
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+		ImGui::PushID(static_cast<void*>(&current));
 
+		if (current.child) {
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 			if (full_expand)
 				flags |= ImGuiTreeNodeFlags_DefaultOpen;
-			if (node.selected)
+			if (current.selected)
 				flags |= ImGuiTreeNodeFlags_Selected;
 
-			//if(disabled)
-			//	ImGui::PushStyleColor(ImGuiCol_Text,
-			//	ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-
 			ImGui::AlignTextToFramePadding();
-			bool open = ImGui::TreeNodeEx(node.name.c_str(), flags);
-
-			//if(disabled)
-			//	ImGui::PopStyleColor();
-
+			bool open = ImGui::TreeNodeEx(current.name.c_str(), flags);
 			if (ImGui::IsItemClicked())
 				clicked = true;
 
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			RenderItem(node);
+			RenderItem(current);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
 			if (open) {
-				RenderNode(node);
+				RenderNode(current);
 				ImGui::TreePop();
 			}
-		} else // file
-		{
+		} else {
 			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf;
-
-			if (node.selected)
+			if (current.selected)
 				flags |= ImGuiTreeNodeFlags_Selected;
-
-			//if(disabled)
-			//	ImGui::PushStyleColor(ImGuiCol_Text,
-			//	ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 
 			ImGui::AlignTextToFramePadding();
 			if (bullets)
 				ImGui::Bullet();
-			ImGui::Selectable(node.name.c_str(), node.selected);
 
-			//if(disabled)
-			//	ImGui::PopStyleColor();
-
+			ImGui::Selectable(current.name.c_str(), current.selected);
 			if (ImGui::IsItemClicked())
 				clicked = true;
 
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			RenderItem(node);
+			RenderItem(current);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 		}
 
+		ImGui::PopID();
+
 		if (clicked) {
 			if (!multiselect || (multiselect && !ImGui::GetIO().KeyCtrl))
 				SelectAll(false);
-
-			SelectNode(node);
-
-			if (node.item && !node.item->OnClickEvent.empty())
-				node.item->OnClickEvent(node.item);
+			SelectNode(current);
+			if (current.item && !current.item->OnClickEvent.empty())
+				current.item->OnClickEvent(current.item);
 		}
 	}
 }
@@ -197,6 +179,8 @@ void IM_PropertyTree::RenderItem(ImTreeNode& node) {
 
 	if (disabled)
 		ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+
+	ImGui::PushID(static_cast<void*>(item)); // перестраховка
 
 	switch (item->Type()) {
 		case PROP_CAPTION:
@@ -326,6 +310,8 @@ void IM_PropertyTree::RenderItem(ImTreeNode& node) {
 
 	if (disabled)
 		ImGui::PopStyleColor();
+
+	ImGui::PopID();
 }
 
 xr_string IM_PropertyTree::GetDrawText(PropItem* item) {

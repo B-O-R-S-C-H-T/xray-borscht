@@ -13,7 +13,6 @@ typedef fastdelegate::FastDelegate<void(LPCSTR, HDC, const Irect&)>	   IM_TOnDra
 class ECORE_API IM_Tree : public IM_Window {
 private:
 	char separator;
-	bool multiselect;
 
 	struct ImTreeNode {
 		xr_map<xr_string, ImTreeNode>* child;
@@ -51,17 +50,20 @@ private:
 	ImTreeNode			 root;
 	xr_list<ImTreeNode*> selected;
 
+	ImTreeNode*			 m_lastClickedNode = nullptr;
+
 	ImTreeNode*			 GetNode(LPCSTR path, bool must_exist);
 	void				 RenderNode(ImTreeNode& node);
 	void				 ClearNode(ImTreeNode& node) { node.Clear(); }
 	void				 SelectNode(ImTreeNode& node, bool select = true);
 	bool				 RenameNode(ImTreeNode& parent, LPCSTR oldname, LPCSTR newname);
-
 	void				 ShowContextMenu(ImTreeNode& node, bool& removed);
-
 	void				 GetItems(ImTreeNode& node, ListItemsVec& result);
+	void				 SelectRange(ImTreeNode* from, ImTreeNode* to);
+	void				 CollectLinearOrder(ImTreeNode* node, std::vector<ImTreeNode*>& out);
 
 public: // properties
+	bool				multiselect;
 	bool				DrawBullets;
 	bool				CheckmarkMode;
 	bool				DrawThumbnails;

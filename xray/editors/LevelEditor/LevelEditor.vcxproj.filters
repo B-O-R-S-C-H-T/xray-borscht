@@ -294,6 +294,9 @@
     <ClInclude Include="ImGui\IM_MainMenu.h">
       <Filter>ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="ImGui\IM_EditLibrary.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LevelEditor.cpp">
@@ -693,6 +696,9 @@
       <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\IM_EditLibrary.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
   </ItemGroup>
