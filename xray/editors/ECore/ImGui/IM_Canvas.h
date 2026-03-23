@@ -4,7 +4,7 @@
 #include "IM_Window.h"
 
 class ECORE_API IM_Canvas : public IM_Window {
-private:
+protected:
 	int		m_width, m_height;
 	CRT*	m_texture;
 	HDC		m_hdc;
@@ -14,20 +14,17 @@ public:
 	IM_Canvas(int width, int height);
 	~IM_Canvas();
 
-	void DestroyTexture();
-
-private:
+protected:
 	void CreateTexture();
+	void CreateTexture(D3DFORMAT fmt);
 
 public:
-	int		Width() { return m_width; }
-	int		Height() { return m_height; }
-
-	void	Clear();
-
-	HDC		BeginPaint();
-	void	EndPaint();
-
+	void DestroyTexture();
+	int  Width() { return m_width; }
+	int  Height() { return m_height; }
+	void Clear();
+	HDC	 BeginPaint();
+	void EndPaint();
 	virtual void Render();
 };
 

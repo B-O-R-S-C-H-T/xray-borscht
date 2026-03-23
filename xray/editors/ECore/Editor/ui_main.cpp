@@ -20,6 +20,7 @@
 #include "../../Layers/xrRender/imgui_setup.h"
 #include "../ImGui/IM_Log.h"
 #include "../ImGui/IM_Window.h"
+#include "../ImGui/IM_SVGCanvas.h"
 
 TUI* 	UI			= 0;
 
@@ -61,6 +62,9 @@ TUI::~TUI()
     {
     	(*it)->OnRemove();
     }
+
+	IM_SVGCanvas::ClearCache();
+	IM_SVGCanvas::TerminateThorVG();
 }
 
 void TUI::OnDeviceCreate()
@@ -673,6 +677,8 @@ bool TUI::OnCreate(TD3DWindow* w, TPanel* p)
 	BeginEState		(esEditScene);
 
     AddIMWindow(&imLog);
+
+    IM_SVGCanvas::InitializeThorVG();
 
     return true;
 }

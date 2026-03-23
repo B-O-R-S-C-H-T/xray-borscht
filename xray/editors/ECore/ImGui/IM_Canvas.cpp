@@ -25,19 +25,21 @@ IM_Canvas::~IM_Canvas() {
 	DestroyTexture();
 }
 
+// fixme
 void IM_Canvas::CreateTexture() {
+	CreateTexture(D3DFMT_X8R8G8B8);
+}
+
+void IM_Canvas::CreateTexture(D3DFORMAT fmt) {
 	if (!HW.pDevice)
 		return;
 
 	if (m_texture)
 		return;
 
-	//	CHK_DX(HW.pDevice->CreateTexture(m_width, m_height, 1,
-	//	0, D3DFMT_X8R8G8B8, D3DPOOL_MANAGED, &m_texture, NULL));
-
 	char name[256];
 	sprintf(name, "$user$canvas_%p", this);
-	m_texture = Device.Resources->_CreateRT(name, m_width, m_height, D3DFMT_X8R8G8B8);
+	m_texture = Device.Resources->_CreateRT(name, m_width, m_height, fmt);
 	VERIFY(m_texture);
 
 	if (!m_texture->pSurface)

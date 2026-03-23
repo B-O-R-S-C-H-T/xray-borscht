@@ -92,14 +92,15 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_ECOREB;_EDITOR;NO_VCL;DEBUG;_WINDOWS;_USRDLL;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>.;../..;$(SolutionDir)3rd_party\WildMagic;$(SolutionDir)3rd_party/libtheora-1.1.1/include;$(SolutionDir)3rd_party/libogg-1.3.3/include;$(SolutionDir)3rd_party/imgui;$(SolutionDir)3rd_party/unordered_dense/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../..;$(SolutionDir)3rd_party\WildMagic;$(SolutionDir)3rd_party/libtheora-1.1.1/include;$(SolutionDir)3rd_party/libogg-1.3.3/include;$(SolutionDir)3rd_party/imgui;$(SolutionDir)3rd_party/unordered_dense/include;$(SolutionDir)3rd_party/thorvg/</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>FreeImage.lib;MagicFM.lib;dxguid.lib;dinput8.lib;d3dx9.lib;vfw32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>FreeImage.lib;MagicFM.lib;dxguid.lib;dinput8.lib;d3dx9.lib;vfw32.lib;winmm.lib;thorvg-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)intermediate\$(Platform)-$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -152,7 +153,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_ECOREB;_EDITOR;NO_VCL;NDEBUG;_WINDOWS;_USRDLL;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>.;../..;$(SolutionDir)3rd_party\WildMagic;$(SolutionDir)3rd_party/libtheora-1.1.1/include;$(SolutionDir)3rd_party/libogg-1.3.3/include;$(SolutionDir)3rd_party/imgui;$(SolutionDir)3rd_party/unordered_dense/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../..;$(SolutionDir)3rd_party\WildMagic;$(SolutionDir)3rd_party/libtheora-1.1.1/include;$(SolutionDir)3rd_party/libogg-1.3.3/include;$(SolutionDir)3rd_party/imgui;$(SolutionDir)3rd_party/unordered_dense/include;$(SolutionDir)3rd_party/thorvg/</AdditionalIncludeDirectories>
       <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -162,7 +163,7 @@
       <ExceptionHandling>
       </ExceptionHandling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <ShowIncludes>true</ShowIncludes>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -170,8 +171,9 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>FreeImage.lib;MagicFM.lib;dxguid.lib;dinput8.lib;d3dx9.lib;vfw32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>FreeImage.lib;MagicFM.lib;dxguid.lib;dinput8.lib;d3dx9.lib;vfw32.lib;winmm.lib;thorvg-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LargeAddressAware>true</LargeAddressAware>
+      <AdditionalLibraryDirectories>$(SolutionDir)intermediate\$(Platform)-$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -188,6 +190,7 @@
     <ClInclude Include="..\..\..\3rd_party\NvMender2003\mender_input_output.h" />
     <ClInclude Include="..\..\..\3rd_party\NvMender2003\NVMeshMender.h" />
     <ClInclude Include="..\..\..\3rd_party\NvMender2003\remove_isolated_verts.h" />
+    <ClInclude Include="..\..\..\3rd_party\thorvg\inc\thorvg.h" />
     <ClInclude Include="..\..\Include\builder_types.h" />
     <ClInclude Include="..\..\Include\xrRender\FactoryPtr.h" />
     <ClInclude Include="..\..\Include\xrRender\RenderFactory.h" />
@@ -322,6 +325,7 @@
     <ClInclude Include="ImGui\IM_ImageEditor.h" />
     <ClInclude Include="ImGui\IM_Log.h" />
     <ClInclude Include="ImGui\IM_PropertyTree.h" />
+    <ClInclude Include="ImGui\IM_SVGCanvas.h" />
     <ClInclude Include="ImGui\IM_TextEditor.h" />
     <ClInclude Include="ImGui\IM_Tree.h" />
     <ClInclude Include="ImGui\IM_Window.h" />
@@ -547,6 +551,7 @@
     <ClCompile Include="ImGui\IM_ImageEditor.cpp" />
     <ClCompile Include="ImGui\IM_Log.cpp" />
     <ClCompile Include="ImGui\IM_PropertyTree.cpp" />
+    <ClCompile Include="ImGui\IM_SVGCanvas.cpp" />
     <ClCompile Include="ImGui\IM_TextEditor.cpp" />
     <ClCompile Include="ImGui\IM_Tree.cpp" />
     <ClCompile Include="ImGui\IM_Window.cpp" />

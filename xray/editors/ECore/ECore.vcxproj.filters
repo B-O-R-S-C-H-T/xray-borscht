@@ -55,6 +55,9 @@
     <Filter Include="NvMender2003">
       <UniqueIdentifier>{c61ff315-a356-48ac-86e9-d8b9aec71a0c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="thorvg">
+      <UniqueIdentifier>{b9477d28-9d27-4da9-b6ef-b23c444b7db3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -514,6 +517,12 @@
       <Filter>imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\thorvg\inc\thorvg.h">
+      <Filter>thorvg</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\IM_SVGCanvas.h">
       <Filter>imgui</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1056,6 +1065,9 @@
       <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\addons\ImGuizmo\ImGuizmo.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\IM_SVGCanvas.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
   </ItemGroup>
