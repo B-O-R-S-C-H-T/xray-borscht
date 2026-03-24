@@ -269,7 +269,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			ExecCommand(COMMAND_DESTROY);
 			DestroyWindow(g_MainWnd);
 			break;
-
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+			g_ShiftKey = getShiftState();
+			if (!UI->KeyDown(wParam, g_ShiftKey)) {
+				UI->ApplyShortCut(wParam, g_ShiftKey);
+			}
+			break;
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+			if (!UI->KeyUp(wParam, getShiftState())) {
+				;
+			}
+			break;
+		case WM_CHAR:
+			if (!UI->KeyPress(wParam, g_ShiftKey)) {
+				;
+			}
+			break;
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
