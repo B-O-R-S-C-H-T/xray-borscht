@@ -1,12 +1,9 @@
-//---------------------------------------------------------------------------
 #include "stdafx.h"
 #include "../ImGui/IM_PropertyTree.h"
 #include "ui_main.h"
 #include "ui_toolscustom.h"
-//---------------------------------------------------------------------------
-CCustomPreferences* EPrefs=0;
 
-//---------------------------------------------------------------------------
+CCustomPreferences* EPrefs=0;
 
 CCustomPreferences::CCustomPreferences()
 {
@@ -22,6 +19,8 @@ CCustomPreferences::CCustomPreferences()
     cam_fly_alt			= 1.8f;
     cam_sens_rot		= 0.6f;
     cam_sens_move		= 0.6f;
+    cam_undo_enabled	= TRUE;
+	cam_undo_duration	= 0.3f;
     // tools mouse
     tools_sens_move		= 0.3f;
     tools_sens_rot		= 0.3f;
@@ -49,7 +48,6 @@ CCustomPreferences::CCustomPreferences()
     log_info_color      = 0x00E7FFE6;
     log_confirmation_color = 0x00E7E6FF;
 }
-//---------------------------------------------------------------------------
 
 CCustomPreferences::~CCustomPreferences()
 {
@@ -73,15 +71,12 @@ void CCustomPreferences::ApplyValues()
 
     ExecCommand		(COMMAND_UPDATE_GRID);
 }
-//---------------------------------------------------------------------------
 
 void CCustomPreferences::OnClose	()
 {
     ApplyValues	();	
     UI->RemoveIMWindow(IMProps);
 }
-//---------------------------------------------------------------------------
-
 
 void CheckValidate(ShortcutValue*, const xr_shortcut& new_val, bool& result)
 {
@@ -147,9 +142,11 @@ void CCustomPreferences::FillProp(PropItemVec& props)
     PHelper().CreateFlag32	(props,"Objects\\Loading\\Deffered Loading RB",	&object_flags, 	epoDeffLoadRB);
     PHelper().CreateFlag32	(props,"Objects\\Loading\\Deffered Loading CF",	&object_flags, 	epoDeffLoadCF);
 
-    PHelper().CreateU32		(props,"Scene\\Common\\Recent Count", 		    &scene_recent_count,0, 		25);
-    PHelper().CreateU32		(props,"Scene\\Common\\Undo Level", 		    &scene_undo_level,	0, 		125);
-    PHelper().CreateFloat	(props,"Scene\\Grid\\Cell Size", 	           	&grid_cell_size,	0.1f,	10.f);
+	PHelper().CreateU32     (props, "Scene\\Undo Manager\\Recent Count",    &scene_recent_count, 0, 25);
+	PHelper().CreateU32     (props, "Scene\\Undo Manager\\Undo Level",      &scene_undo_level,   0, 125);
+	PHelper().CreateBOOL    (props, "Scene\\Undo Manager\\Enable Camera Interpolation",  &cam_undo_enabled);
+	PHelper().CreateFloat   (props, "Scene\\Undo Manager\\Interpolation Duration (sec)", &cam_undo_duration, 0.05f, 2.0f, 0.01f, 2);
+	PHelper().CreateFloat	(props,"Scene\\Grid\\Cell Size", 	           	&grid_cell_size,	0.1f,	10.f);
     PHelper().CreateU32		(props,"Scene\\Grid\\Cell Count", 	           	&grid_cell_count,	10, 	1000);
 
     PHelper().CreateBOOL	(props,"Tools\\Box Pick\\Limited Depth",		&bp_lim_depth);
@@ -206,7 +203,6 @@ void CCustomPreferences::Edit()
     // save changed options
     Save							();
 }
-//---------------------------------------------------------------------------
 
 void CCustomPreferences::Load(CInifile* I)
 {
@@ -226,6 +222,8 @@ void CCustomPreferences::Load(CInifile* I)
     cam_fly_alt			= R_FLOAT_SAFE	("editor_prefs","cam_fly_alt"		,cam_fly_alt	 	);
     cam_sens_rot		= R_FLOAT_SAFE	("editor_prefs","cam_sens_rot"		,cam_sens_rot		);
     cam_sens_move		= R_FLOAT_SAFE	("editor_prefs","cam_sens_move"		,cam_sens_move		);
+	cam_undo_enabled    = R_BOOL_SAFE   ("editor_prefs","cam_undo_enabled"  ,TRUE               );
+	cam_undo_duration   = R_FLOAT_SAFE  ("editor_prefs","cam_undo_duration" ,0.3f               );
 
     tools_sens_move		= R_FLOAT_SAFE	("editor_prefs","tools_sens_move"	,tools_sens_move  	);
     tools_sens_rot		= R_FLOAT_SAFE	("editor_prefs","tools_sens_rot"	,tools_sens_rot		);
@@ -284,6 +282,8 @@ void CCustomPreferences::Save(CInifile* I)
     I->w_float	("editor_prefs","cam_fly_alt",		cam_fly_alt		);
     I->w_float	("editor_prefs","cam_sens_rot",		cam_sens_rot	);
     I->w_float	("editor_prefs","cam_sens_move",	cam_sens_move	);
+	I->w_bool   ("editor_prefs","cam_undo_enabled", cam_undo_enabled);
+	I->w_float  ("editor_prefs","cam_undo_duration",cam_undo_duration);
 
     I->w_float	("editor_prefs","tools_sens_rot",	tools_sens_rot	);
     I->w_float	("editor_prefs","tools_sens_move",	tools_sens_move	);

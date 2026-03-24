@@ -24,11 +24,11 @@ using TBeforeAppendCallback = std::function<bool (SBeforeAppendCallbackParams*)>
 using TAfterAppendCallback = std::function <bool (TShiftState, CCustomObject*)>;
 #endif
 
-class TUI_CustomControl{
+class TUI_CustomControl {
 protected:
-    friend class ESceneToolBase;
-    int sub_target;
-    int action;
+	friend class ESceneToolBase;
+	int					sub_target;
+	int					action;
 // select
     bool bBoxSelection;
     bool SelectStart	(TShiftState _Shift);
@@ -55,13 +55,16 @@ protected:
     bool 				RotateStart		(TShiftState _Shift);
     void 				RotateProcess	(TShiftState _Shift);
     bool 				RotateEnd		(TShiftState _Shift);
+
 protected:
 	bool				CheckSnapList 	(TShiftState Shift);
 
     CCustomObject*		DefaultAddObject(TShiftState Shift, TBeforeAppendCallback before={}, TAfterAppendCallback after={});
     bool				DefaultMovingProcess(TShiftState Shift, Fvector& amount);
+
 public:
     ESceneToolBase*	parent_tool;
+
 public:
     				TUI_CustomControl	(int st, int act, ESceneToolBase* parent);
     virtual 		~TUI_CustomControl	(){;}
@@ -76,6 +79,13 @@ public:
     virtual void 	OnExit				(){;}
 
     int 			Action				(){return action;}
+
+protected:
+	std::vector<Fvector> m_oldMoveValues;
+	std::vector<Fvector> m_oldScaleValues;
+	std::vector<Fvector> m_oldRotateValues;
+	Fvector				 m_oldCamPos;
+	Fvector				 m_oldCamHPB;
 };
 //---------------------------------------------------------------------------
 #endif

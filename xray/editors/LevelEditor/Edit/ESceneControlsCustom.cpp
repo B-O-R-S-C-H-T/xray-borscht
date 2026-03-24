@@ -7,11 +7,10 @@
 #include "ui_levelmain.h"
 #include "../ImGui/IM_Sidebar.h"
 
-TUI_CustomControl::TUI_CustomControl(int st, int act, ESceneToolBase* parent){
-	parent_tool		= parent; VERIFY(parent);
-	sub_target		= st;
-    action			= act;
-	bBoxSelection	= false;
+TUI_CustomControl::TUI_CustomControl(int st, int act, ESceneToolBase* parent)
+	: parent_tool(parent), sub_target(st), action(act), bBoxSelection(false), m_MovingXVector{}, m_MovingYVector{}, m_MovingReminder{}, m_RotateVector{},
+	  m_fRotateSnapAngle(0.f), m_oldCamPos{}, m_oldCamHPB{} {
+	VERIFY(parent);
 }
 
 bool TUI_CustomControl::Start  (TShiftState _Shift){
@@ -167,53 +166,81 @@ bool TUI_CustomControl::SelectEnd(TShiftState _Shift)
 //------------------------------------------------------------------------------------
 // moving
 //------------------------------------------------------------------------------------
-bool TUI_CustomControl::MovingStart(TShiftState Shift)
-{
+bool TUI_CustomControl::MovingStart(TShiftState Shift) {
 	ObjClassID cls = LTools->CurrentClassID();
 
-    if(Shift==ssRBOnly){ ExecCommand(COMMAND_SHOWCONTEXTMENU,parent_tool->ClassID); return false;}
-    if(Scene->SelectionCount(true,cls)==0) return false;
+	if (Shift == ssRBOnly) {
+		ExecCommand(COMMAND_SHOWCONTEXTMENU, parent_tool->ClassID);
+		return false;
+	}
+	if (Scene->SelectionCount(true, cls) == 0)
+		return false;
 
-    if (Shift.Contains(ssCtrl)){
-        ObjectList lst;
-        if (Scene->GetQueryObjects(lst,LTools->CurrentClassID(),1,1,0)){
-        	if (lst.size()==1){
-                Fvector p,n;
-                UI->IR_GetMousePosReal(Device.m_hRenderWnd, UI->m_CurrentCp);
-                Device.m_Camera.MouseRayFromPoint(UI->m_CurrentRStart,UI->m_CurrentRNorm,UI->m_CurrentCp);
-                if (LUI->PickGround(p,UI->m_CurrentRStart,UI->m_CurrentRNorm,1,&n)){
-                    for(ObjectIt _F = lst.begin();_F!=lst.end();_F++) (*_F)->MoveTo(p,n);
-                    Scene->UndoSave();
-                }
-            }else{
-                Fvector p,n;
-                Fvector D={0,-1,0};
-                for(ObjectIt _F = lst.begin();_F!=lst.end();_F++){ 
-                	if (LUI->PickGround(p,(*_F)->GetPosition(),D,1,&n)){
-	                	(*_F)->MoveTo(p,n);
-                    }
-                }
-            }
-        }
-        return false;
-    }else{
-        if (etAxisY==Tools->GetAxis()){
-            m_MovingXVector.set(0,0,0);
-            m_MovingYVector.set(0,1,0);
-        }else{
-            m_MovingXVector.set( Device.m_Camera.GetRight() );
-            m_MovingXVector.y = 0;
-            m_MovingYVector.set( Device.m_Camera.GetDirection() );
-            m_MovingYVector.y = 0;
-            m_MovingXVector.normalize_safe();
-            m_MovingYVector.normalize_safe();
-        }
-        m_MovingReminder.set(0,0,0);
-    }
-    return true;
+	if (Shift.Contains(ssCtrl)) {
+		ObjectList lst;
+		if (Scene->GetQueryObjects(lst, LTools->CurrentClassID(), 1, 1, 0)) {
+			std::vector<CCustomObject*> objects;
+			std::vector<Fvector>		oldPositions;
+
+			for (ObjectIt _F = lst.begin(); _F != lst.end(); ++_F) {
+				objects.push_back(*_F);
+				oldPositions.push_back((*_F)->GetPosition());
+			}
+
+			Fvector oldCamPos = Device.m_Camera.GetPosition();
+			Fvector oldCamHPB = Device.m_Camera.GetHPB();
+
+			if (lst.size() == 1) {
+				Fvector p, n;
+				UI->IR_GetMousePosReal(Device.m_hRenderWnd, UI->m_CurrentCp);
+				Device.m_Camera.MouseRayFromPoint(UI->m_CurrentRStart, UI->m_CurrentRNorm, UI->m_CurrentCp);
+				if (LUI->PickGround(p, UI->m_CurrentRStart, UI->m_CurrentRNorm, 1, &n)) {
+					for (ObjectIt _F = lst.begin(); _F != lst.end(); ++_F)
+						(*_F)->MoveTo(p, n);
+				}
+			} else {
+				Fvector p, n;
+				Fvector D = {0, -1, 0};
+				for (ObjectIt _F = lst.begin(); _F != lst.end(); ++_F) {
+					if (LUI->PickGround(p, (*_F)->GetPosition(), D, 1, &n)) {
+						(*_F)->MoveTo(p, n);
+					}
+				}
+			}
+
+			auto cmd = std::make_unique<MoveCommand>(objects, oldPositions, std::vector<Fvector>{}, oldCamPos, oldCamHPB);
+			Scene->PushCommand(std::move(cmd));
+		}
+		return false;
+	} else {
+		if (etAxisY == Tools->GetAxis()) {
+			m_MovingXVector.set(0, 0, 0);
+			m_MovingYVector.set(0, 1, 0);
+		} else {
+			m_MovingXVector.set(Device.m_Camera.GetRight());
+			m_MovingXVector.y = 0;
+			m_MovingYVector.set(Device.m_Camera.GetDirection());
+			m_MovingYVector.y = 0;
+			m_MovingXVector.normalize_safe();
+			m_MovingYVector.normalize_safe();
+		}
+		m_MovingReminder.set(0, 0, 0);
+
+		m_oldMoveValues.clear();
+		m_oldCamPos = Device.m_Camera.GetPosition();
+		m_oldCamHPB = Device.m_Camera.GetHPB();
+
+		ObjectList lst;
+		if (Scene->GetQueryObjects(lst, LTools->CurrentClassID(), 1, 1, 0)) {
+			for (ObjectIt _F = lst.begin(); _F != lst.end(); ++_F) {
+				m_oldMoveValues.push_back((*_F)->GetPosition());
+			}
+		}
+	}
+	return true;
 }
 
-bool TUI_CustomControl::DefaultMovingProcess(TShiftState Shift, Fvector& amount){
+bool TUI_CustomControl::DefaultMovingProcess(TShiftState Shift, Fvector& amount) {
     if (Shift.Contains(ssLeft)||Shift.Contains(ssRight)){
         amount.mul( m_MovingXVector, UI->m_MouseSM * UI->m_DeltaCpH.x );
         amount.mad( amount, m_MovingYVector, -UI->m_MouseSM * UI->m_DeltaCpH.y );
@@ -233,8 +260,7 @@ bool TUI_CustomControl::DefaultMovingProcess(TShiftState Shift, Fvector& amount)
     return false;
 }
 
-void TUI_CustomControl::MovingProcess(TShiftState _Shift)
-{
+void TUI_CustomControl::MovingProcess(TShiftState _Shift) {
 	Fvector amount;
 	if (DefaultMovingProcess(_Shift,amount)){
         ObjectList lst;
@@ -243,32 +269,65 @@ void TUI_CustomControl::MovingProcess(TShiftState _Shift)
     }
 }
 
-bool TUI_CustomControl::MovingEnd(TShiftState _Shift)
-{
-	Scene->UndoSave();
-    return true;
+bool TUI_CustomControl::MovingEnd(TShiftState _Shift) {
+	ObjectList lst;
+	if (Scene->GetQueryObjects(lst, LTools->CurrentClassID(), 1, 1, 0)) {
+		std::vector<CCustomObject*> objects;
+		std::vector<Fvector>		newPositions;
+
+		for (ObjectIt _F = lst.begin(); _F != lst.end(); ++_F) {
+			CCustomObject* obj = *_F;
+			objects.push_back(obj);
+			newPositions.push_back(obj->GetPosition());
+		}
+
+		if (!objects.empty() && !m_oldMoveValues.empty()) {
+			auto cmd = std::make_unique<MoveCommand>(objects, m_oldMoveValues, newPositions, m_oldCamPos, m_oldCamHPB);
+			Scene->PushCommand(std::move(cmd));
+		}
+	}
+
+	m_oldMoveValues.clear();
+	return true;
 }
 
 //------------------------------------------------------------------------------------
 // rotate
 //------------------------------------------------------------------------------------
-bool TUI_CustomControl::RotateStart(TShiftState Shift)
-{
+bool TUI_CustomControl::RotateStart(TShiftState Shift) {
 	ObjClassID cls = LTools->CurrentClassID();
 
-    if(Shift==ssRBOnly){ ExecCommand(COMMAND_SHOWCONTEXTMENU,parent_tool->ClassID); return false;}
-    if(Scene->SelectionCount(true,cls)==0) return false;
+	if (Shift == ssRBOnly) {
+		ExecCommand(COMMAND_SHOWCONTEXTMENU, parent_tool->ClassID);
+		return false;
+	}
+	if (Scene->SelectionCount(true, cls) == 0)
+		return false;
 
-    m_RotateVector.set(0,0,0);
-    if (etAxisX==Tools->GetAxis()) 		m_RotateVector.set(1,0,0);
-    else if (etAxisY==Tools->GetAxis()) m_RotateVector.set(0,1,0);
-    else if (etAxisZ==Tools->GetAxis()) m_RotateVector.set(0,0,1);
+	m_RotateVector.set(0, 0, 0);
+	if (etAxisX == Tools->GetAxis())
+		m_RotateVector.set(1, 0, 0);
+	else if (etAxisY == Tools->GetAxis())
+		m_RotateVector.set(0, 1, 0);
+	else if (etAxisZ == Tools->GetAxis())
+		m_RotateVector.set(0, 0, 1);
 	m_fRotateSnapAngle = 0;
-    return true;
+
+	m_oldRotateValues.clear();
+	m_oldCamPos = Device.m_Camera.GetPosition();
+	m_oldCamHPB = Device.m_Camera.GetHPB();
+
+	ObjectList lst;
+	if (Scene->GetQueryObjects(lst, LTools->CurrentClassID(), 1, 1, 0)) {
+		for (ObjectIt _F = lst.begin(); _F != lst.end(); ++_F) {
+			m_oldRotateValues.push_back((*_F)->GetRotation());
+		}
+	}
+
+	return true;
 }
 
-void TUI_CustomControl::RotateProcess(TShiftState _Shift)
-{
+void TUI_CustomControl::RotateProcess(TShiftState _Shift) {
     if (_Shift.Contains(ssLeft)){
         float amount = -UI->m_DeltaCpH.x * UI->m_MouseSR;
 
@@ -288,29 +347,60 @@ void TUI_CustomControl::RotateProcess(TShiftState _Shift)
                 }
     }
 }
-bool TUI_CustomControl::RotateEnd(TShiftState _Shift)
-{
-	Scene->UndoSave();
-    return true;
+
+bool TUI_CustomControl::RotateEnd(TShiftState _Shift) {
+	ObjectList lst;
+	if (Scene->GetQueryObjects(lst, LTools->CurrentClassID(), 1, 1, 0)) {
+		std::vector<CCustomObject*> objects;
+		std::vector<Fvector>		newRotations;
+
+		for (ObjectIt _F = lst.begin(); _F != lst.end(); ++_F) {
+			CCustomObject* obj = *_F;
+			objects.push_back(obj);
+			newRotations.push_back(obj->GetRotation());
+		}
+
+		if (!objects.empty() && !m_oldRotateValues.empty()) {
+			auto cmd = std::make_unique<RotateCommand>(objects, m_oldRotateValues, newRotations, m_oldCamPos, m_oldCamHPB);
+			Scene->PushCommand(std::move(cmd));
+		}
+	}
+
+	m_oldRotateValues.clear();
+	return true;
 }
 
 //------------------------------------------------------------------------------
 // scale
 //------------------------------------------------------------------------------
-bool TUI_CustomControl::ScaleStart(TShiftState Shift)
-{
+bool TUI_CustomControl::ScaleStart(TShiftState Shift) {
 	ObjClassID cls = LTools->CurrentClassID();
-    if(Shift==ssRBOnly){ ExecCommand(COMMAND_SHOWCONTEXTMENU,parent_tool->ClassID); return false;}
-    if(Scene->SelectionCount(true,cls)==0) return false;
+	if (Shift == ssRBOnly) {
+		ExecCommand(COMMAND_SHOWCONTEXTMENU, parent_tool->ClassID);
+		return false;
+	}
+	if (Scene->SelectionCount(true, cls) == 0)
+		return false;
+
+	m_oldScaleValues.clear();
+	m_oldCamPos = Device.m_Camera.GetPosition();
+	m_oldCamHPB = Device.m_Camera.GetHPB();
+
+	ObjectList lst;
+	if (Scene->GetQueryObjects(lst, LTools->CurrentClassID(), 1, 1, 0)) {
+		for (ObjectIt _F = lst.begin(); _F != lst.end(); ++_F) {
+			m_oldScaleValues.push_back((*_F)->GetScale());
+		}
+	}
+
 	return true;
 }
 
-void TUI_CustomControl::ScaleProcess(TShiftState _Shift)
-{
+void TUI_CustomControl::ScaleProcess(TShiftState _Shift) {
 	float dy = UI->m_DeltaCpH.x * UI->m_MouseSS;
     if (dy>1.f) dy=1.f; else if (dy<-1.f) dy=-1.f;
 
-	Fvector amount;
+	Fvector amount{};
 	amount.set( dy, dy, dy );
 
     if (Tools->GetSettings(etfNUScale)){
@@ -323,10 +413,27 @@ void TUI_CustomControl::ScaleProcess(TShiftState _Shift)
     if (Scene->GetQueryObjects(lst,LTools->CurrentClassID(),1,1,0))
         for(ObjectIt _F = lst.begin();_F!=lst.end();_F++) (*_F)->Scale( amount );
 }
-bool TUI_CustomControl::ScaleEnd(TShiftState _Shift)
-{
-	Scene->UndoSave();
-    return true;
+
+bool TUI_CustomControl::ScaleEnd(TShiftState _Shift) {
+	ObjectList lst;
+	if (Scene->GetQueryObjects(lst, LTools->CurrentClassID(), 1, 1, 0)) {
+		std::vector<CCustomObject*> objects;
+		std::vector<Fvector>		newScales;
+
+		for (ObjectIt _F = lst.begin(); _F != lst.end(); ++_F) {
+			CCustomObject* obj = *_F;
+			objects.push_back(obj);
+			newScales.push_back(obj->GetScale());
+		}
+
+		if (!objects.empty() && !m_oldScaleValues.empty()) {
+			auto cmd = std::make_unique<ScaleCommand>(objects, m_oldScaleValues, newScales, m_oldCamPos, m_oldCamHPB);
+			Scene->PushCommand(std::move(cmd));
+		}
+	}
+
+	m_oldScaleValues.clear();
+	return true;
 }
 //------------------------------------------------------------------------------
 

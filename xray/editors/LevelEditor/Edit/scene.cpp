@@ -106,59 +106,58 @@ void EScene::OnCreate()
 
 void EScene::OnDestroy()
 {
-	UI->RemoveIMWindow  (m_SummaryInfo);
-	xr_delete           (m_SummaryInfo);
+	UI->RemoveIMWindow	(m_SummaryInfo);
+	xr_delete			(m_SummaryInfo);
 
-    Unload					(FALSE);
-    UndoClear				();
-	ELog.Msg				( mtInformation, "Scene cleared" );
-	m_LastAvailObject 		= 0;
-	m_Valid 				= false;
-    DestroySceneTools		();
+	UndoClear();
+	Unload(FALSE);
+	ELog.Msg(mtInformation, "Scene cleared");
+	m_LastAvailObject = 0;
+	m_Valid			  = false;
+	DestroySceneTools();
 }
 
-void EScene::AppendObject( CCustomObject* object, bool bUndo )
+void EScene::AppendObject(CCustomObject* object, bool bExecUndo)
 {
-	VERIFY			  	(object);
-	VERIFY				(m_Valid);
-    
-    ESceneCustomOTool* mt	= GetOTool(object->ClassID);
-    VERIFY3(mt,"Can't find Object Tools:",GetTool(object->ClassID)->ClassDesc());
-    mt->_AppendObject	(object);
-    UI->UpdateScene		();
-    if (bUndo){	
-        object->Select	(true);
-        UndoSave();
-    }
+	VERIFY(object);
+	VERIFY(m_Valid);
+
+	ESceneCustomOTool* mt = GetOTool(object->ClassID);
+	VERIFY3(mt, "Can't find Object Tools:", GetTool(object->ClassID)->ClassDesc());
+	mt->_AppendObject(object);
+	UI->UpdateScene();
+	if (bExecUndo) {
+		object->Select(true);
+		auto cmd = std::make_unique<AddObjectCommand>(object);
+		PushCommand(std::move(cmd));
+	}
 }
 
-bool EScene::RemoveObject( CCustomObject* object, bool bUndo, bool bDeleting )
-{
-	VERIFY				(object);
-	VERIFY				(m_Valid);
+bool EScene::RemoveObject(CCustomObject* object, bool bExecUndo, bool bDeleting) {
+	VERIFY(object);
+	VERIFY(m_Valid);
 
-    ESceneCustomOTool* mt 	= GetOTool(object->ClassID);
-    if (mt&&mt->IsEditable())
-    {
-    	mt->_RemoveObject(object);
-        // signal everyone "I'm deleting"
-//        if (object->ClassID==OBJCLASS_SCENEOBJECT)
-        {
-            m_ESO_SnapObjects.remove			(object);
+	ESceneCustomOTool* mt = GetOTool(object->ClassID);
+	if (mt && mt->IsEditable()) {
+		mt->_RemoveObject(object);
 
-            SceneToolsMapPairIt _I = m_SceneTools.begin();
-            SceneToolsMapPairIt _E = m_SceneTools.end();
-            for (; _I!=_E; _I++){
-                ESceneToolBase* mt = _I->second;
-                if (mt)
-                	mt->OnObjectRemove(object, bDeleting);
-            }
-            UpdateSnapList						();
-        }
-        UI->UpdateScene	();
-    }
-    if (bUndo)		   	UndoSave();
-    return true;
+		m_ESO_SnapObjects.remove(object);
+
+		SceneToolsMapPairIt _I = m_SceneTools.begin();
+		SceneToolsMapPairIt _E = m_SceneTools.end();
+		for (; _I != _E; _I++) {
+			ESceneToolBase* mt = _I->second;
+			if (mt)
+				mt->OnObjectRemove(object, bDeleting);
+		}
+		UpdateSnapList();
+
+		UI->UpdateScene();
+	}
+	if (bDeleting && !bExecUndo) {
+		xr_delete(object);
+	}
+	return true;
 }
 
 void EScene::BeforeObjectChange( CCustomObject* object )
@@ -235,6 +234,7 @@ void EScene::Unload		(BOOL bEditableOnly)
 
 void EScene::Clear(BOOL bEditableToolsOnly)
 {
+	UndoClear();
 	// clear snap
     ClearSnapList			(false);
 	// clear scene tools
@@ -246,7 +246,7 @@ void EScene::Clear(BOOL bEditableToolsOnly)
 	        	t_it->second->Clear();
             }
         }
-        
+
     Tools->ClearDebugDraw	();
 
     m_RTFlags.set			(flRT_Unsaved|flRT_Modified,FALSE);
@@ -620,4 +620,33 @@ bool EScene::GetSubstObjectName(const xr_string& _from, xr_string& _to) const
     }
 
     return (It!=It_e);
+}
+
+// Undo/Redo
+void EScene::UndoSave() {
+	ELog.Msg(mtInformation, "! Deprecated call EScene::UndoSave()");
+}
+
+bool EScene::Undo() {
+	if (m_undoManager.CanUndo()) {
+		m_undoManager.Undo();
+		UI->RedrawScene();
+		ExecCommand(COMMAND_UPDATE_PROPERTIES);
+		return true;
+	}
+	return false;
+}
+
+bool EScene::Redo() {
+	if (m_undoManager.CanRedo()) {
+		m_undoManager.Redo();
+		UI->RedrawScene();
+		ExecCommand(COMMAND_UPDATE_PROPERTIES);
+		return true;
+	}
+	return false;
+}
+
+void EScene::UndoClear() {
+	m_undoManager.Clear();
 }

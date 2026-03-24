@@ -1,33 +1,30 @@
-//---------------------------------------------------------------------------
-
 #ifndef EditorPreferencesH
 #define EditorPreferencesH
-//---------------------------------------------------------------------------
+
 // refs
 class IM_PropertiesWnd;
 
-//---------------------------------------------------------------------------
-enum{
-    epoDrawPivot      = (1<<0),
-    epoDrawAnimPath   = (1<<1),
-    epoDrawJoints     = (1<<2),
-    epoDrawBoneAxis   = (1<<3),
-    epoDrawBoneNames  = (1<<4),
-    epoDrawBoneShapes = (1<<5),
-    epoShowHint       = (1<<6),
-    epoDrawLOD        = (1<<7),
-    epoDiscardInstance = (1<<8),
-    epoDeffLoadRB      = (1<<9),
-    epoDeffLoadCF      = (1<<10),
-    epoLZHCompress     = (1<<11)
+enum {
+	epoDrawPivot	   = (1 << 0),
+	epoDrawAnimPath	   = (1 << 1),
+	epoDrawJoints	   = (1 << 2),
+	epoDrawBoneAxis	   = (1 << 3),
+	epoDrawBoneNames   = (1 << 4),
+	epoDrawBoneShapes  = (1 << 5),
+	epoShowHint		   = (1 << 6),
+	epoDrawLOD		   = (1 << 7),
+	epoDiscardInstance = (1 << 8),
+	epoDeffLoadRB	   = (1 << 9),
+	epoDeffLoadCF	   = (1 << 10),
+	epoLZHCompress	   = (1 << 11)
 };
-class ECORE_API CCustomPreferences
-{
+
+class ECORE_API CCustomPreferences {
 private:	// User declarations
     IM_PropertiesWnd*	IMProps;
+
 protected:
-	enum
-    {
+	enum {
     	ptBool,
     	ptInteger,
     	ptFloat,
@@ -36,13 +33,11 @@ protected:
         ptFlags
     };
 
-	struct SPreference
-    {
+	struct SPreference {
     	typedef SPreference  Self;
     	typedef SPreference& SelfRef;
 
-    	struct SFlag
-        {
+    	struct SFlag {
         	const char * Name;
             u32 Flag;
         };
@@ -50,8 +45,7 @@ protected:
     	const char * Section, * Name;
         int	Type;
 
-        union
-        {
+        union {
 			u32     * IntValue;
 			float   * FloatValue;
 			Flags32 * FlagsValue;
@@ -66,12 +60,10 @@ protected:
 
         xr_vector<SFlag> Flags;
 
-        SelfRef set(const char * section, const char * name, int type, int * value, int def = 0, int mn = 0, int mx = 100, int inc = 1)
-        {
+        SelfRef set(const char * section, const char * name, int type, int * value, int def = 0, int mn = 0, int mx = 100, int inc = 1) {
         	return set(section, name, type, (u32*)value, (u32)def, (u32)mn, (u32)mx, (u32)inc);
         }
-        SelfRef set(const char * section, const char * name, int type, u32 * value, u32 def = 0, u32 mn = 0, u32 mx = 100, u32 inc = 1)
-        {
+        SelfRef set(const char * section, const char * name, int type, u32 * value, u32 def = 0, u32 mn = 0, u32 mx = 100, u32 inc = 1) {
         	Section 	= section;
             Name        = name;
             Type		= type;
@@ -83,8 +75,7 @@ protected:
 
             return *this;
         }
-        SelfRef set(const char * section, const char * name, int type, float * value, float def = 0.f, float mn = 0.f, float mx = 1.f, float inc = 0.01f, int dec = 2)
-        {
+        SelfRef set(const char * section, const char * name, int type, float * value, float def = 0.f, float mn = 0.f, float mx = 1.f, float inc = 0.01f, int dec = 2) {
         	Section 	= section;
             Name        = name;
             Type		= type;
@@ -97,8 +88,7 @@ protected:
 
             return *this;
         }
-        SelfRef set(const char * section, const char * name, int type, Flags32 * value, Flags32 def)
-        {
+        SelfRef set(const char * section, const char * name, int type, Flags32 * value, Flags32 def) {
         	Section 	= section;
             Name        = name;
             Type		= type;
@@ -107,8 +97,7 @@ protected:
 
             return *this;
         }
-        SelfRef addFlag(const char *name, u32 flag)
-        {
+        SelfRef addFlag(const char *name, u32 flag) {
         	SFlag f = { name, flag };
         	Flags.push_back( f );
 
@@ -117,6 +106,7 @@ protected:
     };
 
     xr_map<LPCSTR, SPreference> m_Prefs;
+
 public:
 	// view
     float 			view_np;
@@ -131,6 +121,9 @@ public:
     float			cam_fly_alt;
     float			cam_sens_rot;
     float			cam_sens_move;
+	// поведение камеры при undo/redo
+	BOOL			cam_undo_enabled;
+	float			cam_undo_duration;
 	// tools mouse
     float			tools_sens_rot;
     float			tools_sens_move;
@@ -169,6 +162,7 @@ public:
 	u32				textform_text_color;
 	//
 	shared_str		screen_font;
+
 protected:
 	void 	        OnKeyboardCommonFileClick	(ButtonValue* value, bool& bModif, bool& bSafe);
 	void 	        OnClose	();
@@ -176,6 +170,7 @@ protected:
 
     virtual void 	Load				(CInifile*);
     virtual void 	Save				(CInifile*);
+
 public:				// User declarations
     				CCustomPreferences	();
     virtual 		~CCustomPreferences	();

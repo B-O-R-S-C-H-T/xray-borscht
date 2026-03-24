@@ -46,8 +46,8 @@
     <Filter Include="xrRender\xrRenderDX9">
       <UniqueIdentifier>{59e608bf-9307-4816-a5c1-07b7f818c1e3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="imgui">
-      <UniqueIdentifier>{4ef78859-ccdc-450f-a6cf-eeb044d3b614}</UniqueIdentifier>
+    <Filter Include="thorvg">
+      <UniqueIdentifier>{b9477d28-9d27-4da9-b6ef-b23c444b7db3}</UniqueIdentifier>
     </Filter>
     <Filter Include="~Precompiled Headers">
       <UniqueIdentifier>{7cd85578-98ab-4777-a6eb-3776e6988fe9}</UniqueIdentifier>
@@ -55,8 +55,14 @@
     <Filter Include="NvMender2003">
       <UniqueIdentifier>{c61ff315-a356-48ac-86e9-d8b9aec71a0c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="thorvg">
-      <UniqueIdentifier>{b9477d28-9d27-4da9-b6ef-b23c444b7db3}</UniqueIdentifier>
+    <Filter Include="Undo Manager">
+      <UniqueIdentifier>{16b326b1-dbaa-4bbf-90f4-b6e521797840}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui">
+      <UniqueIdentifier>{4ef78859-ccdc-450f-a6cf-eeb044d3b614}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Preferences">
+      <UniqueIdentifier>{a9501c23-65a4-40f6-ad1d-e128d9f14c8c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -95,9 +101,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Layers\xrRender\R_Backend_xform.h">
       <Filter>xrRender</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor\EditorPreferences.h">
-      <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="Editor\pick_defs.h">
       <Filter>Editor</Filter>
@@ -415,7 +418,7 @@
       <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_Log.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Layers\xrRender\D3DUtils.h">
       <Filter>xrRender</Filter>
@@ -436,25 +439,25 @@
       <Filter>xrRender</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_Tree.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_PropertyTree.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_Canvas.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_TextEditor.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_ChooseForm.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\utf8.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_Window.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xrEngine\ObjectAnimator.h">
       <Filter>xrEngine</Filter>
@@ -487,37 +490,46 @@
       <Filter>NvMender2003</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_ImageEditor.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\3rd_party\imgui\imgui_user.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx9.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\3rd_party\imgui\imgui.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\3rd_party\imgui\imgui_internal.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\3rd_party\imgui\imstb_rectpack.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\3rd_party\imgui\imstb_textedit.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\3rd_party\imgui\imstb_truetype.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Layers\xrRender\imgui_setup.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\3rd_party\imgui\imconfig.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.h">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\undo_manager.h">
+      <Filter>Undo Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\EditorPreferences.h">
+      <Filter>Editor\Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\editor_clipboard.h">
+      <Filter>Undo Manager</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\3rd_party\thorvg\inc\thorvg.h">
       <Filter>thorvg</Filter>
@@ -562,9 +574,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Layers\xrRender\R_Backend_xform.cpp">
       <Filter>xrRender</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor\EditorPreferences.cpp">
-      <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="Editor\UI_ToolsCustom.cpp">
       <Filter>Editor</Filter>
@@ -969,7 +978,7 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_Log.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Layers\xrRender\D3DUtils.cpp">
       <Filter>xrRender</Filter>
@@ -990,25 +999,25 @@
       <Filter>xrRender</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_Tree.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_PropertyTree.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_Canvas.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_TextEditor.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_ChooseForm.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\utf8.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_Window.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xrEngine\ObjectAnimator.cpp">
       <Filter>xrEngine</Filter>
@@ -1038,34 +1047,37 @@
       <Filter>NvMender2003</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_ImageEditor.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx9.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\imgui.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\imgui_demo.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\imgui_draw.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\imgui_tables.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\imgui_widgets.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Layers\xrRender\imgui_setup.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\addons\ImGuizmo\ImGuizmo.cpp">
-      <Filter>imgui</Filter>
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EditorPreferences.cpp">
+      <Filter>Editor\Preferences</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_SVGCanvas.cpp">
       <Filter>imgui</Filter>

@@ -62,24 +62,25 @@ BOOL  ESceneCustomOTool::AllowMouseStart()
     return TRUE;
 }
 
-void ESceneCustomOTool::OnFrame()
-{
+void ESceneCustomOTool::OnFrame() {
 	ObjectList remove_objects;
-	for (ObjectIt it=m_Objects.begin(); it!=m_Objects.end(); it++)
-    {
-    	R_ASSERT				(*it);
-    	(*it)->OnFrame			();
-        if ((*it)->IsDeleted())	
-        	remove_objects.push_back(*it);
-    }
-    bool need_undo = remove_objects.size();
-    while (!remove_objects.empty()){
-    	CCustomObject* O	= remove_objects.back();
-        Scene->RemoveObject	(O,false,true);
-        xr_delete			(O);
-        remove_objects.pop_back();
-    }
-    if (need_undo) Scene->UndoSave();
+	ObjectList safe_copy = m_Objects;
+
+	for (ObjectIt it = safe_copy.begin(); it != safe_copy.end(); it++) {
+		CCustomObject* obj = *it;
+		if (obj && !obj->IsDeleted()) {
+			obj->OnFrame();
+		}
+		if (obj && obj->IsDeleted()) {
+			remove_objects.push_back(obj);
+		}
+	}
+
+	while (!remove_objects.empty()) {
+		CCustomObject* O = remove_objects.back();
+		Scene->RemoveObject(O, false, true);
+		remove_objects.pop_back();
+	}
 }
 //----------------------------------------------------
 
@@ -150,30 +151,30 @@ void ESceneCustomOTool::SelectObjects(bool flag)
     UI->RedrawScene		();
 }
 
-void ESceneCustomOTool::RemoveSelection()
-{
-    ObjectIt _F = m_Objects.begin();
-    while(_F!=m_Objects.end())
-    {
-        if((*_F)->Selected() && !(*_F)->Locked() && !(*_F)->m_CO_Flags.test(CCustomObject::flObjectInGroup))
-        {
-            if ((*_F)->OnSelectionRemove())
-            {
-                ObjectIt _D = _F; _F++;
-                CCustomObject* obj 	= *_D; 
-                Scene->RemoveObject	(obj,false,true);
-                xr_delete			(obj);
-            }else{
-                _F++;
-            }
-        }else{
-            if((*_F)->Selected() && (*_F)->Locked() && !(*_F)->m_CO_Flags.test(CCustomObject::flObjectInGroup))
-                ELog.Msg(mtError, "Cannot delete locked object '%s'", (*_F)->GetName());
-            	      
-            _F++;
-        }
-    }
-	UI->RedrawScene		();
+void ESceneCustomOTool::RemoveSelection() {
+	std::vector<CCustomObject*> to_remove;
+	ObjectIt _F = m_Objects.begin();
+	while (_F != m_Objects.end()) {
+		if ((*_F)->Selected() && !(*_F)->Locked() && !(*_F)->m_CO_Flags.test(CCustomObject::flObjectInGroup)) {
+			if ((*_F)->OnSelectionRemove()) {
+				ObjectIt _D = _F;
+				_F++;
+				Scene->RemoveObject(*_D, false, false);
+				to_remove.push_back(*_D);
+			} else {
+				_F++;
+			}
+		} else {
+			if ((*_F)->Selected() && (*_F)->Locked() && !(*_F)->m_CO_Flags.test(CCustomObject::flObjectInGroup))
+				ELog.Msg(mtError, "Cannot delete locked object '%s'", (*_F)->GetName());
+			_F++;
+		}
+	}
+	if (!to_remove.empty()) {
+		auto cmd = std::make_unique<RemoveObjectsCommand>(to_remove);
+		Scene->PushCommand(std::move(cmd));
+	}
+	UI->RedrawScene();
 }
 
 void ESceneCustomOTool::InvertSelection()
@@ -196,18 +197,44 @@ int ESceneCustomOTool::SelectionCount(bool testflag)
     return count;
 }
 
-void ESceneCustomOTool::ShowObjects(bool flag, bool bAllowSelectionFlag, bool bSelFlag)
-{
-    for(ObjectIt _F = m_Objects.begin();_F!=m_Objects.end();_F++){
-        if (bAllowSelectionFlag){
-            if ((*_F)->Selected()==bSelFlag){
-                (*_F)->Show( flag );
-            }
-        }else{
-            (*_F)->Show( flag );
-        }
-    }
-    UI->RedrawScene();
+void ESceneCustomOTool::ShowObjects(bool flag, bool bAllowSelectionFlag, bool bSelFlag) {
+	std::vector<xr_string> names;
+	std::vector<bool>	   oldVisibility;
+	std::vector<bool>	   newVisibility;
+
+	for (ObjectIt _F = m_Objects.begin(); _F != m_Objects.end(); _F++) {
+		CCustomObject* obj = *_F;
+
+		names.push_back(obj->GetName());
+		oldVisibility.push_back(obj->Visible());
+
+		if (bAllowSelectionFlag) {
+			if (obj->Selected() == bSelFlag) {
+				obj->Show(flag);
+				newVisibility.push_back(flag);
+			} else {
+				newVisibility.push_back(obj->Visible());
+			}
+		} else {
+			obj->Show(flag);
+			newVisibility.push_back(flag);
+		}
+		if (!flag)
+			obj->Select(false);
+	}
+
+	int cnt = 0;
+	for (size_t i = 0; i < oldVisibility.size(); ++i) {
+		if (oldVisibility[i] != newVisibility[i])
+			cnt++;
+	}
+
+	if (cnt) {
+		auto cmd = std::make_unique<HideCommand>(std::move(names), std::move(oldVisibility), std::move(newVisibility));
+		Scene->PushCommand(std::move(cmd));
+	}
+
+	UI->RedrawScene();
 }
 
 BOOL ESceneCustomOTool::RayPick(CCustomObject*& object, float& distance, const Fvector& start, const Fvector& direction, SRayPickInfo* pinf)
@@ -272,20 +299,39 @@ int ESceneCustomOTool::GetQueryObjects(ObjectList& lst, int iSel, int iVis, int 
     return count;
 }
 
-int ESceneCustomOTool::LockObjects(bool flag, bool bAllowSelectionFlag, bool bSelFlag)
-{
-	int count=0;
-    for(ObjectIt _F = m_Objects.begin();_F!=m_Objects.end();_F++)
-        if(bAllowSelectionFlag){
-            if((*_F)->Selected()==bSelFlag){
-                (*_F)->Lock( flag );
-                count++;
-            }
-        }else{
-            (*_F)->Lock( flag );
-            count++;
-        }
-    return count;
+int ESceneCustomOTool::LockObjects(bool flag, bool bAllowSelectionFlag, bool bSelFlag) {
+	std::vector<xr_string> names;
+	std::vector<bool>	   oldLocks;
+	std::vector<bool>	   newLocks;
+
+	int					   count = 0;
+	for (ObjectIt _F = m_Objects.begin(); _F != m_Objects.end(); _F++) {
+		CCustomObject* obj = *_F;
+
+		names.push_back(obj->GetName());
+		oldLocks.push_back(obj->Locked());
+
+		if (bAllowSelectionFlag) {
+			if (obj->Selected() == bSelFlag) {
+				obj->Lock(flag);
+				newLocks.push_back(flag);
+				count++;
+			} else {
+				newLocks.push_back(obj->Locked());
+			}
+		} else {
+			obj->Lock(flag);
+			newLocks.push_back(flag);
+			count++;
+		}
+	}
+
+	if (count) {
+		auto cmd = std::make_unique<LockCommand>(std::move(names), std::move(oldLocks), std::move(newLocks));
+		Scene->PushCommand(std::move(cmd));
+	}
+
+	return count;
 }
 
 CCustomObject* ESceneCustomOTool::FindObjectByName(LPCSTR name, CCustomObject* pass)
@@ -368,21 +414,34 @@ void ESceneCustomOTool::GetBBox(Fbox& BB, bool bSelOnly)
     }
 }
 
-int ESceneCustomOTool::MultiRenameObjects()
-{
-	int cnt			= 0;
-    for (ObjectIt o_it=m_Objects.begin(); o_it!=m_Objects.end(); o_it++){
-    	CCustomObject* obj	= *o_it;
-    	if (obj->Selected()){
-            string256 			buf;
-        	Scene->GenObjectName(obj->ClassID,buf,obj->RefName());
-            if (obj->GetName()!=buf){// TODO точно должны сравнивать указатели?
-	            obj->SetName(buf);
-                cnt++; 
-            }
-        }
-    }
-    return cnt;
+int ESceneCustomOTool::MultiRenameObjects() {
+	int							cnt = 0;
+	std::vector<CCustomObject*> objects;
+	std::vector<xr_string>		oldNames;
+	std::vector<xr_string>		newNames;
+
+	for (ObjectIt o_it = m_Objects.begin(); o_it != m_Objects.end(); o_it++) {
+		CCustomObject* obj = *o_it;
+		if (obj->Selected()) {
+			objects.push_back(obj);
+			oldNames.push_back(obj->GetName());
+
+			string256 buf;
+			Scene->GenObjectName(obj->ClassID, buf, obj->GetName());
+
+			if (0 != xr_strcmp(obj->GetName(), buf)) {
+				obj->SetName(buf);
+				newNames.push_back(buf);
+				cnt++;
+			} else {
+				newNames.push_back(oldNames.back());
+			}
+		}
+	}
+
+	if (cnt) {
+		auto cmd = std::make_unique<RenameCommand>(std::move(objects), std::move(oldNames), std::move(newNames));
+		Scene->PushCommand(std::move(cmd));
+	}
+	return cnt;
 }
-
-

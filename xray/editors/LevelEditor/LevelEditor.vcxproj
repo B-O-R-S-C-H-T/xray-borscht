@@ -288,6 +288,7 @@
     <ClCompile Include="Edit\CustomObject.cpp" />
     <ClCompile Include="Edit\CustomObjectAnimation.cpp" />
     <ClCompile Include="Edit\CustomObjectLE.cpp" />
+    <ClCompile Include="Edit\editor_clipboard.cpp" />
     <ClCompile Include="Edit\ELight.cpp" />
     <ClCompile Include="Edit\ELight_IO.cpp" />
     <ClCompile Include="Edit\ELight_props.cpp" />
@@ -366,7 +367,6 @@
     <ClCompile Include="Edit\SceneSelection.cpp" />
     <ClCompile Include="Edit\SceneSnap.cpp" />
     <ClCompile Include="Edit\SceneSummaryInfo.cpp" />
-    <ClCompile Include="Edit\SceneUndo.cpp" />
     <ClCompile Include="Edit\SceneUtil.cpp" />
     <ClCompile Include="Edit\Scene_Tools.cpp" />
     <ClCompile Include="Edit\sector.cpp" />
@@ -374,6 +374,7 @@
     <ClCompile Include="Edit\SpawnPoint.cpp" />
     <ClCompile Include="Edit\UI_LevelMain.cpp" />
     <ClCompile Include="Edit\UI_LevelTools.cpp" />
+    <ClCompile Include="Edit\undo_manager.cpp" />
     <ClCompile Include="Edit\WayPoint.cpp" />
     <ClCompile Include="ImGui\IM_ContextMenu.cpp" />
     <ClCompile Include="ImGui\IM_DetailShuffle.cpp" />

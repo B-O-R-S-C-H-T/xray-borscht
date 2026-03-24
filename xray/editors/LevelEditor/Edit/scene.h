@@ -15,22 +15,19 @@
 #include <xrEngine/xrLevel.h>
 #include "../ECore/Editor/pick_defs.h"
 #include <functional>
+#include "editors/ECore/Editor/undo_manager.h"
+#include "editors/ECore/Editor/editor_clipboard.h"
+
 //refs
 struct FSChunkDef;
 class PropValue;
 struct SPBItem;
 //----------------------------------------------------
 
-#pragma pack( push,1 )
-struct UndoItem {
-	char m_FileName[MAX_PATH];
-};
-#pragma pack( pop )
-
 class TProperties;
 class IM_PropertiesWnd;
 
-struct st_LevelOptions{
+struct st_LevelOptions {
 	shared_str		m_FNLevelPath;
     shared_str		m_LevelPrefix;
 	shared_str 		m_BOPText;
@@ -56,15 +53,19 @@ struct st_LevelOptions{
     void			Reset			();
 };
 
-class EScene
-{
-    CMemoryWriter 	m_SaveCache;
+class EScene {
+	CMemoryWriter	m_SaveCache;
+	UndoManager		m_undoManager;
+	EditorClipboard m_clipboard;
+
 public:
 	typedef	FixedMAP<float,CCustomObject*>	mapObject_D;
 	typedef mapObject_D::TNode	 	    	mapObject_Node;
 	mapObject_D						    	mapRenderObjects;
+
 public:
 	st_LevelOptions	m_LevelOp;
+
 protected:
 	bool m_Valid;
 	int m_Locked;
@@ -73,20 +74,18 @@ protected:
     shared_str		m_OwnerName;
     time_t			m_CreateTime;
 
-    // 
 	int m_LastAvailObject;
 
     SceneToolsMap   m_SceneTools;
 
-	xr_deque<UndoItem> m_UndoStack;
-	xr_deque<UndoItem> m_RedoStack;
-
 	IM_PropertiesWnd* m_SummaryInfo;
 
     ObjectList		m_ESO_SnapObjects; // временно здесь а вообще нужно перенести в ESceneTools
+
 protected:
     bool 			OnLoadAppendObject			(CCustomObject* O);
     bool 			OnLoadSelectionAppendObject(CCustomObject* O);
+
 protected:
 	void			RegisterSceneTools			(ESceneToolBase* mt);
 	void			CreateSceneTools			();
@@ -96,6 +95,7 @@ protected:
 
 	void		 	OnBuildControlClick			(ButtonValue* sender, bool& bModif, bool& bSafe);
 	void		 	OnRTFlagsChange				(PropValue* sender);
+
 public:
 	enum{
     	flRT_Unsaved 			= (1<<0),
@@ -103,12 +103,14 @@ public:
         flUpdateSnapList		= (1<<2),
     };
     Flags32			m_RTFlags;
+
 public:
 #ifdef __BORLANDC__
 	typedef bool (__closure *TAppendObject)(CCustomObject* object);
 #else
 	using TAppendObject = std::function<bool(CCustomObject*)>;
 #endif
+
 	bool 			ReadObjectStream	(IReader& F, CCustomObject*& O);
 	bool 			ReadObjectLTX		(CInifile& ini, LPCSTR sect_name, CCustomObject*& O);
 	bool 			ReadObjectsStream	(IReader& F, u32 chunk_id, TAppendObject on_append, SPBItem* pb);
@@ -131,6 +133,7 @@ public:
     BOOL			UnloadLevelPart		(LPCSTR map_name, ObjClassID cls, bool unlock);
 	void 			LockLevel			(LPCSTR map_name);
 	void 			UnlockLevel			(LPCSTR map_name);
+
 public:
 	bool			ExportGame			(SExportStreams* F);
 
@@ -179,8 +182,8 @@ public:
 	void 			Render              (const Fmatrix& camera);
 	void 			OnFrame				(float dT);
 
-	virtual void 	AppendObject		(CCustomObject* object, bool bExecUnd= true);
-	virtual bool 	RemoveObject		(CCustomObject* object, bool bExecUndo, bool bDeleting);
+	virtual void	AppendObject		(CCustomObject* object, bool bExecUndo = true);
+	virtual bool	RemoveObject		(CCustomObject* object, bool bExecUndo, bool bDeleting);
     void			BeforeObjectChange	(CCustomObject* object);
     bool 			ContainsObject		(CCustomObject* object, ObjClassID classfilter);
 
@@ -213,10 +216,12 @@ public:
 	void			InvertSelection     (ObjClassID classfilter);
 	int 			SelectionCount      (bool testflag, ObjClassID classfilter);
 	void			RemoveSelection     (ObjClassID classfilter);
-	void 			CutSelection        (ObjClassID classfilter);
-	void			CopySelection       (ObjClassID classfilter);
-	void			PasteSelection      ();
-	void			DuplicateSelection	(ObjClassID classfilter);
+	void 			CutSelection			(ObjClassID classfilter);
+	void			SaveSelectionToStream	(ObjClassID classfilter, IWriter& F);
+	void			LoadSelectionFromStream	(IReader& F);
+	void			CopySelection			(ObjClassID classfilter);
+	void			PasteSelection			();
+	void			DuplicateSelection		(ObjClassID classfilter);
 
 	void 			SelectLightsForObject(CCustomObject* obj);
 
@@ -230,8 +235,10 @@ public:
     virtual CCustomObject* 	FindObjectByName	(LPCSTR name, CCustomObject* pass_object);
     bool 			FindDuplicateName   ();
 
+	// Undo/redo
+	void			PushCommand(std::unique_ptr<ICommand> cmd) { m_undoManager.Push(std::move(cmd)); }
 	void 			UndoClear			();
-	void 			UndoSave			();
+	void 			UndoSave			();	// deprecated
 	bool 			Undo				();
 	bool 			Redo				();
 
@@ -240,17 +247,14 @@ public:
 
 public:
 	int  			GetQueryObjects		(ObjectList& objset, ObjClassID classfilter, int iSel=1, int iVis=1, int iLock=0);
-public:
 
+public:
 	void 			OnCreate		();
 	void 			OnDestroy		();
     void 			Modified		();
     bool 			IfModified		();
 	bool 			IsUnsaved		();
 	bool 			IsModified		();
-
-    int 			GetUndoCount	(){return m_UndoStack.size();}
-    int 			GetRedoCount	(){return m_RedoStack.size();}
 
     bool 			Validate		(bool bNeedOkMsg, bool bTestPortal, bool bTestHOM, bool bTestGlow, bool bTestShaderCompatible, bool bFullTest);
     void 			OnObjectsUpdate	();
@@ -275,6 +279,7 @@ public:
     shared_str 		LevelPrefix		(){return m_LevelOp.m_LevelPrefix; }
 
 	void 			FillProp		(LPCSTR pref, PropItemVec& items, ObjClassID cls_id);
+
 protected:
     typedef std::pair<xr_string,xr_string>  TSubstPair;
     typedef xr_vector<TSubstPair>           TSubstPairs;
@@ -282,13 +287,15 @@ protected:
     typedef TSubstPairs::const_iterator     TSubstPairs_cit;
     TSubstPairs                             m_subst_pairs;
 
-    
 public:
     void            RegisterSubstObjectName  (const xr_string& from, const xr_string& to );
     bool            GetSubstObjectName       (const xr_string& from, xr_string& to) const;
 
 private:
 	xr_map<xr_string, int>					m_CountByName;
+
+private:
+	void			CollectAddedObjects(std::vector<CCustomObject*>& out);
 };
 
 //----------------------------------------------------
