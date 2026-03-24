@@ -1,11 +1,11 @@
-#ifndef IM_TopBarH
-#define IM_TopBarH
+#ifndef IM_ToolbarH
+#define IM_ToolbarH
 
 #include "../ECore/ImGui/IM_Window.h"
 
 class CTexture;
 
-class IM_TopBar : public IM_Window {
+class IM_Toolbar : public IM_Window {
 public:
 	CTexture* m_ui_texture;
 
@@ -20,6 +20,6 @@ public:
 	virtual void Render();
 };
 
-extern IM_TopBar imTopBar;
+extern IM_Toolbar imToolbar;
 
 #endif

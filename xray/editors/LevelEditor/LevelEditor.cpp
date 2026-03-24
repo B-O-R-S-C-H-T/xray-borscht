@@ -16,7 +16,7 @@
 
 #include "ImGui/IM_MainMenu.h"
 #include "ImGui/IM_Sidebar.h"
-#include "ImGui/IM_TopBar.h"
+#include "ImGui/IM_Toolbar.h"
 #include "ImGui/IM_ContextMenu.h"
 
 #include "../xrEProps/EditorChooseEvents.H"
@@ -86,7 +86,7 @@ int APIENTRY WinMain(
 
 	UI->AddIMWindow(&imMainMenu);
     UI->AddIMWindow(&imSidebar);
-    UI->AddIMWindow(&imTopBar);
+    UI->AddIMWindow(&imToolbar);
     UI->AddIMWindow(&imContextMenu);
 
 	FillChooseEvents();

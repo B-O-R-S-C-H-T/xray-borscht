@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #pragma hdrstop
 
-#include "IM_TopBar.h"
+#include "IM_Toolbar.h"
 
 #include <Layers/xrRender/ResourceManager.h>
 #include <Layers/xrRender/SH_Texture.h>
@@ -16,7 +16,7 @@
 #define ATLAS_SIZE_X 8
 #define ATLAS_SIZE_Y 8
 
-bool IM_TopBar::Button(int image_id, const char* tooltip, bool selected) {
+bool IM_Toolbar::Button(int image_id, const char* tooltip, bool selected) {
 	// tc's
 	float  u		   = float(image_id % ATLAS_SIZE_X) / ATLAS_SIZE_X;
 	float  v		   = float(image_id / ATLAS_SIZE_Y) / ATLAS_SIZE_Y;
@@ -48,22 +48,22 @@ bool IM_TopBar::Button(int image_id, const char* tooltip, bool selected) {
 	return ImGui::IsItemClicked();
 }
 
-void IM_TopBar::Separator() {
+void IM_Toolbar::Separator() {
 	if (m_vertical)
 		ImGui::Separator();
 	else
 		ImGui::SameLine(0, 5);
 }
 
-void IM_TopBar::OnAdd() {
+void IM_Toolbar::OnAdd() {
 	m_ui_texture = Device.Resources->_CreateTexture("ui\\ui_editor_icons");
 }
 
-void IM_TopBar::OnRemove() {
+void IM_Toolbar::OnRemove() {
 	//    Device.Resources->_DeleteTexture(m_ui_texture);
 }
 
-void IM_TopBar::Render() {
+void IM_Toolbar::Render() {
 	if (!ImGui::Begin("Top bar", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar))
 		return;
 
@@ -164,4 +164,4 @@ void IM_TopBar::Render() {
 	ImGui::End();
 }
 
-IM_TopBar imTopBar;
+IM_Toolbar imToolbar;

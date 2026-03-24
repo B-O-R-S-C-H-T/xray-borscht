@@ -96,7 +96,7 @@
     <ClInclude Include="ImGui\IM_Sidebar.h">
       <Filter>ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\IM_TopBar.h">
+    <ClInclude Include="ImGui\IM_Toolbar.h">
       <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="Edit\WayPoint.h">
@@ -353,7 +353,7 @@
     <ClCompile Include="ImGui\IM_Sidebar.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\IM_TopBar.cpp">
+    <ClCompile Include="ImGui\IM_Toolbar.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Edit\Scene_Tools.cpp">

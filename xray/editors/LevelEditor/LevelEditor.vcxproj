@@ -253,7 +253,7 @@
     <ClInclude Include="ImGui\IM_MainMenu.h" />
     <ClInclude Include="ImGui\IM_Manipulator.h" />
     <ClInclude Include="ImGui\IM_ObjectListWnd.h" />
-    <ClInclude Include="ImGui\IM_TopBar.h" />
+    <ClInclude Include="ImGui\IM_Toolbar.h" />
     <ClInclude Include="iniStreamImpl.h" />
     <ClInclude Include="LevelEditor.h" />
     <ClInclude Include="Resource.h" />
@@ -394,7 +394,7 @@
     <ClCompile Include="ImGui\IM_MainMenu.cpp" />
     <ClCompile Include="ImGui\IM_Manipulator.cpp" />
     <ClCompile Include="ImGui\IM_ObjectListWnd.cpp" />
-    <ClCompile Include="ImGui\IM_TopBar.cpp" />
+    <ClCompile Include="ImGui\IM_Toolbar.cpp" />
     <ClCompile Include="iniStreamImpl.cpp" />
     <ClCompile Include="LevelEditor.cpp" />
     <ClCompile Include="StatusBar.cpp" />
