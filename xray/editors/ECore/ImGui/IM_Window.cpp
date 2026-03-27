@@ -34,6 +34,18 @@ void IM_Storage::PutInt(LPCSTR name, int value) {
 	ini->w_s32(m_sect_name.c_str(), name, value);
 }
 
+float IM_Storage::GetFloat(LPCSTR name, float def) {
+	if (ini->line_exist(m_sect_name.c_str(), name))
+		return ini->r_float(m_sect_name.c_str(), name);
+	else
+		return def;
+}
+
+void IM_Storage::PutFloat(LPCSTR name, float value) {
+	ini->remove_line(m_sect_name.c_str(), name);
+	ini->w_float(m_sect_name.c_str(), name, value);
+}
+
 bool IM_Storage::GetBool(LPCSTR name, bool def) {
 	if (ini->line_exist(m_sect_name.c_str(), name))
 		return ini->r_bool(m_sect_name.c_str(), name);

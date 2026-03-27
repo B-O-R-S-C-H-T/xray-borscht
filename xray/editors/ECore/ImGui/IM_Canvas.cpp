@@ -17,7 +17,8 @@
 	};                             \
 	((___with##t*)v)->operator()();
 
-IM_Canvas::IM_Canvas(int width, int height) : m_width(width), m_height(height), m_texture(NULL), m_hdc(NULL), m_hbitmap(NULL), m_holdbm(NULL) {
+IM_Canvas::IM_Canvas(int width, int height)
+	: m_width(width), m_height(height), m_texture(NULL), m_format(D3DFMT_X8R8G8B8), m_hdc(NULL), m_hbitmap(NULL), m_holdbm(NULL) {
 	CreateTexture();
 }
 
@@ -36,6 +37,8 @@ void IM_Canvas::CreateTexture(D3DFORMAT fmt) {
 
 	if (m_texture)
 		return;
+
+	m_format = fmt;
 
 	char name[256];
 	sprintf(name, "$user$canvas_%p", this);
@@ -57,7 +60,8 @@ void IM_Canvas::Clear() {
 		return;
 
 	IDirect3DTexture9* tex;
-	CHK_DX(HW.pDevice->CreateTexture(m_width, m_height, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &tex, NULL));
+
+	CHK_DX(HW.pDevice->CreateTexture(m_width, m_height, 1, D3DUSAGE_DYNAMIC, m_format, D3DPOOL_SYSTEMMEM, &tex, NULL));
 
 	IDirect3DSurface9* S;
 	CHK_DX(tex->GetSurfaceLevel(0, &S));

@@ -1,23 +1,35 @@
 #ifndef IM_ToolbarH
 #define IM_ToolbarH
 
-#include "../ECore/ImGui/IM_Window.h"
+#include <imgui.h>
 
-class CTexture;
+#include "../ECore/ImGui/IM_Window.h"
 
 class IM_Toolbar : public IM_Window {
 public:
-	CTexture* m_ui_texture;
+	bool  m_vertical   = false;
+	float m_icon_scale = 1.5f;
 
-	bool m_vertical;
+private:
+	IM_Storage* m_storage			= nullptr;
+	int			m_icon_size			= 0;
+	float		m_font_global_scale = 0.0f;
+	bool		m_is_dragging_edge	= false;
 
-	bool Button(int image_id, const char* tooltip = NULL, bool selected = false);
-	void Separator();
+	float		m_saved_width		= 900.0f;
+	float		m_saved_height		= 400.0f;
+	float		m_last_width		= 0.0f;
+	float		m_last_height		= 0.0f;
+
+	void		UpdateIconCache();
+	ImVec2		ComputeDesiredSize(int icon_size) const;
 
 public:
-	virtual void OnAdd();
-	virtual void OnRemove();
-	virtual void Render();
+	bool		 SVGButton(const char* svg_name, const char* tooltip = nullptr, bool activated = true);
+	void		 Separator();
+	virtual void OnAdd() override;
+	virtual void OnRemove() override;
+	virtual void Render() override;
 };
 
 extern IM_Toolbar imToolbar;

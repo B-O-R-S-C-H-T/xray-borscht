@@ -500,6 +500,9 @@ void TUI::Redraw()
                     ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
                 }
                 Device.End2_1();
+
+                IM_SVGCanvas::ProcessPendingRebuild();
+
 		    }catch(...){
 		    	ELog.DlgMsg(mtError, "Please notify AlexMX!!! Critical error has occured in render routine!!! [Type C]");
             }
@@ -523,6 +526,7 @@ void TUI::RealResize()
     Device.Resize		(m_D3DWindow->Width,m_D3DWindow->Height); 
     m_Flags.set			(flResize,FALSE);
     ExecCommand			(COMMAND_UPDATE_PROPERTIES);
+	IM_SVGCanvas::ForceRebuild();
 }
 void TUI::RealUpdateScene()
 {

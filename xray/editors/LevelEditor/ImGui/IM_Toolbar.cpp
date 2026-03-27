@@ -1,166 +1,260 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #pragma hdrstop
 
 #include "IM_Toolbar.h"
 
-#include <Layers/xrRender/ResourceManager.h>
-#include <Layers/xrRender/SH_Texture.h>
-#include <imgui.h>
-
 #include "../ECore/Editor/device.h"
 #include "../Edit/UI_LevelMain.h"
 #include "../Edit/UI_LevelTools.h"
+#include "editors/ECore/ImGui/IM_SVGCanvas.h"
 
-#pragma package(smart_init)
+bool IM_Toolbar::SVGButton(const char* svg_name, const char* tooltip, bool activated) {
+	if (!svg_name)
+		return false;
 
-#define ATLAS_SIZE_X 8
-#define ATLAS_SIZE_Y 8
+	const int icon_size = m_icon_size;
 
-bool IM_Toolbar::Button(int image_id, const char* tooltip, bool selected) {
-	// tc's
-	float  u		   = float(image_id % ATLAS_SIZE_X) / ATLAS_SIZE_X;
-	float  v		   = float(image_id / ATLAS_SIZE_Y) / ATLAS_SIZE_Y;
+	char	  fullpath[512];
+	sprintf(fullpath, "icons\\%s", svg_name);
 
-	ImVec2 padding	   = ImGui::GetStyle().WindowPadding;
-	ImVec2 window_size = ImGui::GetWindowSize();
+	IM_SVGCanvas* icon = IM_SVGCanvas::GetIcon(fullpath, icon_size);
+	if (!icon) {
+		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "X");
+		if (!m_vertical)
+			ImGui::SameLine();
+		return false;
+	}
 
-	float  size		   = m_vertical ? window_size.x - padding.x * 2 : window_size.y - padding.y * 2;
-	if (!m_ui_texture->flags.bLoaded)
-		m_ui_texture->Load();
-	IDirect3DBaseTexture9* lpTexture = m_ui_texture->surface_get();
+	char id[256];
+	sprintf(id, "##svg_%s", svg_name);
 
-	ImGui::Image(lpTexture,
-				 ImVec2(size, size),
-				 ImVec2(u, v),
-				 ImVec2(u + 1.0 / ATLAS_SIZE_X, v + 1.0 / ATLAS_SIZE_Y),
-				 ImVec4(1, 1, 1, 1),
-				 selected ? ImGui::GetStyleColorVec4(ImGuiCol_CheckMark) : ImVec4(0, 0, 0, 0));
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.4f, 0.3f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.5f, 0.5f, 0.5f, 0.4f));
+
+	ImVec4 tint = activated ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImVec4(0.60f, 0.60f, 0.60f, 1.0f);
+
+	bool   clicked =
+		ImGui::ImageButton(id, (void*)icon->GetTexture(), ImVec2((float)icon_size, (float)icon_size), ImVec2(0, 0), ImVec2(1, 1), ImVec4(0, 0, 0, 0), tint);
+
+	ImGui::PopStyleColor(3);
 
 	if (tooltip && ImGui::IsItemHovered())
 		ImGui::SetTooltip("%s", tooltip);
 
-	if (lpTexture)
-		lpTexture->Release();
-
 	if (!m_vertical)
 		ImGui::SameLine();
 
-	return ImGui::IsItemClicked();
+	return clicked;
 }
 
 void IM_Toolbar::Separator() {
-	if (m_vertical)
+	if (m_vertical) {
 		ImGui::Separator();
-	else
+	} else {
 		ImGui::SameLine(0, 5);
+	}
+}
+
+void IM_Toolbar::UpdateIconCache() {
+	float current_dpi = ImGui::GetIO().FontGlobalScale;
+	float base_size	  = ImGui::GetFrameHeight();
+	int	  icon_size	  = static_cast<int>(base_size * current_dpi * m_icon_scale + 0.5f);
+
+	if (icon_size != m_icon_size || current_dpi != m_font_global_scale) {
+		m_icon_size			= icon_size;
+		m_font_global_scale = current_dpi;
+		IM_SVGCanvas::RequestResize(icon_size);
+	}
+
+	IM_SVGCanvas::ProcessPendingRebuild();
+}
+
+ImVec2 IM_Toolbar::ComputeDesiredSize(int icon_size) const {
+	if (m_vertical) {
+		float fixed_w = static_cast<float>(icon_size) + ImGui::GetStyle().WindowPadding.x * 2.0f;
+		return ImVec2(fixed_w, 400.0f);
+	} else {
+		float fixed_h = static_cast<float>(icon_size) + ImGui::GetStyle().WindowPadding.y * 2.0f;
+		return ImVec2(900.0f, fixed_h);
+	}
 }
 
 void IM_Toolbar::OnAdd() {
-	m_ui_texture = Device.Resources->_CreateTexture("ui\\ui_editor_icons");
+	m_storage			= xr_new<IM_Storage>(true, "im_level.ini", "IM_Toolbar");
+	m_vertical			= m_storage->GetBool("vertical", false);
+	m_icon_scale		= m_storage->GetFloat("icon_scale", 1.5f);
+
+	m_saved_width		= m_storage->GetFloat("width", 900.0f);
+	m_saved_height		= m_storage->GetFloat("height", 400.0f);
+
+	m_last_width		= m_saved_width;
+	m_last_height		= m_saved_height;
+
+	m_icon_size			= 0;
+	m_font_global_scale = 0.0f;
 }
 
 void IM_Toolbar::OnRemove() {
-	//    Device.Resources->_DeleteTexture(m_ui_texture);
+	if (m_storage) {
+		m_storage->PutBool("vertical", m_vertical);
+		m_storage->PutFloat("icon_scale", m_icon_scale);
+		m_storage->PutFloat("width", m_saved_width);
+		m_storage->PutFloat("height", m_saved_height);
+
+		xr_delete(m_storage);
+		m_storage = nullptr;
+	}
 }
 
 void IM_Toolbar::Render() {
-	if (!ImGui::Begin("Top bar", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar))
-		return;
+	UpdateIconCache();
+	const int		  icon_size = m_icon_size;
+	const ImGuiStyle& style		= ImGui::GetStyle();
 
-	ImVec2 size = ImGui::GetWindowSize();
-	m_vertical	= size.y > size.x;
-	/*
-		// undo/redo
-		if(Button(5, "Undo"))
-			ExecCommand(COMMAND_UNDO);
-		if(Button(6, "Redo"))
-			ExecCommand(COMMAND_REDO);
-	*/
-	Separator();
+	ImVec2			  min_sz, max_sz;
+	if (m_vertical) {
+		const float fixed_w = static_cast<float>(icon_size) + style.WindowPadding.x * 2.0f;
+		min_sz				= ImVec2(fixed_w, static_cast<float>(icon_size) * 3.0f + style.WindowPadding.y * 2.0f);
+		max_sz				= ImVec2(fixed_w, FLT_MAX);
+	} else {
+		const float fixed_h = static_cast<float>(icon_size) + style.WindowPadding.y * 2.0f;
+		const float min_w	= static_cast<float>(icon_size) * 8.0f + style.WindowPadding.x * 2.0f + style.ItemSpacing.x * 12.0f;
+		min_sz				= ImVec2(min_w, fixed_h);
+		max_sz				= ImVec2(FLT_MAX, fixed_h);
+	}
 
-	// action buttons
-	if (Button(0, "Select", Tools->GetAction() == etaSelect))
-		Tools->SetAction(etaSelect);
-	if (Button(1, "Add", Tools->GetAction() == etaAdd))
-		Tools->SetAction(etaAdd);
-	if (Button(2, "Move", Tools->GetAction() == etaMove))
-		Tools->SetAction(etaMove);
-	if (Button(3, "Rotate", Tools->GetAction() == etaRotate))
-		Tools->SetAction(etaRotate);
-	if (Button(4, "Scale", Tools->GetAction() == etaScale))
-		Tools->SetAction(etaScale);
+	ImVec2 desired_size = (m_vertical ? ImVec2(min_sz.x, m_saved_height) : ImVec2(m_saved_width, min_sz.y));
+	if (desired_size.x < min_sz.x)
+		desired_size.x = min_sz.x;
+	if (desired_size.y < min_sz.y)
+		desired_size.y = min_sz.y;
 
-	Separator();
+	// imgui не умеет отключать часть рёбер панели, поэтому просто прячем ненужные левое и верхнее
+	// рёбра за пределы экрана и под строку меню соответственно.
+	const float edge_hide = 4.0f;
+	ImVec2		pos(-edge_hide, ImGui::GetFrameHeight() - edge_hide);
 
-	// axis buttons
-	if (Button(8, "Restrict to X", Tools->GetAxis() == etAxisX))
-		Tools->SetAxis(etAxisX);
-	if (Button(9, "Restrict to Y", Tools->GetAxis() == etAxisY))
-		Tools->SetAxis(etAxisY);
-	if (Button(10, "Restrict to Z", Tools->GetAxis() == etAxisZ))
-		Tools->SetAxis(etAxisZ);
-	if (Button(11, "Restrict to ZX", Tools->GetAxis() == etAxisZX))
-		Tools->SetAxis(etAxisZX);
+	ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
 
-	if (Button(41, "Parent CS toggle", Tools->GetSettings(etfCSParent)))
-		ExecCommand(COMMAND_SET_SETTINGS, etfCSParent, !Tools->GetSettings(etfCSParent));
-	if (Button(40, "Non-uniform scale", Tools->GetSettings(etfNUScale)))
-		ExecCommand(COMMAND_SET_SETTINGS, etfNUScale, !Tools->GetSettings(etfNUScale));
+	// приходится применять размер каждый кадр, чтобы не минимизировалась панель при наложении иного окна поверх
+	ImGui::SetNextWindowSize(desired_size, ImGuiCond_Always);
+	ImGui::SetNextWindowSizeConstraints(min_sz, max_sz);
 
-	Separator();
+	constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse |
+									   ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
+									   ImGuiWindowFlags_NoFocusOnAppearing;
 
-	// snap buttons
-	if (Button(16, "Snap to grid", Tools->GetSettings(etfGSnap)))
-		ExecCommand(COMMAND_SET_SETTINGS, etfGSnap, !Tools->GetSettings(etfGSnap));
-	if (Button(17, "Snap to objects", Tools->GetSettings(etfOSnap)))
-		ExecCommand(COMMAND_SET_SETTINGS, etfOSnap, !Tools->GetSettings(etfOSnap));
-	if (Button(18, "Moving snap", Tools->GetSettings(etfMTSnap)))
-		ExecCommand(COMMAND_SET_SETTINGS, etfMTSnap, !Tools->GetSettings(etfMTSnap));
-	if (Button(19, "Normal alignment", Tools->GetSettings(etfNormalAlign)))
-		ExecCommand(COMMAND_SET_SETTINGS, etfNormalAlign, !Tools->GetSettings(etfNormalAlign));
-	if (Button(20, "Snap to vertex", Tools->GetSettings(etfVSnap)))
-		ExecCommand(COMMAND_SET_SETTINGS, etfVSnap, !Tools->GetSettings(etfVSnap));
-	if (Button(21, "Angle snap", Tools->GetSettings(etfASnap)))
-		ExecCommand(COMMAND_SET_SETTINGS, etfASnap, !Tools->GetSettings(etfASnap));
-	if (Button(22, "Moving snap", Tools->GetSettings(etfMSnap)))
-		ExecCommand(COMMAND_SET_SETTINGS, etfMSnap, !Tools->GetSettings(etfMSnap));
+	if (ImGui::Begin("Top bar", nullptr, flags)) {
+		ImVec2 curr_size = ImGui::GetWindowSize();
 
-	Separator();
+		if (m_vertical) {
+			if (std::fabs(curr_size.y - m_last_height) > 0.5f) {
+				m_saved_height = curr_size.y;
+				m_last_height  = curr_size.y;
+			}
+		} else {
+			if (std::fabs(curr_size.x - m_last_width) > 0.5f) {
+				m_saved_width = curr_size.x;
+				m_last_width  = curr_size.x;
+			}
+		}
 
-	// focus buttons
-	if (Button(42, "Focus on whole scene"))
-		ExecCommand(COMMAND_ZOOM_EXTENTS, FALSE);
-	if (Button(43, "Focus on selected"))
-		ExecCommand(COMMAND_ZOOM_EXTENTS, TRUE);
+		ImVec2 snap_size  = curr_size;
+		bool   needs_snap = false;
+		if (m_vertical) {
+			if (curr_size.x < min_sz.x) {
+				snap_size.x = min_sz.x;
+				needs_snap	= true;
+			}
+		} else {
+			if (curr_size.y < min_sz.y) {
+				snap_size.y = min_sz.y;
+				needs_snap	= true;
+			}
+		}
+		if (needs_snap) {
+			ImGui::SetWindowSize(snap_size, ImGuiCond_Always);
+			curr_size = snap_size;
+		}
 
-	Separator();
+		bool		currently_dragging_edge = false;
+		ImVec2		mouse_pos				= ImGui::GetMousePos();
+		ImVec2		win_pos					= ImGui::GetWindowPos();
+		const float edge_threshold			= 8.0f;
 
-	// view buttons
-	if (Button(24, "Front view"))
-		Device.m_Camera.ViewFront();
-	if (Button(25, "Back view"))
-		Device.m_Camera.ViewBack();
-	if (Button(26, "Left view"))
-		Device.m_Camera.ViewLeft();
-	if (Button(27, "Right view"))
-		Device.m_Camera.ViewRight();
-	if (Button(28, "Top view"))
-		Device.m_Camera.ViewTop();
-	if (Button(29, "Bottom view"))
-		Device.m_Camera.ViewBottom();
-	if (Button(30, "Reset view"))
-		Device.m_Camera.ViewReset();
+		if (!m_vertical) // горизонтальный - только нижнее ребро
+		{
+			if (ImGui::IsMouseDragging(0) && std::fabs(mouse_pos.y - (win_pos.y + curr_size.y)) < edge_threshold)
+				currently_dragging_edge = true;
+		} else // вертикальный - только правое ребро
+		{
+			if (ImGui::IsMouseDragging(0) && std::fabs(mouse_pos.x - (win_pos.x + curr_size.x)) < edge_threshold)
+				currently_dragging_edge = true;
+		}
 
-	Separator();
+		if (currently_dragging_edge && !m_is_dragging_edge) {
+			m_vertical = !m_vertical;
+		}
+		m_is_dragging_edge = currently_dragging_edge;
 
-	// camera mode buttons
-	if (Button(32, "PlaneMove", Device.m_Camera.GetStyle() == csPlaneMove))
-		Device.m_Camera.SetStyle(csPlaneMove);
-	if (Button(33, "3DArcBall", Device.m_Camera.GetStyle() == cs3DArcBall))
-		Device.m_Camera.SetStyle(cs3DArcBall);
-	if (Button(34, "FreeFly", Device.m_Camera.GetStyle() == csFreeFly))
-		Device.m_Camera.SetStyle(csFreeFly);
+		// undo/redo кнопки отключены ранее, следует пользоваться горячими клавишами
+		//if (SVGButton("undo.svg", "Undo"))	ExecCommand(COMMAND_UNDO);
+		//if (SVGButton("redo.svg", "Redo"))	ExecCommand(COMMAND_REDO);
 
+		if (SVGButton("select.svg", "Select", Tools->GetAction() == etaSelect))		Tools->SetAction(etaSelect);
+		if (SVGButton("add.svg", "Add", Tools->GetAction() == etaAdd))				Tools->SetAction(etaAdd);
+		if (SVGButton("move.svg", "Move", Tools->GetAction() == etaMove))			Tools->SetAction(etaMove);
+		if (SVGButton("rotate.svg", "Rotate", Tools->GetAction() == etaRotate))		Tools->SetAction(etaRotate);
+		if (SVGButton("scale.svg", "Scale", Tools->GetAction() == etaScale))		Tools->SetAction(etaScale);
+
+		Separator();
+
+		// axis buttons отключены, т.к. в новом редакторе используется трёхмерный манипулятор imguizmo
+		//if (SVGButton("axis_x.svg", "Restrict to X", Tools->GetAxis() == etAxisX))		Tools->SetAxis(etAxisX);
+		//if (SVGButton("axis_y.svg", "Restrict to Y", Tools->GetAxis() == etAxisY))		Tools->SetAxis(etAxisY);
+		//if (SVGButton("axis_z.svg", "Restrict to Z", Tools->GetAxis() == etAxisZ))		Tools->SetAxis(etAxisZ);
+		//if (SVGButton("axis_zx.svg", "Restrict to ZX", Tools->GetAxis() == etAxisZX))	Tools->SetAxis(etAxisZX);
+
+		if (SVGButton("rotate_local.svg", "Parent CS toggle", Tools->GetSettings(etfCSParent)))			ExecCommand(COMMAND_SET_SETTINGS, etfCSParent, !Tools->GetSettings(etfCSParent));
+		if (SVGButton("scale_non_uniform.svg", "Non-uniform scale", Tools->GetSettings(etfNUScale)))	ExecCommand(COMMAND_SET_SETTINGS, etfNUScale, !Tools->GetSettings(etfNUScale));
+
+		Separator();
+
+		// snap buttons
+		if (SVGButton("snap_to_grid.svg", "Snap to grid", Tools->GetSettings(etfGSnap)))			ExecCommand(COMMAND_SET_SETTINGS, etfGSnap, !Tools->GetSettings(etfGSnap));
+		if (SVGButton("snap_to_object.svg", "Snap to objects", Tools->GetSettings(etfOSnap)))		ExecCommand(COMMAND_SET_SETTINGS, etfOSnap, !Tools->GetSettings(etfOSnap));
+		if (SVGButton("snap_moving.svg", "Moving snap", Tools->GetSettings(etfMTSnap)))				ExecCommand(COMMAND_SET_SETTINGS, etfMTSnap, !Tools->GetSettings(etfMTSnap));
+		if (SVGButton("normal_align.svg", "Normal alignment", Tools->GetSettings(etfNormalAlign)))	ExecCommand(COMMAND_SET_SETTINGS, etfNormalAlign, !Tools->GetSettings(etfNormalAlign));
+		if (SVGButton("snap_to_vertex.svg", "Snap to vertex", Tools->GetSettings(etfVSnap)))		ExecCommand(COMMAND_SET_SETTINGS, etfVSnap, !Tools->GetSettings(etfVSnap));
+		if (SVGButton("snap_rotate.svg", "Angle snap", Tools->GetSettings(etfASnap)))				ExecCommand(COMMAND_SET_SETTINGS, etfASnap, !Tools->GetSettings(etfASnap));
+		if (SVGButton("snap_on_move.svg", "Moving snap", Tools->GetSettings(etfMSnap)))				ExecCommand(COMMAND_SET_SETTINGS, etfMSnap, !Tools->GetSettings(etfMSnap));
+
+		Separator();
+
+		// focus buttons
+		if (SVGButton("focus_scene.svg", "Focus on whole scene"))	ExecCommand(COMMAND_ZOOM_EXTENTS, FALSE);
+		if (SVGButton("focus_selected.svg", "Focus on selected"))	ExecCommand(COMMAND_ZOOM_EXTENTS, TRUE);
+
+		Separator();
+
+		// view buttons
+		if (SVGButton("view_front.svg", "Front view"))		Device.m_Camera.ViewFront();
+		if (SVGButton("view_back.svg", "Back view"))		Device.m_Camera.ViewBack();
+		if (SVGButton("view_left.svg", "Left view"))		Device.m_Camera.ViewLeft();
+		if (SVGButton("view_right.svg", "Right view"))		Device.m_Camera.ViewRight();
+		if (SVGButton("view_top.svg", "Top view"))			Device.m_Camera.ViewTop();
+		if (SVGButton("view_bottom.svg", "Bottom view"))	Device.m_Camera.ViewBottom();
+		if (SVGButton("view_reset.svg", "Reset view"))		Device.m_Camera.ViewReset();
+
+		Separator();
+
+		// camera mode buttons
+		if (SVGButton("camera_plane.svg", "PlaneMove", Device.m_Camera.GetStyle() == csPlaneMove))		Device.m_Camera.SetStyle(csPlaneMove);
+		if (SVGButton("camera_arcball.svg", "3DArcBall", Device.m_Camera.GetStyle() == cs3DArcBall))	Device.m_Camera.SetStyle(cs3DArcBall);
+		if (SVGButton("camera_freefly.svg", "FreeFly", Device.m_Camera.GetStyle() == csFreeFly))		Device.m_Camera.SetStyle(csFreeFly);
+
+	}
 	ImGui::End();
 }
 

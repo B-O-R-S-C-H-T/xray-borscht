@@ -8,6 +8,9 @@
 
 xr_map<shared_str, IM_SVGCanvas*> IM_SVGCanvas::s_cache;
 bool							  IM_SVGCanvas::s_initialized = false;
+xr_set<shared_str>				  IM_SVGCanvas::s_failed_loads;
+int								  IM_SVGCanvas::s_current_icon_size = 32;
+bool							  IM_SVGCanvas::s_need_full_rebuild = false;
 
 IM_SVGCanvas::IM_SVGCanvas(int width, int height) : IM_Canvas(width, height) {
 	if (width <= 0 || height <= 0) {
@@ -28,7 +31,7 @@ void IM_SVGCanvas::FreeTvgResources() {
 
 void IM_SVGCanvas::RebuildTextureAndBuffer() {
 	if (!HW.pDevice) {
-		ELog.Msg(mtError, "IM_SVGCanvas: HW.pDevice is null");
+		ELog.Msg(mtError, "IM_SVGCanvas::RebuildTextureAndBuffer: HW.pDevice is null");
 		return;
 	}
 
@@ -43,7 +46,7 @@ void IM_SVGCanvas::RebuildTextureAndBuffer() {
 		m_picture->size(static_cast<float>(m_width), static_cast<float>(m_height));
 		m_tvgCanvas = tvg::SwCanvas::gen(tvg::EngineOption::Default);
 		if (!m_tvgCanvas) {
-			ELog.Msg(mtError, "IM_SVGCanvas: failed to create SwCanvas");
+			ELog.Msg(mtError, "IM_SVGCanvas: failed to create SwCanvas for '%s'", "current");
 			return;
 		}
 		m_tvgCanvas->target(m_tvgBuffer.data(), m_width, m_width, m_height, tvg::ColorSpace::ARGB8888);
@@ -56,7 +59,7 @@ void IM_SVGCanvas::RebuildTextureAndBuffer() {
 	CreateTexture(D3DFMT_A8R8G8B8);
 
 	if (!m_texture) {
-		ELog.Msg(mtError, "IM_SVGCanvas: failed to create texture");
+		ELog.Msg(mtError, "IM_SVGCanvas: failed to create D3D texture");
 		return;
 	}
 
@@ -120,13 +123,17 @@ IM_SVGCanvas* IM_SVGCanvas::GetIcon(const char* svgPath, int size) {
 		return nullptr;
 	}
 
-	char keybuf[512];
-	sprintf(keybuf, "%s_%d", svgPath, size);
-	shared_str key = keybuf;
+	char key_buf[512];
+	sprintf(key_buf, "%s|%d", svgPath, size);
+	shared_str key = key_buf;
 
-	auto it  = s_cache.find(key);
+	auto	   it  = s_cache.find(key);
 	if (it != s_cache.end()) {
 		return it->second;
+	}
+
+	if (s_failed_loads.find(key) != s_failed_loads.end()) {
+		return nullptr;
 	}
 
 	IM_SVGCanvas* icon = xr_new<IM_SVGCanvas>(size, size);
@@ -141,7 +148,39 @@ IM_SVGCanvas* IM_SVGCanvas::GetIcon(const char* svgPath, int size) {
 	}
 
 	ELog.Msg(mtError, "IM_SVGCanvas::GetIcon: failed to load '%s'", svgPath);
+	s_failed_loads.insert(key);
+	xr_delete(icon);
 	return nullptr;
+}
+
+void IM_SVGCanvas::RequestResize(int size) {
+	if (size <= 0 || size == s_current_icon_size)
+		return;
+	s_current_icon_size = size;
+	s_need_full_rebuild = true;
+}
+
+void IM_SVGCanvas::ProcessPendingRebuild() {
+	if (!s_need_full_rebuild)
+		return;
+
+	for (auto& p : s_cache) {
+		if (p.second) {
+			p.second->FreeTvgResources();
+			xr_delete(p.second);
+		}
+	}
+	s_cache.clear();
+	s_failed_loads.clear();
+
+	s_need_full_rebuild = false;
+}
+
+void IM_SVGCanvas::ForceRebuild() {
+	if (!s_initialized) {
+		return;
+	}
+	s_need_full_rebuild = true;
 }
 
 void IM_SVGCanvas::InitializeThorVG() {
@@ -165,6 +204,7 @@ void IM_SVGCanvas::ClearCache() {
 		if (p.second) p.second->FreeTvgResources();
 	}
 	s_cache.clear();
+	s_failed_loads.clear();
 }
 
 void IM_SVGCanvas::Render() {

@@ -15,10 +15,12 @@ public:
 
 public:
 	int		  GetInt(LPCSTR name, int def = 0);
+	float	  GetFloat(LPCSTR name, float def = 0.0f);
 	bool	  GetBool(LPCSTR name, bool def = false);
 	xr_string GetString(LPCSTR name, const xr_string& def = xr_string(""));
 
 	void	  PutInt(LPCSTR name, int value);
+	void	  PutFloat(LPCSTR name, float value);
 	void	  PutBool(LPCSTR name, bool value);
 	void	  PutString(LPCSTR name, const xr_string& value);
 };
