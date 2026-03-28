@@ -1,4 +1,4 @@
-#include "stdAfx.h"
+п»ї#include "stdAfx.h"
 
 #include "embedded_editor_main.h"
 
@@ -16,7 +16,6 @@
 #include "embedded_editor_ae.h"
 #include "embedded_editor_helper.h"
 #include "embedded_editor_hud.h"
-#include "embedded_editor_le.h"
 #include "embedded_editor_logic.h"
 #include "embedded_editor_map.h"
 #include "embedded_editor_prop.h"
@@ -27,25 +26,34 @@
 #include "input_mapping.h"
 #include "render/editor_render_way_points.h"
 
-bool		show_main			= false;
-bool		show_metrics		= false;
-bool		show_test_window	= false;
-bool		show_weather_window = false;
-bool		show_info_window	= false;
-bool		show_prop_window	= false;
-bool		show_restr_window	= false;
-bool		show_shader_window	= false;
-bool		show_occ_window		= false;
-bool		show_node_editor	= false;
-bool		show_ae_window		= false;
-bool		show_ui_editor		= false;
-bool		show_map_editor		= false;
-bool		show_hud_editor		= false;
-bool		show_le_editor		= false;
-bool		show_se_editor		= false;
+bool show_main				= false;
+bool show_metrics			= false;
+bool show_test_window		= false;
+bool show_weather_window	= false;
+bool show_info_window		= false;
+bool show_prop_window		= false;
+bool show_restr_window		= false;
+bool show_shader_window		= false;
+bool show_occ_window		= false;
+bool show_node_editor		= false;
+bool show_ae_window			= false;
+bool show_ui_editor			= false;
+bool show_map_editor		= false;
+bool show_hud_editor		= false;
+bool show_se_editor			= false;
+
 extern bool isRenderAiMap;
-extern bool isRenderSpawnElement;
 extern bool	isRenderWayPoints;
+
+namespace SpawnFilter {
+	extern bool showLevelChangers;
+	extern bool showAnomalousZones;
+	extern bool showSmartZones;
+	extern bool showTeamBaseZones;
+	extern bool showSmartCovers;
+	extern bool showClimableObjects;
+	extern bool showGenericRestrictors;
+} // namespace SpawnFilter
 
 static bool isAlt = false;
 
@@ -84,8 +92,6 @@ void ShowMain(bool& show) {
         show_occ_window ^= 1;
     if (ImGui::Button("AE"))
         show_ae_window ^= 1;
-    if (ImGui::Button("LE"))
-        show_le_editor = !show_le_editor;
     if (ImGui::Button("SE"))
         show_se_editor = !show_se_editor;
     if (ImGui::Button("PP Editor"))
@@ -116,41 +122,56 @@ void ShowEditor() {
 
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu(u8"A-Life")) {
-            ImGui::MenuItem(u8"Свойства объекта", NULL, &show_prop_window);
-            if (ImGui::MenuItem(u8"Инфопорции"))
+            ImGui::MenuItem(u8"РЎРІРѕР№СЃС‚РІР° РѕР±СЉРµРєС‚Р°", NULL, &show_prop_window);
+            if (ImGui::MenuItem(u8"РРЅС„РѕРїРѕСЂС†РёРё"))
                 switchEditor(Editors::Infoportions);
-            ImGui::MenuItem(u8"Погода", NULL, &show_weather_window);
+            ImGui::MenuItem(u8"РџРѕРіРѕРґР°", NULL, &show_weather_window);
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu(u8"Шейдеры")) {
-            ImGui::MenuItem(u8"Просмотр шейдеров", NULL, &show_se_editor);
+
+        if (ImGui::BeginMenu(u8"РЁРµР№РґРµСЂС‹")) {
+            ImGui::MenuItem(u8"РџСЂРѕСЃРјРѕС‚СЂ С€РµР№РґРµСЂРѕРІ", NULL, &show_se_editor);
             ImGui::Checkbox(u8"Use Diffuse", &Device.useDiffuse);
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu(u8"Постэффекты")) {
+
+        if (ImGui::BeginMenu(u8"РџРѕСЃС‚СЌС„С„РµРєС‚С‹")) {
             if (ImGui::MenuItem(u8"PP Editor"))
                 switchEditor(Editors::PpList);
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu(u8"Интерфейс")) {
+
+        if (ImGui::BeginMenu(u8"РРЅС‚РµСЂС„РµР№СЃ")) {
             ImGui::MenuItem(u8"UI Editor", NULL, &show_ui_editor);
             ImGui::MenuItem(u8"HUD Editor", NULL, &show_hud_editor);
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu(u8"Элементы уровня")) {
-            if (ImGui::MenuItem(u8"Детальные объекты"))
+
+        if (ImGui::BeginMenu(u8"Р­Р»РµРјРµРЅС‚С‹ СѓСЂРѕРІРЅСЏ")) {
+            if (ImGui::MenuItem(u8"Р”РµС‚Р°Р»СЊРЅС‹Рµ РѕР±СЉРµРєС‚С‹"))
                 switchEditor(Editors::Details);
-            if (ImGui::MenuItem(u8"Погодные модификаторы"))
+            if (ImGui::MenuItem(u8"РџРѕРіРѕРґРЅС‹Рµ РјРѕРґРёС„РёРєР°С‚РѕСЂС‹"))
                 switchEditor(Editors::EnvModList);
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu(u8"Показать")) {
-            ImGui::Checkbox(u8"ИИ-сетка", &isRenderAiMap);
-            ImGui::Checkbox(u8"Спаун-элементы", &isRenderSpawnElement);
-            ImGui::Checkbox(u8"Патрульные пути", &isRenderWayPoints);
+
+		if (ImGui::BeginMenu(u8"РџРѕРєР°Р·Р°С‚СЊ")) {
+			ImGui::SeparatorText(u8"РР-РіСЂР°С„");
+			ImGui::Checkbox(u8"РќРѕРґС‹ СѓСЂРѕРІРЅРµРІРѕРіРѕ РіСЂР°С„Р° РЅР°РІРёРіР°С†РёРё РР", &isRenderAiMap);
+			ImGui::SeparatorText(u8"РџР°С‚СЂСѓР»СЊРЅС‹Рµ РїСѓС‚Рё");
+			ImGui::Checkbox(u8"РџР°С‚СЂСѓР»СЊРЅС‹Рµ РїСѓС‚Рё", &isRenderWayPoints);
+			ImGui::SeparatorText(u8"РЁРµР№РїС‹ СЃРїР°СѓРЅ-СЌР»РµРјРµРЅС‚РѕРІ");
+			ImGui::Checkbox(u8"Р РµСЃС‚СЂРёРєС‚РѕСЂС‹", &SpawnFilter::showGenericRestrictors);
+			ImGui::Checkbox(u8"РђРЅРѕРјР°Р»РёРё Рё РєРѕСЃС‚СЂС‹", &SpawnFilter::showAnomalousZones);
+			ImGui::Checkbox(u8"Р›Р°РіРµСЂСЏ", &SpawnFilter::showSmartZones);
+			ImGui::Checkbox(u8"РЈРєСЂС‹С‚РёСЏ", &SpawnFilter::showSmartCovers);
+			ImGui::Checkbox(u8"РњРµР¶СѓСЂРѕРІРЅРµРІС‹Рµ РїРµСЂРµС…РѕРґС‹", &SpawnFilter::showLevelChangers);
+			ImGui::Checkbox(u8"Р›РµСЃС‚РЅРёС†С‹", &SpawnFilter::showClimableObjects);
+			ImGui::Checkbox(u8"Р‘Р°Р·С‹ СЃРµС‚РµРІРѕР№ РёРіСЂС‹", &SpawnFilter::showTeamBaseZones);
             ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu(u8"Команды")) {
+		}
+
+        if (ImGui::BeginMenu(u8"РљРѕРјР°РЅРґС‹")) {
             bool stats_enabled = psDeviceFlags.test(rsStatistic);
             if (ImGui::Checkbox(u8"rs_stats", &stats_enabled)) {
                 psDeviceFlags.set(rsStatistic, stats_enabled);
@@ -180,6 +201,7 @@ void ShowEditor() {
             }
             ImGui::EndMenu();
         }
+
         if (ImGui::BeginMenu("ImGui")) {
             bool full = stage == EditorStage::Full;
             if (ImGui::Checkbox(u8"Active", &full)) {
@@ -189,6 +211,7 @@ void ShowEditor() {
             ImGui::MenuItem("Metrics", NULL, &show_metrics);
             ImGui::EndMenu();
         }
+
         ImGui::EndMainMenuBar();
     }
 
@@ -219,8 +242,6 @@ void ShowEditor() {
         ShowMapEditor(show_map_editor);
     if (show_hud_editor)
         ShowHudEditor(show_hud_editor);
-    if (show_le_editor)
-        showLeEditor(show_le_editor);
     if (show_se_editor)
         showSeEditor(show_se_editor);
 

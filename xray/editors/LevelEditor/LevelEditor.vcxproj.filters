@@ -31,6 +31,9 @@
     <Filter Include="Include">
       <UniqueIdentifier>{6c45c6e7-65dd-4975-be8a-760dc26b1ede}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Undo Manager">
+      <UniqueIdentifier>{34580253-a0b9-486b-b075-5f1e3aaf45a7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -96,7 +99,7 @@
     <ClInclude Include="ImGui\IM_Sidebar.h">
       <Filter>ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\IM_TopBar.h">
+    <ClInclude Include="ImGui\IM_Toolbar.h">
       <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="Edit\WayPoint.h">
@@ -294,6 +297,9 @@
     <ClInclude Include="ImGui\IM_MainMenu.h">
       <Filter>ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="ImGui\IM_EditLibrary.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LevelEditor.cpp">
@@ -350,7 +356,7 @@
     <ClCompile Include="ImGui\IM_Sidebar.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\IM_TopBar.cpp">
+    <ClCompile Include="ImGui\IM_Toolbar.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Edit\Scene_Tools.cpp">
@@ -605,9 +611,6 @@
     <ClCompile Include="Edit\GroupObject.cpp">
       <Filter>Edit</Filter>
     </ClCompile>
-    <ClCompile Include="Edit\SceneUndo.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xrServerEntities\gametype_chooser.cpp">
       <Filter>xrServerEntities</Filter>
     </ClCompile>
@@ -693,6 +696,15 @@
       <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\undo_manager.cpp">
+      <Filter>Undo Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\editor_clipboard.cpp">
+      <Filter>Undo Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\IM_EditLibrary.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
   </ItemGroup>

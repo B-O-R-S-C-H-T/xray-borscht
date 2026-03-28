@@ -173,9 +173,9 @@ bool CPortalUtils::Validate(bool bMsg)
         sector_def->GetCounts(0,0,&f_cnt);
 		if (f_cnt!=0){
         	if (bMsg){ 
-            	ELog.DlgMsg(mtError,"*ERROR: Scene has '%d' non associated face!",f_cnt);
+            	ELog.DlgMsg(mtError,"ERROR: Scene has '%d' non associated face!",f_cnt);
                 for (SItemIt it=sector_def->sector_items.begin();it!=sector_def->sector_items.end();it++)
-                	Msg		("! - scene object: '%s' [O:'%s', M:'%s']",it->object->GetName(), it->object->RefName(), it->mesh->Name().c_str());
+					ELog.Msg(mtError, "Object '%s' [O:'%s', M:'%s']", it->object->GetName(), it->object->RefName(), it->mesh->Name().c_str());
             }
             bResult = false;
         }

@@ -80,7 +80,7 @@ enum {
     COMMAND_SHOW_CLIP_EDITOR,
 
     COMMAND_RUN_SCRIPT,
-
+	COMMAND_CREATE_GROUP,
     COMMAND_GENERATE_AI_MAP,// p1 - bool bFromSelectedOnly
 };
 //------------------------------------------------------------------------------

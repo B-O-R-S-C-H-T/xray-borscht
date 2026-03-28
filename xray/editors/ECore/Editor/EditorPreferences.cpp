@@ -1,12 +1,13 @@
-//---------------------------------------------------------------------------
 #include "stdafx.h"
+
+#include <imgui.h>
+
 #include "../ImGui/IM_PropertyTree.h"
+#include "ImGui/IM_SVGCanvas.h"
 #include "ui_main.h"
 #include "ui_toolscustom.h"
-//---------------------------------------------------------------------------
-CCustomPreferences* EPrefs=0;
 
-//---------------------------------------------------------------------------
+CCustomPreferences* EPrefs=0;
 
 CCustomPreferences::CCustomPreferences()
 {
@@ -22,6 +23,8 @@ CCustomPreferences::CCustomPreferences()
     cam_fly_alt			= 1.8f;
     cam_sens_rot		= 0.6f;
     cam_sens_move		= 0.6f;
+    cam_undo_enabled	= TRUE;
+	cam_undo_duration	= 0.3f;
     // tools mouse
     tools_sens_move		= 0.3f;
     tools_sens_rot		= 0.3f;
@@ -48,8 +51,9 @@ CCustomPreferences::CCustomPreferences()
     log_error_color     = 0x00FFC4C4;
     log_info_color      = 0x00E7FFE6;
     log_confirmation_color = 0x00E7E6FF;
+
+    ui_scale            = 1.0f;
 }
-//---------------------------------------------------------------------------
 
 CCustomPreferences::~CCustomPreferences()
 {
@@ -72,16 +76,26 @@ void CCustomPreferences::ApplyValues()
     Device.m_Camera.SetFlyParams	(cam_fly_speed, cam_fly_alt);
 
     ExecCommand		(COMMAND_UPDATE_GRID);
+
+	if (ImGui::GetCurrentContext() != nullptr) {
+		ImGui::GetIO().FontGlobalScale = ui_scale;
+	}
 }
-//---------------------------------------------------------------------------
+
+void CCustomPreferences::OnUIScaleApply(PropItem* item) {
+	ApplyValues();
+
+	if (ImGui::GetCurrentContext() != nullptr) {
+		IM_SVGCanvas::ForceRebuild();
+	}
+}
 
 void CCustomPreferences::OnClose	()
 {
     ApplyValues	();	
-    UI->RemoveIMWindow(IMProps);
+	UI->RemoveIMWindow(IMProps);
+	Save();
 }
-//---------------------------------------------------------------------------
-
 
 void CheckValidate(ShortcutValue*, const xr_shortcut& new_val, bool& result)
 {
@@ -147,9 +161,11 @@ void CCustomPreferences::FillProp(PropItemVec& props)
     PHelper().CreateFlag32	(props,"Objects\\Loading\\Deffered Loading RB",	&object_flags, 	epoDeffLoadRB);
     PHelper().CreateFlag32	(props,"Objects\\Loading\\Deffered Loading CF",	&object_flags, 	epoDeffLoadCF);
 
-    PHelper().CreateU32		(props,"Scene\\Common\\Recent Count", 		    &scene_recent_count,0, 		25);
-    PHelper().CreateU32		(props,"Scene\\Common\\Undo Level", 		    &scene_undo_level,	0, 		125);
-    PHelper().CreateFloat	(props,"Scene\\Grid\\Cell Size", 	           	&grid_cell_size,	0.1f,	10.f);
+	PHelper().CreateU32     (props, "Scene\\Undo Manager\\Recent Count",    &scene_recent_count, 0, 25);
+	PHelper().CreateU32     (props, "Scene\\Undo Manager\\Undo Level",      &scene_undo_level,   0, 125);
+	PHelper().CreateBOOL    (props, "Scene\\Undo Manager\\Enable Camera Interpolation",  &cam_undo_enabled);
+	PHelper().CreateFloat   (props, "Scene\\Undo Manager\\Interpolation Duration (sec)", &cam_undo_duration, 0.05f, 2.0f, 0.01f, 2);
+	PHelper().CreateFloat	(props,"Scene\\Grid\\Cell Size", 	           	&grid_cell_size,	0.1f,	10.f);
     PHelper().CreateU32		(props,"Scene\\Grid\\Cell Count", 	           	&grid_cell_count,	10, 	1000);
 
     PHelper().CreateBOOL	(props,"Tools\\Box Pick\\Limited Depth",		&bp_lim_depth);
@@ -175,9 +191,13 @@ void CCustomPreferences::FillProp(PropItemVec& props)
     PHelper().CreateFloat	(props,"Viewport\\Far Plane", 				    &view_fp,			10.f, 	10000.f);
     PHelper().CreateAngle	(props,"Viewport\\FOV",		  				    &view_fov,			deg2rad(0.1f), deg2rad(170.f));
     PHelper().CreateColor	(props,"Viewport\\Clear Color",		           	&scene_clear_color	);
+
+    PHelper().CreateFloatWithApply(props,"UI\\Interface Scale",             &ui_scale,          0.5f, 3.0f, 0.01f, 2,
+        fastdelegate::MakeDelegate(this, &CCustomPreferences::OnUIScaleApply));
     
     ButtonValue* B = PHelper().CreateButton	(props,"Keyboard\\Common\\File","Load,Save", 0);
     B->OnBtnClickEvent.bind	(this,&CCustomPreferences::OnKeyboardCommonFileClick);
+
     ECommandVec& cmds		= GetEditorCommands();
     for (u32 cmd_idx=0; cmd_idx<cmds.size(); cmd_idx++){
     	SECommand*& CMD		= cmds[cmd_idx];
@@ -206,7 +226,6 @@ void CCustomPreferences::Edit()
     // save changed options
     Save							();
 }
-//---------------------------------------------------------------------------
 
 void CCustomPreferences::Load(CInifile* I)
 {
@@ -226,6 +245,8 @@ void CCustomPreferences::Load(CInifile* I)
     cam_fly_alt			= R_FLOAT_SAFE	("editor_prefs","cam_fly_alt"		,cam_fly_alt	 	);
     cam_sens_rot		= R_FLOAT_SAFE	("editor_prefs","cam_sens_rot"		,cam_sens_rot		);
     cam_sens_move		= R_FLOAT_SAFE	("editor_prefs","cam_sens_move"		,cam_sens_move		);
+	cam_undo_enabled    = R_BOOL_SAFE   ("editor_prefs","cam_undo_enabled"  ,TRUE               );
+	cam_undo_duration   = R_FLOAT_SAFE  ("editor_prefs","cam_undo_duration" ,0.3f               );
 
     tools_sens_move		= R_FLOAT_SAFE	("editor_prefs","tools_sens_move"	,tools_sens_move  	);
     tools_sens_rot		= R_FLOAT_SAFE	("editor_prefs","tools_sens_rot"	,tools_sens_rot		);
@@ -247,6 +268,8 @@ void CCustomPreferences::Load(CInifile* I)
     scene_clear_color	= R_U32_SAFE	("editor_prefs","scene_clear_color"	,scene_clear_color	);
 
     object_flags.flags	= R_U32_SAFE	("editor_prefs","object_flags"		,object_flags.flags );
+
+    ui_scale			= R_FLOAT_SAFE  ("editor_prefs", "ui_scale"         , 1.0f);
 
     // read recent list    
     for (u32 i=0; i<scene_recent_count; i++){
@@ -284,6 +307,8 @@ void CCustomPreferences::Save(CInifile* I)
     I->w_float	("editor_prefs","cam_fly_alt",		cam_fly_alt		);
     I->w_float	("editor_prefs","cam_sens_rot",		cam_sens_rot	);
     I->w_float	("editor_prefs","cam_sens_move",	cam_sens_move	);
+	I->w_bool   ("editor_prefs","cam_undo_enabled", cam_undo_enabled);
+	I->w_float  ("editor_prefs","cam_undo_duration",cam_undo_duration);
 
     I->w_float	("editor_prefs","tools_sens_rot",	tools_sens_rot	);
     I->w_float	("editor_prefs","tools_sens_move",	tools_sens_move	);
@@ -305,6 +330,8 @@ void CCustomPreferences::Save(CInifile* I)
     I->w_u32	("editor_prefs","scene_clear_color",	scene_clear_color 	);
 
     I->w_u32	("editor_prefs","object_flags",		object_flags.flags);
+
+    I->w_float  ("editor_prefs", "ui_scale",        ui_scale);
 
     for (AStringIt it=scene_recent_list.begin(); it!=scene_recent_list.end(); it++){
         AnsiString L = "recent_files_" + std::to_string(it - scene_recent_list.begin());

@@ -11,8 +11,8 @@ void IM_Log::Clear() {
 
 void IM_Log::ClearSelected() {
 	xr_list<Message>::iterator it, end;
-	for(it = msgs.begin(), end = msgs.end(); it != end;) {
-		if(it->selected) {
+	for (it = msgs.begin(), end = msgs.end(); it != end;) {
+		if (it->selected) {
 			msgs.erase(it++);
 			continue;
 		}

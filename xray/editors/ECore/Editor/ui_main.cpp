@@ -20,6 +20,7 @@
 #include "../../Layers/xrRender/imgui_setup.h"
 #include "../ImGui/IM_Log.h"
 #include "../ImGui/IM_Window.h"
+#include "../ImGui/IM_SVGCanvas.h"
 
 TUI* 	UI			= 0;
 
@@ -61,6 +62,9 @@ TUI::~TUI()
     {
     	(*it)->OnRemove();
     }
+
+	IM_SVGCanvas::ClearCache();
+	IM_SVGCanvas::TerminateThorVG();
 }
 
 void TUI::OnDeviceCreate()
@@ -496,6 +500,9 @@ void TUI::Redraw()
                     ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
                 }
                 Device.End2_1();
+
+                IM_SVGCanvas::ProcessPendingRebuild();
+
 		    }catch(...){
 		    	ELog.DlgMsg(mtError, "Please notify AlexMX!!! Critical error has occured in render routine!!! [Type C]");
             }
@@ -519,6 +526,7 @@ void TUI::RealResize()
     Device.Resize		(m_D3DWindow->Width,m_D3DWindow->Height); 
     m_Flags.set			(flResize,FALSE);
     ExecCommand			(COMMAND_UPDATE_PROPERTIES);
+	IM_SVGCanvas::ForceRebuild();
 }
 void TUI::RealUpdateScene()
 {
@@ -673,6 +681,8 @@ bool TUI::OnCreate(TD3DWindow* w, TPanel* p)
 	BeginEState		(esEditScene);
 
     AddIMWindow(&imLog);
+
+    IM_SVGCanvas::InitializeThorVG();
 
     return true;
 }

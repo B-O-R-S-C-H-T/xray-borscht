@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <ItemGroup>
+    <Filter Include="renderer">
+      <UniqueIdentifier>{D8477F57-9935-4A16-B0C5-D18C78A67C18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="renderer\sw_engine">
+      <UniqueIdentifier>{418C386A-0B1F-4C51-84D0-95827E8E064A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{48D9E7D5-C501-40B1-983F-F8A7C316AECD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="loaders/svg">
+      <UniqueIdentifier>{09B0F251-A496-4D25-B8B2-2846E95D02DB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="loaders/raw">
+      <UniqueIdentifier>{8130ACCB-128A-4940-9947-C7BB2076A8FE}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\renderer\tvgAccessor.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\tvgAnimation.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\tvgCanvas.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\tvgFill.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\tvgInitializer.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\tvgLoader.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\tvgPaint.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\tvgPicture.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\tvgRender.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\tvgSaver.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\tvgScene.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\tvgShape.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\tvgTaskScheduler.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\tvgText.cpp">
+      <Filter>renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\sw_engine\tvgSwFill.cpp">
+      <Filter>renderer\sw_engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\sw_engine\tvgSwImage.cpp">
+      <Filter>renderer\sw_engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\sw_engine\tvgSwMath.cpp">
+      <Filter>renderer\sw_engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\sw_engine\tvgSwMemPool.cpp">
+      <Filter>renderer\sw_engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\sw_engine\tvgSwPostEffect.cpp">
+      <Filter>renderer\sw_engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\sw_engine\tvgSwRaster.cpp">
+      <Filter>renderer\sw_engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\sw_engine\tvgSwRenderer.cpp">
+      <Filter>renderer\sw_engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\sw_engine\tvgSwRle.cpp">
+      <Filter>renderer\sw_engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\sw_engine\tvgSwShape.cpp">
+      <Filter>renderer\sw_engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\renderer\sw_engine\tvgSwStroke.cpp">
+      <Filter>renderer\sw_engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\tvgColor.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\tvgCompressor.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\tvgMath.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\tvgStr.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\loaders\svg\tvgSvgCssStyle.cpp">
+      <Filter>loaders/svg</Filter>
+    </ClCompile>
+    <ClCompile Include="src\loaders\svg\tvgSvgLoader.cpp">
+      <Filter>loaders/svg</Filter>
+    </ClCompile>
+    <ClCompile Include="src\loaders\svg\tvgSvgPath.cpp">
+      <Filter>loaders/svg</Filter>
+    </ClCompile>
+    <ClCompile Include="src\loaders\svg\tvgSvgSceneBuilder.cpp">
+      <Filter>loaders/svg</Filter>
+    </ClCompile>
+    <ClCompile Include="src\loaders\svg\tvgSvgUtil.cpp">
+      <Filter>loaders/svg</Filter>
+    </ClCompile>
+    <ClCompile Include="src\loaders\svg\tvgXmlParser.cpp">
+      <Filter>loaders/svg</Filter>
+    </ClCompile>
+    <ClCompile Include="src\loaders\raw\tvgRawLoader.cpp">
+      <Filter>loaders/raw</Filter>
+    </ClCompile>
+    <ClInclude Include="src\renderer\tvgAnimation.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\tvgCanvas.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\tvgFill.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\tvgFrameModule.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\tvgLoader.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\tvgLoadModule.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\tvgPicture.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\tvgRender.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\tvgIteratorAccessor.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\tvgSaveModule.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\tvgScene.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\tvgShape.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\tvgTaskScheduler.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\tvgText.h">
+      <Filter>renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\sw_engine\tvgSwCommon.h">
+      <Filter>renderer\sw_engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\sw_engine\tvgSwRasterC.h">
+      <Filter>renderer\sw_engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\sw_engine\tvgSwRasterAvx.h">
+      <Filter>renderer\sw_engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\sw_engine\tvgSwRasterNeon.h">
+      <Filter>renderer\sw_engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\sw_engine\tvgSwRasterTexmap.h">
+      <Filter>renderer\sw_engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\renderer\sw_engine\tvgSwRenderer.h">
+      <Filter>renderer\sw_engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\tvgArray.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\tvgCommon.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\tvgColor.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\tvgCompressor.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\tvgInlist.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\tvgLock.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\tvgMath.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\tvgStr.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\svg\tvgSvgCssStyle.h">
+      <Filter>loaders/svg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\svg\tvgSvgLoader.h">
+      <Filter>loaders/svg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\svg\tvgSvgLoaderCommon.h">
+      <Filter>loaders/svg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\svg\tvgSvgPath.h">
+      <Filter>loaders/svg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\svg\tvgSvgSceneBuilder.h">
+      <Filter>loaders/svg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\svg\tvgSvgUtil.h">
+      <Filter>loaders/svg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\svg\tvgXmlParser.h">
+      <Filter>loaders/svg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\loaders\raw\tvgRawLoader.h">
+      <Filter>loaders/raw</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

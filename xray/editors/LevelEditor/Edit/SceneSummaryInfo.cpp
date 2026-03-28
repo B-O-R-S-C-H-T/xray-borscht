@@ -62,7 +62,7 @@ void SSceneSummary::SObjectInfo::Prepare()
 	    	Lib.RemoveEditObject(O);
         }
     }else{
-        Msg("!Empty object name found.");
+		ELog.Msg(mtError, "! Empty object name found.");
     }
 }
 void SSceneSummary::SObjectInfo::FillProp(PropItemVec& items, LPCSTR main_pref)
@@ -87,7 +87,7 @@ void SSceneSummary::STextureInfo::Prepare	()
 	if (file_name.size()){
         ETextureThumbnail* T= (ETextureThumbnail*)ImageLib.CreateThumbnail(file_name.c_str(),ECustomThumbnail::ETTexture,true);
         if (!T->Valid()){
-            Msg("!Can't get info from texture: '%s'",file_name.c_str());
+			ELog.Msg(mtError, "! Can't get info from texture: '%s'", file_name.c_str());
         }else{
             info			= T->_Format();
             if (info.flags.is(STextureParams::flImplicitLighted))
@@ -95,7 +95,7 @@ void SSceneSummary::STextureInfo::Prepare	()
         }
         xr_delete			(T);
     }else{
-        Msg("!Empty texture name found.");
+		ELog.Msg(mtError, "! Empty texture name found.");
     }
 }
 

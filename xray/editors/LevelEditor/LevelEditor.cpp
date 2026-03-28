@@ -16,7 +16,7 @@
 
 #include "ImGui/IM_MainMenu.h"
 #include "ImGui/IM_Sidebar.h"
-#include "ImGui/IM_TopBar.h"
+#include "ImGui/IM_Toolbar.h"
 #include "ImGui/IM_ContextMenu.h"
 
 #include "../xrEProps/EditorChooseEvents.H"
@@ -86,7 +86,7 @@ int APIENTRY WinMain(
 
 	UI->AddIMWindow(&imMainMenu);
     UI->AddIMWindow(&imSidebar);
-    UI->AddIMWindow(&imTopBar);
+    UI->AddIMWindow(&imToolbar);
     UI->AddIMWindow(&imContextMenu);
 
 	FillChooseEvents();
@@ -269,7 +269,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			ExecCommand(COMMAND_DESTROY);
 			DestroyWindow(g_MainWnd);
 			break;
-
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+			g_ShiftKey = getShiftState();
+			if (!UI->KeyDown(wParam, g_ShiftKey)) {
+				UI->ApplyShortCut(wParam, g_ShiftKey);
+			}
+			break;
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+			if (!UI->KeyUp(wParam, getShiftState())) {
+				;
+			}
+			break;
+		case WM_CHAR:
+			if (!UI->KeyPress(wParam, g_ShiftKey)) {
+				;
+			}
+			break;
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:

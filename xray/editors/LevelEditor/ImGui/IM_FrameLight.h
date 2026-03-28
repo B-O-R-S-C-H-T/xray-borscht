@@ -3,24 +3,18 @@
 
 #include "..\ECore\ImGui\IM_Window.h"
 
-class IM_FrameLight : public IM_Window
-{
-	public:
+class IM_FrameLight : public IM_Window {
+public:
+	bool m_show_useind3d;
 
-    bool m_show_useind3d;
+	void UseInD3D(bool bAll, bool bFlag);
 
-    void UseInD3D(bool bAll, bool bFlag);
+public:
+	IM_FrameLight() : m_show_useind3d(true) {}
 
-    public:
-
-    IM_FrameLight()
-        : m_show_useind3d(true)
-    {
-    }
-
-    virtual void OnAdd();
-    virtual void OnRemove();
-    virtual void Render();
+	virtual void OnAdd();
+	virtual void OnRemove();
+	virtual void Render();
 };
 
 #endif

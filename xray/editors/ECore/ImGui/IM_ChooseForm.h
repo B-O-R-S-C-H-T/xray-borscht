@@ -10,40 +10,38 @@
 
 typedef fastdelegate::FastDelegate<void(class IM_ChooseForm*)> IM_CFCallback;
 
-class ECORE_API IM_ChooseForm : public IM_Window
-{
-	public:
-    SChooseEvents* m_events;
+class ECORE_API IM_ChooseForm : public IM_Window {
+public:
+	SChooseEvents*		  m_events;
 
-	IM_CFCallback OnOK;
-	IM_CFCallback OnCancel;
-    IM_CFCallback OnClose;
+	IM_CFCallback		  OnOK;
+	IM_CFCallback		  OnCancel;
+	IM_CFCallback		  OnClose;
 
-    IM_Tree m_items_tree;
-    IM_PropertyTree m_props;
+	IM_Tree				  m_items_tree;
+	IM_PropertyTree		  m_props;
 
-    bool m_show_thumbnail;
-    IM_Canvas m_thm;
+	bool				  m_show_thumbnail;
+	IM_Canvas			  m_thm;
 
-    xr_vector<shared_str> m_selected;
-    size_t m_current_item; // for selection list
+	xr_vector<shared_str> m_selected;
+	size_t				  m_current_item; // for selection list
 
-    bool m_open;
+	bool				  m_open;
 
-	public:
-    IM_ChooseForm(EChooseMode mode, int max_select,
-	ChooseItemVec* items = NULL, TOnChooseFillItems fill_items = NULL, void* fill_param = NULL);
+public:
+	IM_ChooseForm(EChooseMode mode, int max_select, ChooseItemVec* items = NULL, TOnChooseFillItems fill_items = NULL, void* fill_param = NULL);
 
-    private:
-    void OnNodeSelected(shared_str path, shared_str value, bool select);
+private:
+	void OnNodeSelected(shared_str path, shared_str value, bool select);
 
-    public:
-    void Close();
+public:
+	void		 Close();
 
-    void SetSelected(shared_str selected);
-    shared_str GetSelected();
+	void		 SetSelected(shared_str selected);
+	shared_str	 GetSelected();
 
-    virtual void Render();
+	virtual void Render();
 };
 
 #endif

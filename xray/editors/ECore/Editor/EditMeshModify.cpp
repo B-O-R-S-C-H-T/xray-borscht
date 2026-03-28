@@ -1,13 +1,15 @@
-//----------------------------------------------------
+﻿//----------------------------------------------------
 // file: EditMeshModify.cpp
 //----------------------------------------------------
 
 #include "stdafx.h"
 #pragma hdrstop
 
+#include <ankerl/unordered_dense.h>
+
 #include "EditMesh.h"
 #include "EditObject.h"
-//----------------------------------------------------
+
 void CEditableMesh::Transform(const Fmatrix& parent)
 {
 	// transform position
@@ -16,6 +18,7 @@ void CEditableMesh::Transform(const Fmatrix& parent)
 
     // RecomputeBBox
 	RecomputeBBox	();
+
     // update normals & cform
 #ifdef _EDITOR
 	UnloadRenderBuffers	();
@@ -25,7 +28,6 @@ void CEditableMesh::Transform(const Fmatrix& parent)
     UnloadVNormals	(true);
     UnloadSVertices	(true);
 }
-//----------------------------------------------------
 
 int CEditableMesh::FindSimilarUV(st_VMap* vmap, Fvector2& _uv)
 {
@@ -150,169 +152,139 @@ void CEditableMesh::RebuildVMaps()
 	m_VMRefs = nVMRefs;
 }
 
-#define MX 25
-#define MY 15
-#define MZ 25
-static Fvector		VMmin, VMscale;
-static U32Vec		VM[MX+1][MY+1][MZ+1];
-static Fvector		VMeps;
+struct GridKey {
+	int	 x, y, z;
+	bool operator==(const GridKey& other) const { return x == other.x && y == other.y && z == other.z; }
+};
 
-static FvectorVec	m_NewPoints;
-bool CEditableMesh::OptimizeFace(st_Face& face){
-	Fvector points[3];
-	int mface[3];
-	int k;
+namespace ankerl::unordered_dense {
+	template <>
+	struct hash<GridKey> {
+		using is_avalanching = void;
+		auto operator()(GridKey const& k) const noexcept -> std::uint64_t { return hash<std::tuple<int, int, int>>()(std::make_tuple(k.x, k.y, k.z)); }
+	};
+} // namespace ankerl::unordered_dense
 
-	for (k=0; k<3; k++){
-    	points[k].set(m_Vertices[face.pv[k].pindex]);
-		mface[k] = -1;
-    }
-
-	// get similar vert idx list
-	for (k=0; k<3; k++){
-		U32Vec* vl;
-		int ix,iy,iz;
-		ix = iFloor(float(points[k].x-VMmin.x)/VMscale.x*MX);
-		iy = iFloor(float(points[k].y-VMmin.y)/VMscale.y*MY);
-		iz = iFloor(float(points[k].z-VMmin.z)/VMscale.z*MZ);
-		vl = &(VM[ix][iy][iz]);
-		for(U32It it=vl->begin();it!=vl->end(); it++){
-			FvectorIt v = m_NewPoints.begin()+(*it);
-            if( v->similar(points[k],EPS) )
-                mface[k] = *it;
-		}
-	}
-	for(k=0; k<3; k++ ){
-		if( mface[k] == -1 ){
-			mface[k] = m_NewPoints.size();
-			m_NewPoints.push_back( points[k] );
-			int ix,iy,iz;
-			ix = iFloor(float(points[k].x-VMmin.x)/VMscale.x*MX);
-			iy = iFloor(float(points[k].y-VMmin.y)/VMscale.y*MY);
-			iz = iFloor(float(points[k].z-VMmin.z)/VMscale.z*MZ);
-			VM[ix][iy][iz].push_back(mface[k]);
-			int ixE,iyE,izE;
-			ixE = iFloor(float(points[k].x+VMeps.x-VMmin.x)/VMscale.x*MX);
-			iyE = iFloor(float(points[k].y+VMeps.y-VMmin.y)/VMscale.y*MY);
-			izE = iFloor(float(points[k].z+VMeps.z-VMmin.z)/VMscale.z*MZ);
-			if (ixE!=ix)
-				VM[ixE][iy][iz].push_back(mface[k]);
-			if (iyE!=iy)
-				VM[ix][iyE][iz].push_back(mface[k]);
-			if (izE!=iz)
-				VM[ix][iy][izE].push_back(mface[k]);
-			if ((ixE!=ix)&&(iyE!=iy))
-				VM[ixE][iyE][iz].push_back(mface[k]);
-			if ((ixE!=ix)&&(izE!=iz))
-				VM[ixE][iy][izE].push_back(mface[k]);
-			if ((iyE!=iy)&&(izE!=iz))
-				VM[ix][iyE][izE].push_back(mface[k]);
-			if ((ixE!=ix)&&(iyE!=iy)&&(izE!=iz))
-				VM[ixE][iyE][izE].push_back(mface[k]);
-		}
-	}
-
-	if ((mface[0]==mface[1])||(mface[1]==mface[2])||(mface[0]==mface[2])){
-		Msg("!Optimize: Invalid face found. Removed.");
-        return false;
-	}else{
-    	face.pv[0].pindex = mface[0];
-    	face.pv[1].pindex = mface[1];
-    	face.pv[2].pindex = mface[2];
-        return true;
-	}
-}
-
-void CEditableMesh::OptimizeMesh(BOOL NoOpt)
-{
-	if (!NoOpt){
+void CEditableMesh::OptimizeMesh(BOOL NoOpt) {
+	if (!NoOpt) {
 #ifdef _EDITOR
-    	UnloadRenderBuffers	();
-		UnloadCForm     	();
+		UnloadRenderBuffers();
+		UnloadCForm();
 #endif
-        UnloadFNormals   	(true);
-        UnloadVNormals   	(true);
-       	UnloadSVertices  	(true);
-       	UnloadAdjacency		(true);
-    	
-		// clear static data
-		for (int x=0; x<MX+1; x++)
-			for (int y=0; y<MY+1; y++)
-    			for (int z=0; z<MZ+1; z++)
-            		VM[x][y][z].clear();
-		VMscale.set(m_Box.max.x-m_Box.min.x+EPS_S, m_Box.max.y-m_Box.min.y+EPS_S, m_Box.max.z-m_Box.min.z+EPS_S);
-		VMmin.set(m_Box.min.x, m_Box.min.y, m_Box.min.z);
+		UnloadFNormals(true);
+		UnloadVNormals(true);
+		UnloadSVertices(true);
+		UnloadAdjacency(true);
 
-		VMeps.set(VMscale.x/MX/2,VMscale.y/MY/2,VMscale.z/MZ/2);
-		VMeps.x = (VMeps.x<EPS_L)?VMeps.x:EPS_L;
-		VMeps.y = (VMeps.y<EPS_L)?VMeps.y:EPS_L;
-		VMeps.z = (VMeps.z<EPS_L)?VMeps.z:EPS_L;
+#ifdef _EDITOR
+		u32 verts_before = m_VertCount;
+		u32 faces_before = m_FaceCount;
+#endif
 
-		m_NewPoints.clear();
+		using VMMap = ankerl::unordered_dense::map<GridKey, U32Vec>;
+		VMMap VM;
+		VM.reserve(m_VertCount);
+		VM.max_load_factor(0.92f);
+
+		FvectorVec m_NewPoints;
 		m_NewPoints.reserve(m_VertCount);
-                                                
-		boolVec 	faces_mark;
-		faces_mark.resize(m_FaceCount,false);
-        int			i_del_face 		= 0;
-		for (u32 k=0; k<m_FaceCount; k++){
-    		if (!OptimizeFace(m_Faces[k])){
-				faces_mark[k]		= true;
 
-//. -----in plugin
-//.              i_del_face			= 0;
+		const float CELL_SIZE = EPS_L;
+		boolVec		faces_mark;
+		faces_mark.resize(m_FaceCount, false);
+		int i_del_face = 0;
 
-//. -----in editor
-                i_del_face			++;
-            }
+		for (u32 k = 0; k < m_FaceCount; k++) {
+			st_Face& face = m_Faces[k];
+			Fvector	 points[3];
+			int		 mface[3] = {-1, -1, -1};
+
+			for (int i = 0; i < 3; i++)
+				points[i].set(m_Vertices[face.pv[i].pindex]);
+
+			for (int i = 0; i < 3; i++) {
+				GridKey qkey  = {iFloor(points[i].x / CELL_SIZE), iFloor(points[i].y / CELL_SIZE), iFloor(points[i].z / CELL_SIZE)};
+
+				bool	found = false;
+				for (int dx = -1; dx <= 1 && !found; ++dx)
+					for (int dy = -1; dy <= 1 && !found; ++dy)
+						for (int dz = -1; dz <= 1 && !found; ++dz) {
+							GridKey nk	= {qkey.x + dx, qkey.y + dy, qkey.z + dz};
+							auto	mit = VM.find(nk);
+							if (mit != VM.end()) {
+								for (u32 idx : mit->second) {
+									if (m_NewPoints[idx].similar(points[i], EPS)) {
+										mface[i] = (int)idx;
+										found	 = true;
+										break;
+									}
+								}
+							}
+						}
+
+				if (!found) {
+					mface[i] = (int)m_NewPoints.size();
+					m_NewPoints.push_back(points[i]);
+					VM[qkey].push_back((u32)mface[i]);
+				}
+			}
+
+			if ((mface[0] == mface[1]) || (mface[1] == mface[2]) || (mface[0] == mface[2])) {
+				faces_mark[k] = true;
+				i_del_face++;
+			} else {
+				face.pv[0].pindex = mface[0];
+				face.pv[1].pindex = mface[1];
+				face.pv[2].pindex = mface[2];
+			}
 		}
 
-        m_VertCount		= m_NewPoints.size();
-        xr_free			(m_Vertices);
-        m_Vertices		= xr_alloc<Fvector>(m_VertCount);
-		Memory.mem_copy	(m_Vertices,&*m_NewPoints.begin(),m_NewPoints.size()*sizeof(Fvector));
+		m_VertCount = m_NewPoints.size();
+		xr_free(m_Vertices);
+		m_Vertices = xr_alloc<Fvector>(m_VertCount);
+		Memory.mem_copy(m_Vertices, &*m_NewPoints.begin(), m_NewPoints.size() * sizeof(Fvector));
 
-		if (i_del_face){
-	        st_Face* 	old_faces 	= m_Faces;
-	        u32* 		old_sg 		= m_SmoothGroups;
+		if (i_del_face) {
+			st_Face* old_faces = m_Faces;
+			u32*	 old_sg	   = m_SmoothGroups;
 
-            m_Faces			= xr_alloc<st_Face>	(m_FaceCount-i_del_face);
-            m_SmoothGroups	= xr_alloc<u32>		(m_FaceCount-i_del_face);
-            
-            u32 new_dk	= 0;
-            for (u32 dk=0; dk<m_FaceCount; ++dk)
-			{
-            	if (faces_mark[dk])
-				{
-                    for (SurfFacesPairIt plp_it=m_SurfFaces.begin(); plp_it!=m_SurfFaces.end(); ++plp_it)
-					{
-                        IntVec& 	pol_lst = plp_it->second;
-                        for (int k=0; k<int(pol_lst.size()); ++k)
-						{
-                            int& f = pol_lst[k];
-                            if (f>(int)dk)
-							{ 
+			m_Faces			   = xr_alloc<st_Face>(m_FaceCount - i_del_face);
+			m_SmoothGroups	   = xr_alloc<u32>(m_FaceCount - i_del_face);
+
+			u32 new_dk		   = 0;
+			for (u32 dk = 0; dk < m_FaceCount; ++dk) {
+				if (faces_mark[dk]) {
+					for (SurfFacesPairIt plp_it = m_SurfFaces.begin(); plp_it != m_SurfFaces.end(); ++plp_it) {
+						IntVec& pol_lst = plp_it->second;
+						for (int kk = 0; kk < (int)pol_lst.size(); ++kk) {
+							int& f = pol_lst[kk];
+							if (f > (int)dk)
 								--f;
-                            }else if (f==(int)dk)
-							{
-                                pol_lst.erase(pol_lst.begin()+k);
-                                --k;
-                            }
-                        }
-                    }
-                	continue;
-                } 
-//. -----in plugin
-//.				new_dk++;
-
-            	m_Faces[new_dk]				= old_faces[dk];
-            	m_SmoothGroups[new_dk]		= old_sg[dk];
-
-//. -----in editors
+							else if (f == (int)dk) {
+								pol_lst.erase(pol_lst.begin() + kk);
+								--kk;
+							}
+						}
+					}
+					continue;
+				}
+				m_Faces[new_dk]		   = old_faces[dk];
+				m_SmoothGroups[new_dk] = old_sg[dk];
 				++new_dk;
-            }
-            m_FaceCount	= m_FaceCount-i_del_face;
-            xr_free		(old_faces);
-            xr_free		(old_sg);
+			}
+			m_FaceCount -= i_del_face;
+			xr_free(old_faces);
+			xr_free(old_sg);
 		}
+
+#ifdef _EDITOR
+		if (verts_before != m_VertCount || i_del_face > 0) {
+			float  saved	 = verts_before > 0 ? 100.0f * float(verts_before - m_VertCount) / verts_before : 0.0f;
+
+			LPCSTR mesh_name = m_Name.c_str() && m_Name[0] ? m_Name.c_str() : "unnamed_mesh";
+
+			ELog.Msg(mtInformation, "Optimize %s:\n\tverts %d -> %d (%.1f%%), faces removed: %d", mesh_name, verts_before, m_VertCount, saved, i_del_face);
+		}
+#endif
 	}
 }

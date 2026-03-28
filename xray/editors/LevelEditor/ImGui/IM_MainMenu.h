@@ -2,14 +2,12 @@
 
 #include "..\ECore\ImGui\IM_Window.h"
 
-class IM_MainMenu : public IM_Window
-{
+class IM_MainMenu : public IM_Window {
 public:
 	virtual void Render();
 };
 
-class IM_About : public IM_Window
-{
+class IM_About : public IM_Window {
 public:
 	bool m_open;
 	bool visited_source;

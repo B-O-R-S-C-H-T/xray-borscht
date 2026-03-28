@@ -11,54 +11,47 @@
 
 #pragma package(smart_init)
 
-void IM_FrameLight::UseInD3D(bool bAll, bool bFlag)
-{
+void IM_FrameLight::UseInD3D(bool bAll, bool bFlag) {
 	ObjectIt _F = Scene->FirstObj(OBJCLASS_LIGHT);
-    ObjectIt _E = Scene->LastObj(OBJCLASS_LIGHT);
-	for(;_F!=_E;_F++){
-		CLight* L=(CLight*)*_F;
-    	if(bAll){
-            L->AffectD3D(bFlag);
-        }else{
-			if(L->Selected() && L->Visible()) L->AffectD3D(bFlag);
-        }
-    }
-//    UI->RedrawScene();
+	ObjectIt _E = Scene->LastObj(OBJCLASS_LIGHT);
+	for (; _F != _E; _F++) {
+		CLight* L = (CLight*)*_F;
+		if (bAll) {
+			L->AffectD3D(bFlag);
+		} else {
+			if (L->Selected() && L->Visible())
+				L->AffectD3D(bFlag);
+		}
+	}
+	// UI->RedrawScene();
 }
 
-void IM_FrameLight::OnAdd()
-{
-    IM_Storage s(false, "level.ini", "IM_FrameLight");
-    m_show_useind3d = s.GetBool("show_useind3d_panel", true);
+void IM_FrameLight::OnAdd() {
+	IM_Storage s(false, "level.ini", "IM_FrameLight");
+	m_show_useind3d = s.GetBool("show_useind3d_panel", true);
 }
 
-void IM_FrameLight::OnRemove()
-{
-    IM_Storage s(true, "level.ini", "IM_FrameLight");
-    s.PutBool("show_useind3d_panel", m_show_useind3d);
+void IM_FrameLight::OnRemove() {
+	IM_Storage s(true, "level.ini", "IM_FrameLight");
+	s.PutBool("show_useind3d_panel", m_show_useind3d);
 }
 
-void IM_FrameLight::Render()
-{
-	if(ImGui::CollapsingPanel("Affect in D3D", &m_show_useind3d))
-    {
-    	ImGui::Columns(2, NULL, false);
+void IM_FrameLight::Render() {
+	if (ImGui::CollapsingPanel("Affect in D3D", &m_show_useind3d)) {
+		ImGui::Columns(2, NULL, false);
 
-        if (ImGui::MenuItem("Enable Sel##light_enable_sel"))
-            UseInD3D(false, true);
-        if (ImGui::MenuItem("Disable Sel##light_disable_sel"))
-            UseInD3D(false, false);
+		if (ImGui::MenuItem("Enable Sel##light_enable_sel"))
+			UseInD3D(false, true);
+		if (ImGui::MenuItem("Disable Sel##light_disable_sel"))
+			UseInD3D(false, false);
 
-        ImGui::NextColumn();
+		ImGui::NextColumn();
 
-        if (ImGui::MenuItem("Enable All##light_enable_all"))
-            UseInD3D(true, true);
-        if (ImGui::MenuItem("Disable All##light_disable_all"))
-            UseInD3D(true, false);
+		if (ImGui::MenuItem("Enable All##light_enable_all"))
+			UseInD3D(true, true);
+		if (ImGui::MenuItem("Disable All##light_disable_all"))
+			UseInD3D(true, false);
 
-        ImGui::Columns(1);
-    }
+		ImGui::Columns(1);
+	}
 }
-
-
- 

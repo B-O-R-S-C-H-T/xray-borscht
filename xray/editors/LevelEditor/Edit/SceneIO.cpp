@@ -23,7 +23,8 @@ using namespace std::placeholders;
 #define CURRENT_LEVELOP_VERSION 	0x0000000C
 //0x00000008
 
-#define CURRENT_LEVELOP_BP_VERSION 	0x00000009
+// 0x0a - добавлено поле m_aimap_export_version
+#define CURRENT_LEVELOP_BP_VERSION 	0x0000000a
 #define CURRENT_ENV_VERSION	 		0x00000007
 
 #define CHUNK_VERSION       	0x9df3
@@ -187,13 +188,10 @@ void st_LevelOptions::Read(IReader& F)
     if (F.find_chunk(CHUNK_LO_BP_VERSION))
 	    vers = F.r_u32( );
 
-    if (CURRENT_LEVELOP_BP_VERSION==vers){
-	    if (F.find_chunk(CHUNK_BUILD_PARAMS)) 	
-        	F.r(&m_BuildParams, sizeof(m_BuildParams));
-    }else{
-        ELog.DlgMsg	(mtError, "Skipping bad version of build params.");
-    	m_BuildParams.Init();
-    }
+    m_BuildParams.Init();
+    // такое странное версионирование: предположим, что поля только добавляются
+	if (auto sz = F.find_chunk(CHUNK_BUILD_PARAMS); sz != 0)
+        F.r(&m_BuildParams, std::min(sz, (u32)sizeof(m_BuildParams)));
 
     if (F.find_chunk(CHUNK_LIGHT_QUALITY))
     {
@@ -239,7 +237,7 @@ BOOL EScene::LoadLevelPartLTX(ESceneToolBase* M, LPCSTR map_name)
         if (EFS.CheckLocking(map_name,false,false))
         {
             M->m_EditFlags.set(ESceneToolBase::flReadonly,TRUE);
-            Msg				("!Level part '%s' locked by <unknown> user.",M->ClassDesc());
+			ELog.Msg(mtError, "Level part '%s' locked by <unknown> user.", M->ClassDesc());
         }else
         {
             M->m_EditFlags.set(ESceneToolBase::flReadonly,FALSE);
@@ -256,7 +254,7 @@ BOOL EScene::LoadLevelPartLTX(ESceneToolBase* M, LPCSTR map_name)
         if (guid!=m_GUID)
         {
         	EFS.UnlockFile	(map_name);
-            ELog.DlgMsg		(mtError,"Skipping invalid version of level part: '%s\\%s.part'",EFS.ExtractFileName(map_name).c_str(),M->ClassName());
+            ELog.DlgMsg		(mtError,"Skipping invalid version of level part: '%s\\%s.part'", EFS.ExtractFileName(map_name).c_str(), M->ClassName());
             return 			FALSE;
         }
         // read data
@@ -278,7 +276,7 @@ BOOL EScene::LoadLevelPart(ESceneToolBase* M, LPCSTR map_name)
         if (EFS.CheckLocking(map_name,false,false))
         {
             M->m_EditFlags.set(ESceneToolBase::flReadonly,TRUE);
-            Msg				("!Level part '%s' locked by <unknown> user.",M->ClassDesc());
+			ELog.Msg(mtError, "Level part '%s' locked by <unknown> user.", M->ClassDesc());
         }else
         {
             M->m_EditFlags.set(ESceneToolBase::flReadonly,FALSE);
@@ -294,7 +292,7 @@ BOOL EScene::LoadLevelPart(ESceneToolBase* M, LPCSTR map_name)
         if (guid!=m_GUID)
         {
         	EFS.UnlockFile	(map_name);
-            ELog.DlgMsg		(mtError,"Skipping invalid version of level part: '%s\\%s.part'",EFS.ExtractFileName(map_name).c_str(),M->ClassName());
+            ELog.DlgMsg		(mtError, "Skipping invalid version of level part: '%s\\%s.part'", EFS.ExtractFileName(map_name).c_str(), M->ClassName());
         	FS.r_close		(R);
             return 			FALSE;
         }
@@ -307,7 +305,7 @@ BOOL EScene::LoadLevelPart(ESceneToolBase* M, LPCSTR map_name)
         }else
         {
         	EFS.UnlockFile	(map_name);
-            ELog.DlgMsg		(mtError,"Skipping corrupted version of level part: '%s\\%s.part'",EFS.ExtractFileName(map_name).c_str(),M->ClassName());
+            ELog.DlgMsg		(mtError, "Skipping corrupted version of level part: '%s\\%s.part'", EFS.ExtractFileName(map_name).c_str(), M->ClassName());
             FS.r_close		(R);
             return 			FALSE;
         }
@@ -506,7 +504,7 @@ void EScene::SaveLTX(LPCSTR map_name, bool bForUndo, bool bForceSaveAll)
         	EFS.LockFile(map_name,false);
 
     	m_RTFlags.set	(flRT_Unsaved,FALSE);
-    	Msg				("Saving time: %3.2f sec",T.GetElapsed_sec());
+		ELog.Msg(mtInformation, "Scene saved in %.2f seconds", T.GetElapsed_sec());
     }
 }
 //--------------------------------------------------------------------------------------------------
@@ -725,7 +723,7 @@ bool EScene::ReadObjectsLTX(CInifile& ini,  LPCSTR sect_name_parent, LPCSTR sect
                     {
                        bool res = RemoveObject		(existing, true, true);
                         if(!res)
-                            Msg("! RemoveObject [%s] failed", existing->GetName());
+						   ELog.Msg(mtError, "RemoveObject [%s] failed", existing->GetName());
                          else
                             xr_delete(existing);
                     }break;
@@ -789,7 +787,7 @@ bool EScene::ReadObjectsStream(IReader& F, u32 chunk_id, TAppendObject on_append
                         {
                            bool res = RemoveObject		(existing, true, true);
 							if(!res)
-                            	Msg("! RemoveObject [%s] failed", existing->GetName());
+							   ELog.Msg(mtError, "RemoveObject [%s] failed", existing->GetName());
                              else
                              	xr_delete(existing);
                         }break;
@@ -843,7 +841,7 @@ bool EScene::LoadLTX(LPCSTR map_name, bool bUndo)
     xr_string 		full_name;
     full_name 		= map_name;
 
-	ELog.Msg( mtInformation, "EScene: loading '%s'", map_name);
+	ELog.Msg(mtInformation, "\t%s", map_name);
     if (FS.exist(full_name.c_str()))
     {
         CTimer T; T.Start();
@@ -857,7 +855,7 @@ bool EScene::LoadLTX(LPCSTR map_name, bool bUndo)
 
         if (version!=CURRENT_FILE_VERSION)
         {
-            ELog.DlgMsg( mtError, "EScene: unsupported file version. Can't load Level.");
+            ELog.DlgMsg(mtError, "Unsupported file version. Can't load scene.");
             UI->UpdateScene();
             return false;
         }
@@ -901,14 +899,14 @@ bool EScene::LoadLTX(LPCSTR map_name, bool bUndo)
             {
                 CCustomObject* 	O = FindObjectByName(Si->first.c_str(),OBJCLASS_SCENEOBJECT);
                 if (!O)
-                    ELog.Msg(mtError,"EScene: Can't find snap object '%s'.",Si->second.c_str());
+                    ELog.Msg(mtError, "Can't find snap object '%s'", Si->second.c_str());
                 else
                 	m_ESO_SnapObjects.push_back(O);
             }
             UpdateSnapList();
         }
 
-        Msg("EScene: %d objects loaded, %3.2f sec", ObjCount(), T.GetElapsed_sec() );
+        ELog.Msg(mtInformation, "Scene loaded:\n\t%d objects in %.2f seconds", ObjCount(), T.GetElapsed_sec() );
 
     	UI->UpdateScene(true);
 
@@ -920,7 +918,7 @@ bool EScene::LoadLTX(LPCSTR map_name, bool bUndo)
 		return true;
     }else
     {
-    	ELog.Msg(mtError,"Can't find file: '%s'",map_name);
+    	ELog.Msg(mtError, "Can't find file: '%s'", map_name);
     }
 	return false;
 }
@@ -934,7 +932,7 @@ bool EScene::Load(LPCSTR map_name, bool bUndo)
     xr_string 		full_name;
     full_name 		= map_name;
 
-	ELog.Msg( mtInformation, "EScene: loading '%s'", map_name);
+	ELog.Msg(mtInformation, "\t%s", map_name);
     if (FS.exist(full_name.c_str()))
     {
         CTimer T; T.Start();
@@ -948,7 +946,7 @@ bool EScene::Load(LPCSTR map_name, bool bUndo)
         R_ASSERT	(F->r_chunk(CHUNK_VERSION, &version));
         if (version!=CURRENT_FILE_VERSION)
         {
-            ELog.DlgMsg( mtError, "EScene: unsupported file version. Can't load Level.");
+            ELog.DlgMsg(mtError, "Unsupported file version. Can't load scene.");
             UI->UpdateScene();
             FS.r_close(F);
             return false;
@@ -962,7 +960,7 @@ bool EScene::Load(LPCSTR map_name, bool bUndo)
         	LOP->close		();
         }else
         {
-			ELog.DlgMsg		(mtError, "Skipping old version of level options.\nCheck level options after loading.");
+			ELog.DlgMsg(mtError, "Skipping old version of level options.\nCheck level options after loading.");
 	    }
 
         //
@@ -1030,7 +1028,7 @@ bool EScene::Load(LPCSTR map_name, bool bUndo)
                     F->r_stringZ		(buf);
                     CCustomObject* 	O = FindObjectByName(buf.c_str(),OBJCLASS_SCENEOBJECT);
                     if (!O)
-                    	ELog.Msg(mtError,"EScene: Can't find snap object '%s'.",buf.c_str());
+                    	ELog.Msg(mtError,"Can't find snap object '%s'", buf.c_str());
 
                     else
                     m_ESO_SnapObjects.push_back(O);
@@ -1039,7 +1037,7 @@ bool EScene::Load(LPCSTR map_name, bool bUndo)
             UpdateSnapList();
         }
 
-        Msg("EScene: %d objects loaded, %3.2f sec", ObjCount(), T.GetElapsed_sec() );
+        ELog.Msg(mtInformation, "Scene loaded:\n\t%d objects in %.2f seconds", ObjCount(), T.GetElapsed_sec());
 
     	UI->UpdateScene(true); 
 
@@ -1121,7 +1119,7 @@ bool EScene::LoadSelection( LPCSTR fname )
     xr_string 		full_name;
     full_name 		= fname;
 
-	ELog.Msg( mtInformation, "EScene: loading part %s...", fname );
+	ELog.Msg(mtInformation, "Loading part %s...", fname);
 
     bool res = true;
 
@@ -1133,7 +1131,7 @@ bool EScene::LoadSelection( LPCSTR fname )
         // Version
         R_ASSERT(F->r_chunk(CHUNK_VERSION, &version));
         if (version!=CURRENT_FILE_VERSION){
-            ELog.DlgMsg( mtError, "EScene: unsupported file version. Can't load Level.");
+            ELog.DlgMsg(mtError, "Unsupported file version! Cannot load the scene.");
             UI->UpdateScene();
             FS.r_close(F);
             return false;
@@ -1142,9 +1140,21 @@ bool EScene::LoadSelection( LPCSTR fname )
         // Objects
         if (!ReadObjectsStream(*F,CHUNK_OBJECT_LIST,std::bind(&EScene::OnLoadSelectionAppendObject,this,_1),0))
         {
-            ELog.DlgMsg(mtError,"EScene. Failed to load selection.");
+            ELog.DlgMsg(mtError, "Failed to load selection!");
             res = false;
         }
+
+		std::vector<CCustomObject*> added;
+		if (!ReadObjectsStream(*F, CHUNK_OBJECT_LIST, std::bind(&EScene::OnLoadSelectionAppendObject, this, std::placeholders::_1), 0)) {
+			ELog.DlgMsg(mtError, "EScene. Failed to load selection.");
+			res = false;
+		} else {
+			CollectAddedObjects(added);
+			if (!added.empty()) {
+				auto cmd = std::make_unique<AddFromSelectionCommand>(std::move(added));
+				PushCommand(std::move(cmd));
+			}
+		}
 
         SceneToolsMapPairIt _I = m_SceneTools.begin();
         SceneToolsMapPairIt _E = m_SceneTools.end();
@@ -1163,69 +1173,149 @@ bool EScene::LoadSelection( LPCSTR fname )
 	return res;
 }
 //----------------------------------------------------
+void EScene::CollectAddedObjects(std::vector<CCustomObject*>& out) {
+	out.clear();
+	ObjectList current;
+	GetQueryObjects(current, OBJCLASS_DUMMY, 1, 1, 0);
 
-#pragma pack(push,1)
-struct SceneClipData {
-	int m_ClassFilter;
-	char m_FileName[MAX_PATH];
-};
-#pragma pack(pop)
+	out.reserve(current.size());
+	for (auto* obj : current)
+		out.push_back(obj);
+}
 
-void EScene::CopySelection( ObjClassID classfilter )
-{
-	HGLOBAL hmem = GlobalAlloc(GMEM_MOVEABLE|GMEM_DDESHARE, sizeof(SceneClipData) );
-	SceneClipData *sceneclipdata = (SceneClipData *)GlobalLock(hmem);
+void EScene::SaveSelectionToStream(ObjClassID classfilter, IWriter& F) {
+	F.open_chunk(CHUNK_VERSION);
+	F.w_u32(CURRENT_FILE_VERSION);
+	F.close_chunk();
 
-	sceneclipdata->m_ClassFilter = classfilter;
-	GetTempFileName( FS.get_path(_temp_)->m_Path, "clip", 0, sceneclipdata->m_FileName );
-	SaveSelection( classfilter, sceneclipdata->m_FileName );
+	m_SaveCache.clear();
 
-	GlobalUnlock( hmem );
-
-	int clipformat = RegisterClipboardFormat( "CF_XRAY_CLASS_LIST" );
-	if( OpenClipboard( 0 ) ){
-		SetClipboardData( clipformat, hmem );
-		CloseClipboard();
+	if (OBJCLASS_DUMMY == classfilter) {
+		SceneToolsMapPairIt _I = m_SceneTools.begin();
+		SceneToolsMapPairIt _E = m_SceneTools.end();
+		for (; _I != _E; ++_I)
+			if (_I->second && _I->second->IsNeedSave()) {
+				F.open_chunk(CHUNK_TOOLS_DATA + _I->first);
+				_I->second->SaveSelection(m_SaveCache);
+				F.w(m_SaveCache.pointer(), m_SaveCache.size());
+				m_SaveCache.clear();
+				F.close_chunk();
+			}
 	} else {
-		ELog.DlgMsg( mtError, "Failed to open clipboard" );
-		GlobalFree( hmem );
+		ESceneToolBase* mt = GetTool(classfilter);
+		VERIFY(mt);
+		F.open_chunk(CHUNK_TOOLS_DATA + classfilter);
+		mt->SaveSelection(m_SaveCache);
+		F.w(m_SaveCache.pointer(), m_SaveCache.size());
+		m_SaveCache.clear();
+		F.close_chunk();
 	}
 }
 
-void EScene::PasteSelection() 
-{
-	int clipformat = RegisterClipboardFormat( "CF_XRAY_CLASS_LIST" );
-	if( OpenClipboard( 0 ) ){
+void EScene::LoadSelectionFromStream(IReader& F) {
+	u32 version = 0;
+	R_ASSERT(F.r_chunk(CHUNK_VERSION, &version));
+	if (version != CURRENT_FILE_VERSION) {
+		ELog.DlgMsg(mtError, "EScene: unsupported selection version");
+		return;
+	}
 
-		HGLOBAL hmem = GetClipboardData(clipformat);
-		if( hmem ){
-			SceneClipData *sceneclipdata = (SceneClipData *)GlobalLock(hmem);
-			LoadSelection( sceneclipdata->m_FileName );
-			GlobalUnlock( hmem );
-		} else {
-			ELog.DlgMsg( mtError, "No data in clipboard" );
+	if (!ReadObjectsStream(F, CHUNK_OBJECT_LIST, std::bind(&EScene::OnLoadSelectionAppendObject, this, std::placeholders::_1), nullptr)) {
+		ELog.DlgMsg(mtError, "EScene: failed to load selection from memory");
+	}
+
+	SceneToolsMapPairIt _I = m_SceneTools.begin();
+	SceneToolsMapPairIt _E = m_SceneTools.end();
+	for (; _I != _E; _I++)
+		if (_I->second && _I->second->IsEnabled() && _I->second->IsEditable()) {
+			IReader* chunk = F.open_chunk(CHUNK_TOOLS_DATA + _I->first);
+			if (chunk) {
+				_I->second->LoadSelection(*chunk);
+				chunk->close();
+			}
 		}
 
-		CloseClipboard();
+	SynchronizeObjects();
+}
 
-	} else {
-		ELog.DlgMsg( mtError, "Failed to open clipboard" );
+void EScene::CopySelection(ObjClassID classfilter) {
+	int selCount = SelectionCount(true, classfilter);
+	if (selCount == 0) {
+		ELog.Msg(mtInformation, "Nothing selected to copy!");
+		return;
+	}
+
+	m_clipboard.Copy(classfilter, this);
+}
+
+void EScene::PasteSelection() {
+	if (!m_clipboard.HasData()) {
+		ELog.Msg(mtInformation, "Clipboard is empty, nothing to paste!");
+		return;
+	}
+
+	SelectObjects(false);
+
+	m_clipboard.Paste(this);
+
+	std::vector<CCustomObject*> added;
+	CollectAddedObjects(added);
+
+	if (!added.empty()) {
+		auto cmd = std::make_unique<PasteCommand>(std::move(added));
+		PushCommand(std::move(cmd));
 	}
 }
 
-void EScene::CutSelection( ObjClassID classfilter )
-{
-	CopySelection( classfilter );
-	RemoveSelection( classfilter );
+void EScene::CutSelection(ObjClassID classfilter) {
+	if (SelectionCount(true, classfilter) == 0) {
+		ELog.Msg(mtInformation, "Nothing selected to cut!");
+		return;
+	}
+
+	std::vector<CCustomObject*> removed;
+	ObjectList					sel_list;
+	GetQueryObjects(sel_list, classfilter, 1, -1, -1);
+	for (auto* obj : sel_list)
+		removed.push_back(obj);
+
+	if (removed.empty())
+		return;
+
+	m_clipboard.Copy(classfilter, this);
+
+	auto cmd = std::make_unique<CutCommand>(std::move(removed));
+
+	cmd->Redo();
+	PushCommand(std::move(cmd));
 }
 
-void EScene::DuplicateSelection( ObjClassID classfilter )
-{
-	string_path fn;
-	GetTempFileName( FS.get_path(_temp_)->m_Path, "clip", 0, fn );
-	SaveSelection( classfilter, fn );
-	LoadSelection( fn );
-	unlink( fn );
+void EScene::DuplicateSelection(ObjClassID classfilter) {
+	int selCount = SelectionCount(true, classfilter);
+	if (selCount == 0) {
+		ELog.Msg(mtInformation, "Nothing selected to duplicate!");
+		return;
+	}
+
+	std::vector<CCustomObject*> originals;
+	ObjectList					sel_list;
+	GetQueryObjects(sel_list, classfilter, 1, -1, -1);
+	for (auto* obj : sel_list)
+		originals.push_back(obj);
+
+	m_clipboard.Duplicate(classfilter, this);
+    //FIXME: глитч
+	std::vector<CCustomObject*> added;
+	CollectAddedObjects(added);
+
+	if (!added.empty()) {
+		for (auto* orig : originals)
+			if (orig)
+				orig->Select(false);
+
+		auto cmd = std::make_unique<DuplicateCommand>(std::move(added));
+		PushCommand(std::move(cmd));
+	}
 }
 //----------------------------------------------------
 

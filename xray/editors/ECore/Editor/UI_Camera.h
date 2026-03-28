@@ -77,5 +77,15 @@ public:
     void			ZoomExtents	(const Fbox& bb);
 
 	void 			MouseRayFromPoint(Fvector& start, Fvector& direction, const Ivector2& point);
+
+private:
+	bool	m_undoCamInterpolation = false;
+	Fvector m_undoTargetPos;
+	Fvector m_undoTargetHPB;
+	float	m_undoInterpolationTime		= 0.0f;
+	float	m_undoInterpolationDuration = 0.3f;
+
+public:
+	void StartUndoCamInterpolation(const Fvector& targetPos, const Fvector& targetHPB, float duration = 0.3f);
 };
 #endif

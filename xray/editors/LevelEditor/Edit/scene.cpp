@@ -60,6 +60,12 @@ void st_LevelOptions::SetHighQuality()
     m_LightHemiQuality	= 3;
     m_LightSunQuality	= 3;
 }
+
+const b_params& GetBuildsParams()
+{
+    return Scene->m_LevelOp.m_BuildParams;
+}
+
 //------------------------------------------------------------------------------
 
 
@@ -96,70 +102,69 @@ void EScene::OnCreate()
     
 	m_LastAvailObject 		= 0;
     m_LevelOp.Reset			();
-	ELog.Msg				( mtInformation, "Scene: initialized" );
+	ELog.Msg				( mtInformation, "Empty scene has been initialized." );
 	m_Valid 				= true;
     m_RTFlags.zero			();
     ExecCommand				(COMMAND_UPDATE_CAPTION);
 
-	m_SummaryInfo       = xr_new<IM_PropertiesWnd>("Level Summary Info");
+	m_SummaryInfo       = xr_new<IM_PropertiesWnd>("Scene Summary Info");
 	UI->AddIMWindow     (m_SummaryInfo);
 }
 
 void EScene::OnDestroy()
 {
-	UI->RemoveIMWindow  (m_SummaryInfo);
-	xr_delete           (m_SummaryInfo);
+	UI->RemoveIMWindow	(m_SummaryInfo);
+	xr_delete			(m_SummaryInfo);
 
-    Unload					(FALSE);
-    UndoClear				();
-	ELog.Msg				( mtInformation, "Scene: cleared" );
-	m_LastAvailObject 		= 0;
-	m_Valid 				= false;
-    DestroySceneTools		();
+	UndoClear();
+	Unload(FALSE);
+	ELog.Msg(mtInformation, "Scene cleared");
+	m_LastAvailObject = 0;
+	m_Valid			  = false;
+	DestroySceneTools();
 }
 
-void EScene::AppendObject( CCustomObject* object, bool bUndo )
+void EScene::AppendObject(CCustomObject* object, bool bExecUndo)
 {
-	VERIFY			  	(object);
-	VERIFY				(m_Valid);
-    
-    ESceneCustomOTool* mt	= GetOTool(object->ClassID);
-    VERIFY3(mt,"Can't find Object Tools:",GetTool(object->ClassID)->ClassDesc());
-    mt->_AppendObject	(object);
-    UI->UpdateScene		();
-    if (bUndo){	
-        object->Select	(true);
-        UndoSave();
-    }
+	VERIFY(object);
+	VERIFY(m_Valid);
+
+	ESceneCustomOTool* mt = GetOTool(object->ClassID);
+	VERIFY3(mt, "Can't find Object Tools:", GetTool(object->ClassID)->ClassDesc());
+	mt->_AppendObject(object);
+	UI->UpdateScene();
+	if (bExecUndo) {
+		object->Select(true);
+		auto cmd = std::make_unique<AddObjectCommand>(object);
+		PushCommand(std::move(cmd));
+	}
 }
 
-bool EScene::RemoveObject( CCustomObject* object, bool bUndo, bool bDeleting )
-{
-	VERIFY				(object);
-	VERIFY				(m_Valid);
+bool EScene::RemoveObject(CCustomObject* object, bool bExecUndo, bool bDeleting) {
+	VERIFY(object);
+	VERIFY(m_Valid);
 
-    ESceneCustomOTool* mt 	= GetOTool(object->ClassID);
-    if (mt&&mt->IsEditable())
-    {
-    	mt->_RemoveObject(object);
-        // signal everyone "I'm deleting"
-//        if (object->ClassID==OBJCLASS_SCENEOBJECT)
-        {
-            m_ESO_SnapObjects.remove			(object);
+	ESceneCustomOTool* mt = GetOTool(object->ClassID);
+	if (mt && mt->IsEditable()) {
+		mt->_RemoveObject(object);
 
-            SceneToolsMapPairIt _I = m_SceneTools.begin();
-            SceneToolsMapPairIt _E = m_SceneTools.end();
-            for (; _I!=_E; _I++){
-                ESceneToolBase* mt = _I->second;
-                if (mt)
-                	mt->OnObjectRemove(object, bDeleting);
-            }
-            UpdateSnapList						();
-        }
-        UI->UpdateScene	();
-    }
-    if (bUndo)		   	UndoSave();
-    return true;
+		m_ESO_SnapObjects.remove(object);
+
+		SceneToolsMapPairIt _I = m_SceneTools.begin();
+		SceneToolsMapPairIt _E = m_SceneTools.end();
+		for (; _I != _E; _I++) {
+			ESceneToolBase* mt = _I->second;
+			if (mt)
+				mt->OnObjectRemove(object, bDeleting);
+		}
+		UpdateSnapList();
+
+		UI->UpdateScene();
+	}
+	if (bDeleting && !bExecUndo) {
+		xr_delete(object);
+	}
+	return true;
 }
 
 void EScene::BeforeObjectChange( CCustomObject* object )
@@ -236,6 +241,7 @@ void EScene::Unload		(BOOL bEditableOnly)
 
 void EScene::Clear(BOOL bEditableToolsOnly)
 {
+	UndoClear();
 	// clear snap
     ClearSnapList			(false);
 	// clear scene tools
@@ -247,7 +253,7 @@ void EScene::Clear(BOOL bEditableToolsOnly)
 	        	t_it->second->Clear();
             }
         }
-        
+
     Tools->ClearDebugDraw	();
 
     m_RTFlags.set			(flRT_Unsaved|flRT_Modified,FALSE);
@@ -396,7 +402,7 @@ bool EScene::Validate(bool bNeedOkMsg, bool bTestPortal, bool bTestHOM, bool bTe
             if (O->m_objectFlags.is(CEditableObject::eoHOM)){ bHasHOM = true; break; }
         }
         if (!bHasHOM)
-			Msg("!Level doesn't contain HOM objects!");
+			ELog.Msg(mtInformation, "!Level doesn't contain HOM objects!");
 //.			if (mrNo==ELog.DlgMsg(mtConfirmation,TMsgDlgButtons() << mbYes << mbNo,"Level doesn't contain HOM.\nContinue anyway?"))
 //.				return false;
     }
@@ -515,6 +521,12 @@ xr_token		js_token	[ ]={
 	{ 0,					0 	}
 };
 
+xr_token		ai_version_token[] = {
+    { "1 - 3-bytes links",	EXPORT_AIMAP_VERSION_1	},
+    { "2 - 4-bytes links",	EXPORT_AIMAP_VERSION_2	},
+    { 0,					0 	}
+};
+
 void EScene::OnBuildControlClick	(ButtonValue* V, bool& bModif, bool& bSafe)
 {
     switch (V->btn_num){
@@ -563,6 +575,9 @@ void EScene::FillProp(LPCSTR pref, PropItemVec& items, ObjClassID cls_id)
     V=PHelper().CreateU32		(items,PrepareKey(pref,"Scene\\Build options\\Lighting\\Error (LM collapsing)"), 	&m_LevelOp.m_BuildParams.m_lm_rms,						0,255);		V->Owner()->Enable(enabled);
     V=PHelper().CreateU32		(items,PrepareKey(pref,"Scene\\Build options\\Lighting\\Error (LM zero)"),			&m_LevelOp.m_BuildParams.m_lm_rms_zero,					0,255);		V->Owner()->Enable(enabled);
     V=PHelper().CreateToken32	(items,PrepareKey(pref,"Scene\\Build options\\Lighting\\Jitter samples"),			&m_LevelOp.m_BuildParams.m_lm_jitter_samples, 			js_token);	V->Owner()->Enable(enabled);
+
+    // AI maps
+    V=PHelper().CreateToken16	(items,PrepareKey(pref,"Scene\\Build options\\AI\\build.aimap version"),	    		&m_LevelOp.m_BuildParams.build_aimap_version,        ai_version_token);
     
     // tools options
     if (OBJCLASS_DUMMY==cls_id)
@@ -591,7 +606,7 @@ void EScene::RegisterSubstObjectName(const xr_string& _from, const xr_string& _t
     xr_string _tmp;
     bool b = GetSubstObjectName(_from, _tmp);
     if(b)
-       	Msg("! subst for '%s' already exist -'%s'",_from.c_str(), _tmp.c_str());
+		ELog.Msg(mtError, "Subst for '%s' already exist:'%s'", _from.c_str(), _tmp.c_str());
 
     TSubstPairs_it It      = m_subst_pairs.begin();
     TSubstPairs_it It_e    = m_subst_pairs.end();
@@ -622,4 +637,33 @@ bool EScene::GetSubstObjectName(const xr_string& _from, xr_string& _to) const
     }
 
     return (It!=It_e);
+}
+
+// Undo/Redo
+void EScene::UndoSave() {
+	ELog.Msg(mtInformation, "! Deprecated call EScene::UndoSave()");
+}
+
+bool EScene::Undo() {
+	if (m_undoManager.CanUndo()) {
+		m_undoManager.Undo();
+		UI->RedrawScene();
+		ExecCommand(COMMAND_UPDATE_PROPERTIES);
+		return true;
+	}
+	return false;
+}
+
+bool EScene::Redo() {
+	if (m_undoManager.CanRedo()) {
+		m_undoManager.Redo();
+		UI->RedrawScene();
+		ExecCommand(COMMAND_UPDATE_PROPERTIES);
+		return true;
+	}
+	return false;
+}
+
+void EScene::UndoClear() {
+	m_undoManager.Clear();
 }

@@ -16,10 +16,15 @@
 #include <xrEngine/igame_persistent.h>
 #include <xrEngine/Environment.h>
 #include "Builder.h"
+#ifndef NO_VCL
+#include "EditLightAnim.h"
+#endif
 
+#include "Layers/xrRender/D3DUtils.h"
 #include "../../ECore/ImGui/IM_PropertyTree.h"
 #include "../ImGui/IM_Manipulator.h"
 #include "../ImGui/IM_ObjectListWnd.h"
+#include "ImGui/IM_EditLibrary.h"
 
 #define DETACH_FRAME(a) 	if (a){ (a)->Hide(); 	(a)->Parent = NULL; }
 #define ATTACH_FRAME(a,b)	if (a){ (a)->Parent=(b);(a)->Show(); 		}
@@ -375,10 +380,6 @@ void CLevelTool::OnPropsModified()
 }
 //---------------------------------------------------------------------------
 
-#ifndef NO_VCL
-#include "EditLightAnim.h"
-#endif
-
 bool CLevelTool::IfModified()
 {
     EEditorState est 		= UI->GetEState();
@@ -460,7 +461,7 @@ void CLevelTool::OnFrame()
     }
 }
 //---------------------------------------------------------------------------
-#include <Layers/xrRender/D3DUtils.h>
+
 void CLevelTool::RenderEnvironment()
 {
     // draw sky
@@ -486,9 +487,7 @@ void CLevelTool::Render()
     // draw scene
     switch(est){
     case esEditLibrary:
-#ifndef NO_VCL
-        TfrmEditLibrary::OnRender();
-#endif
+        IM_EditLibrary::OnRender();
         break;
     case esEditLightAnim:
     case esEditScene:
@@ -498,7 +497,9 @@ void CLevelTool::Render()
             g_pGamePersistent->Environment().RenderLast();
         }
     break;
-    case esBuildLevel:  	Builder.OnRender();				break;
+    case esBuildLevel:
+        Builder.OnRender();
+        break;
     }
     // draw cursor
     LUI->m_Cursor->Render();

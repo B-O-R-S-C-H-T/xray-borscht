@@ -93,7 +93,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_EDITOR;_LEVEL_EDITOR;NO_VCL;NDEBUG;_WINDOWS;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;../..;$(SolutionDir)3rd_party/imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../..;$(SolutionDir)3rd_party/imgui;$(SolutionDir)3rd_party/thorvg/</AdditionalIncludeDirectories>
       <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -136,7 +136,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_EDITOR;_LEVEL_EDITOR;NO_VCL;DEBUG;_WINDOWS;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;../..;$(SolutionDir)3rd_party/imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../..;$(SolutionDir)3rd_party/imgui;$(SolutionDir)3rd_party/thorvg/</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -236,6 +236,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="ImGui\IM_ContextMenu.h" />
     <ClInclude Include="ImGui\IM_DetailShuffle.h" />
+    <ClInclude Include="ImGui\IM_EditLibrary.h" />
     <ClInclude Include="ImGui\IM_FrameAIMap.h" />
     <ClInclude Include="ImGui\IM_FrameDetail.h" />
     <ClInclude Include="ImGui\IM_FrameFogVol.h" />
@@ -252,7 +253,7 @@
     <ClInclude Include="ImGui\IM_MainMenu.h" />
     <ClInclude Include="ImGui\IM_Manipulator.h" />
     <ClInclude Include="ImGui\IM_ObjectListWnd.h" />
-    <ClInclude Include="ImGui\IM_TopBar.h" />
+    <ClInclude Include="ImGui\IM_Toolbar.h" />
     <ClInclude Include="iniStreamImpl.h" />
     <ClInclude Include="LevelEditor.h" />
     <ClInclude Include="Resource.h" />
@@ -287,6 +288,7 @@
     <ClCompile Include="Edit\CustomObject.cpp" />
     <ClCompile Include="Edit\CustomObjectAnimation.cpp" />
     <ClCompile Include="Edit\CustomObjectLE.cpp" />
+    <ClCompile Include="Edit\editor_clipboard.cpp" />
     <ClCompile Include="Edit\ELight.cpp" />
     <ClCompile Include="Edit\ELight_IO.cpp" />
     <ClCompile Include="Edit\ELight_props.cpp" />
@@ -365,7 +367,6 @@
     <ClCompile Include="Edit\SceneSelection.cpp" />
     <ClCompile Include="Edit\SceneSnap.cpp" />
     <ClCompile Include="Edit\SceneSummaryInfo.cpp" />
-    <ClCompile Include="Edit\SceneUndo.cpp" />
     <ClCompile Include="Edit\SceneUtil.cpp" />
     <ClCompile Include="Edit\Scene_Tools.cpp" />
     <ClCompile Include="Edit\sector.cpp" />
@@ -373,9 +374,11 @@
     <ClCompile Include="Edit\SpawnPoint.cpp" />
     <ClCompile Include="Edit\UI_LevelMain.cpp" />
     <ClCompile Include="Edit\UI_LevelTools.cpp" />
+    <ClCompile Include="Edit\undo_manager.cpp" />
     <ClCompile Include="Edit\WayPoint.cpp" />
     <ClCompile Include="ImGui\IM_ContextMenu.cpp" />
     <ClCompile Include="ImGui\IM_DetailShuffle.cpp" />
+    <ClCompile Include="ImGui\IM_EditLibrary.cpp" />
     <ClCompile Include="ImGui\IM_FrameAIMap.cpp" />
     <ClCompile Include="ImGui\IM_FrameDetail.cpp" />
     <ClCompile Include="ImGui\IM_FrameFogVol.cpp" />
@@ -392,7 +395,7 @@
     <ClCompile Include="ImGui\IM_MainMenu.cpp" />
     <ClCompile Include="ImGui\IM_Manipulator.cpp" />
     <ClCompile Include="ImGui\IM_ObjectListWnd.cpp" />
-    <ClCompile Include="ImGui\IM_TopBar.cpp" />
+    <ClCompile Include="ImGui\IM_Toolbar.cpp" />
     <ClCompile Include="iniStreamImpl.cpp" />
     <ClCompile Include="LevelEditor.cpp" />
     <ClCompile Include="StatusBar.cpp" />

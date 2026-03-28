@@ -629,7 +629,7 @@ BOOL SceneBuilder::BuildMesh(	const Fmatrix& parent,
             }
         }
         if (dwInvalidFaces)
-        	Msg("!Object '%s' - '%s' has %d invalid face(s). Removed.",object->GetName(),mesh->Name().c_str(),dwInvalidFaces);
+			ELog.Msg(mtInformation, "Object '%s': mesh '%s' has %d invalid face(s).\n\tInvalid faces removed.", object->GetName(), mesh->Name().c_str(), dwInvalidFaces);
 
         if (!bResult)
         	break;
@@ -1327,7 +1327,7 @@ BOOL SceneBuilder::CompileStatic(bool b_selected_only)
 		        pb->Inc();
 			}
         }else{
-            ELog.DlgMsg		(mtError,"Failed to build merged LOD texture. Merged texture more than [4096x4096].");
+            ELog.DlgMsg		(mtError,"Failed to build merged LOD texture: size exceeds 4096x4096.");
         	bResult			= FALSE;
         }
         UI->ProgressEnd(pb); UI->SetStatus("");

@@ -70,6 +70,14 @@ U32Value* 	  	CPropHelper::CreateU32		(PropItemVec& items, shared_str key, u32* 
 {	return		(U32Value*)		AppendValue	(items,key,xr_new<U32Value>(val,mn,mx,inc,0),PROP_NUMERIC);			}
 FloatValue* 	CPropHelper::CreateFloat	(PropItemVec& items, shared_str key, float* val, float mn, float mx, float inc, int decim)
 {   return		(FloatValue*)	AppendValue	(items,key,xr_new<FloatValue>(val,mn,mx,inc,decim),PROP_NUMERIC);	}
+FloatValue* CPropHelper::CreateFloatWithApply(PropItemVec&items,shared_str key,float*val, float mn,float mx,float inc,int decim, PropItem::TOnApplyEvent on_apply /*=0*/)
+{
+	FloatValue* V	 = CreateFloat(items, key, val, mn, mx, inc, decim);
+	PropItem*	item = V->Owner();
+	item->m_Flags.set(PropItem::flApplyButton, TRUE);
+	if (on_apply) item->OnApplyEvent = on_apply;
+	return V;
+}
 BOOLValue* 	  	CPropHelper::CreateBOOL		(PropItemVec& items, shared_str key, BOOL* val)
 {   return		(BOOLValue*)	AppendValue	(items,key,xr_new<BOOLValue>(val),PROP_BOOLEAN);        			}
 VectorValue*   	CPropHelper::CreateVector	(PropItemVec& items, shared_str key, Fvector* val, float mn, float mx, float inc, int decim)

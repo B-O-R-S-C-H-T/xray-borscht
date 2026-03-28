@@ -88,7 +88,7 @@ CEditableObject* ESceneSpawnTool::get_draw_visual(u8 _RP_TeamID, u8 _RP_Type, co
 			if(_GameType.MatchType(eGameIDCaptureTheArtefact))
             {
             	if(_RP_TeamID==0)
-                	Msg("! incorrect ActorRP teamID [%d] for CTA",_RP_TeamID);
+					ELog.Msg(mtError, "Incorrect ActorRP teamID [%d] for CTA", _RP_TeamID);
                 else
             	if(_RP_TeamID==1)
             		ret = m_draw_RP_visuals[4];
@@ -119,7 +119,7 @@ CEditableObject* ESceneSpawnTool::get_draw_visual(u8 _RP_TeamID, u8 _RP_Type, co
             	if(_RP_TeamID==2)
             		ret = m_draw_RP_visuals[1];
                 else
-                	Msg("! incorrect AF teamID [%d] for CTA",_RP_TeamID);
+					ELog.Msg(mtError, "Incorrect AF teamID [%d] for CTA", _RP_TeamID);
             }else
 			if(_GameType.MatchType(eGameIDArtefactHunt))
             {
@@ -297,7 +297,7 @@ void ESceneSpawnTool::GetStaticDesc(int& v_cnt, int& f_cnt, bool b_selected_only
 
         CSpawnPoint* sp = dynamic_cast<CSpawnPoint*>(obj);
         if(!sp){
-        	Msg("! ghm/ not a spawn object");
+        	ELog.Msg(mtInformation, "! ghm/ not a spawn object");
             continue;
         }
 		if(sp->m_SpawnData.Valid())

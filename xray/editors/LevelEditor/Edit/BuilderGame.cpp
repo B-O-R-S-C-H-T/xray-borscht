@@ -127,7 +127,7 @@ BOOL SceneBuilder::BuildGame()
                     if(E->m_volumeType!=fvEmitter)
                     {
                     	bRes 			= FALSE;
-                        Msg("! incorrect fog volumes grouping");
+						ELog.Msg(mtError, "Invalid fog volumes grouping!");
 						break;
                     }
                     
@@ -142,7 +142,7 @@ BOOL SceneBuilder::BuildGame()
                     {
                     
                     	bRes 			= FALSE;
-                        Msg("! incorrect fog volumes grouping");
+						ELog.Msg(mtError, "Invalid fog volumes grouping!");
 						break;
                     }
                     
@@ -153,7 +153,7 @@ BOOL SceneBuilder::BuildGame()
                     if(E->m_volumeType!=fvOcclusion)
                     {
                     	bRes 			= FALSE;
-                        Msg("! incorrect fog volumes grouping");
+						ELog.Msg(mtError, "Invalid fog volumes grouping!");
 						break;
                     }
                     

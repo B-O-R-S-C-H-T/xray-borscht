@@ -6279,9 +6279,6 @@
     <ClInclude Include="..\xrServerEntities\ItemListTypes.h">
       <Filter>Core\Server\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="PropertiesListHelper.h">
-      <Filter>Core\Server\Editor</Filter>
-    </ClInclude>
     <ClInclude Include="..\xrServerEntities\WaveForm.h">
       <Filter>Core\Server\Editor</Filter>
     </ClInclude>
@@ -7500,9 +7497,6 @@
     <ClInclude Include="embedded_editor\embedded_editor_hud.h">
       <Filter>Embedded Editor</Filter>
     </ClInclude>
-    <ClInclude Include="embedded_editor\embedded_editor_le.h">
-      <Filter>Embedded Editor</Filter>
-    </ClInclude>
     <ClInclude Include="embedded_editor\embedded_editor_se.h">
       <Filter>Embedded Editor</Filter>
     </ClInclude>
@@ -7529,6 +7523,9 @@
     </ClInclude>
     <ClInclude Include="embedded_editor\render\editor_render_way_points.h">
       <Filter>Embedded Editor\render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xrServerEntities\PropertiesListHelper.h">
+      <Filter>Core\Server\Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -11205,9 +11202,6 @@
       <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_hud.cpp">
-      <Filter>Embedded Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="embedded_editor\embedded_editor_le.cpp">
       <Filter>Embedded Editor</Filter>
     </ClCompile>
     <ClCompile Include="embedded_editor\embedded_editor_se.cpp">

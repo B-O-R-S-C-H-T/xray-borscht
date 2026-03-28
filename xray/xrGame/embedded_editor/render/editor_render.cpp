@@ -10,12 +10,8 @@ extern bool isRenderAiMap;
 extern bool isRenderSpawnElement;
 extern bool isRenderWayPoints;
 
-void embedded_editor_render()
-{
-    if (isRenderAiMap)
-        renderAiMap();
-    if (isRenderSpawnElement)
-        renderSpawnElements();
-    if (isRenderWayPoints)
-        renderWayPoints();
+void embedded_editor_render() {
+	if (isRenderAiMap)			renderAiMap();
+	if (isRenderSpawnElement)	renderSpawnElements();
+	if (isRenderWayPoints)		renderWayPoints();
 }

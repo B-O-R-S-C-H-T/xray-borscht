@@ -116,7 +116,7 @@ MotionID animation_selector::select_animation		(bool &animation_movement_control
 			return			(m_skeleton_animated->ID_Cycle( m_animation.c_str()));
 
 		if (!m_object->inventory().ActiveItem()) {
-			Msg("! stalker [%s] hud_item is nullptr (no ActiveItem) in combat_cover, animation: %s, cover: %s",
+			Msg("! stalker [%s] hud_item is nullptr (no ActiveItem) in combat_cover, animation: [%s], cover: [%s]",
 				m_object->cName().c_str(), m_animation.c_str(), m_object->movement().current_params().cover()->id().c_str());
 			return (m_skeleton_animated->ID_Cycle(m_animation.c_str()));
 		}
@@ -134,10 +134,22 @@ MotionID animation_selector::select_animation		(bool &animation_movement_control
 		if (animation_id)
 			return			(animation_id);
 
+		// Предполагалось, что анимация хотя бы под этот слот будет существовать в любом случае...
 		STRCONCAT			( result, m_animation, "_slot_2" );
 		animation_id		= m_skeleton_animated->ID_Cycle_Safe( result );
-		VERIFY				(animation_id);
-		return				(animation_id);
+		if (animation_id)
+			return			(animation_id);
+
+		// ...но ПЫС, как всегда, решили сэкономить на аниматорах, поэтому анимаций с постфиксом _slot_N не существует в ресурсах!
+		// Поэтому механизм анимационных слотов для смарткаверов должен быть всегда отключён командой 'ai_use_smart_covers_animation_slots off',
+		// если только какой-нибудь отчаянный аниматор не решит создать анимации особого хвата под каждый тип предмета в руках персонажа.
+		Msg("! no slotted animation [_slot_%s] for base animation [%s], character [%s], cover [%s], weapon slot %d",
+			animation_slot_string,
+			m_animation.c_str(),
+			m_object->cName().c_str(),
+			m_object->movement().current_params().cover()->id().c_str(),
+			hud_item->animation_slot());
+		return (m_skeleton_animated->ID_Cycle(m_animation.c_str()));
 	}
 
 	VERIFY				(m_animation._get());
