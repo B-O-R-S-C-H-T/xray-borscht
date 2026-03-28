@@ -39,6 +39,7 @@
 #include "StatusBar.h"
 #include "ImGui/IM_ContextMenu.h"
 #include "ImGui/IM_EditLibrary.h"
+#include "editors/ECore/ImGui/IM_TextEditor.h"
 
 #include "SpawnPoint.h"
 #include "AppendObjectInfoForm.h"
@@ -891,6 +892,61 @@ CCommandVar CommandRefreshSnapObjects(CCommandVar p1, CCommandVar p2)
 #endif
     return 						TRUE;
 }
+
+struct SnapListEditor final : public IM_TEActions {
+	virtual void OnOK(IM_TextEditor* editor) override {
+		if (Scene->locked()) {
+			ELog.DlgMsg(mtError, "Scene sharing violation");
+			return;
+		}
+
+		xr_string snap_list = editor->GetText();
+
+		Scene->ClearSnapList(true);
+
+		char* s = xr_strdup(snap_list.c_str());
+		char* t = strtok(s, "\r\n");
+
+		while (t) {
+			if (t[0])
+			{
+				CCustomObject* o = Scene->FindObjectByName(t, OBJCLASS_SCENEOBJECT);
+				if (o)
+					Scene->AddToSnapList(o, false);
+			}
+			t = strtok(nullptr, "\r\n");
+		}
+
+		xr_free(s);
+
+		ExecCommand(COMMAND_REFRESH_SNAP_OBJECTS);
+	}
+};
+
+CCommandVar CommandEditSnapObjects(CCommandVar p1, CCommandVar p2) {
+	if (Scene->locked()) {
+		ELog.DlgMsg(mtError, "Scene sharing violation");
+		return FALSE;
+	}
+
+	xr_string	snap_list;
+	ObjectList* list = Scene->GetSnapList(true);
+
+	if (list && !list->empty()) {
+		for (ObjectIt I = list->begin(); I != list->end(); ++I) {
+			snap_list += (*I)->GetName();
+			snap_list += "\n";
+		}
+	}
+
+	SnapListEditor* actions = xr_new<SnapListEditor>();
+	IM_TextEditor*	editor	= xr_new<IM_TextEditor>("Snap list", snap_list, actions);
+
+	UI->AddIMWindow(editor);
+
+	return TRUE;
+}
+
 CCommandVar CommandRefreshSoundEnvs(CCommandVar p1, CCommandVar p2)
 {
     ::Sound->refresh_env_library();
@@ -1017,7 +1073,7 @@ void CLevelMain::RegisterCommands()
 	REGISTER_CMD_SE	    (COMMAND_CUT,              			"Edit\\Cut",					CommandCut,false);
 	REGISTER_CMD_SE	    (COMMAND_COPY,              		"Edit\\Copy",					CommandCopy,false);
 	REGISTER_CMD_SE	    (COMMAND_PASTE,              		"Edit\\Paste",					CommandPaste,false);
-	REGISTER_CMD_SE	    (COMMAND_DUPLICATE,              		"Edit\\Duplicate",					CommandDuplicate,false);
+	REGISTER_CMD_SE		(COMMAND_DUPLICATE,					"Edit\\Duplicate",				CommandDuplicate,false);
 	REGISTER_CMD_S	    (COMMAND_LOAD_SELECTION,            CommandLoadSelection);
 	REGISTER_CMD_S	    (COMMAND_SAVE_SELECTION,            CommandSaveSelection);
 	REGISTER_CMD_SE	    (COMMAND_UNDO,              		"Edit\\Undo",					CommandUndo,false);
@@ -1049,6 +1105,7 @@ void CLevelMain::RegisterCommands()
 	REGISTER_CMD_S	    (COMMAND_DEL_SEL_SNAP_OBJECTS,      CommandDelSelSnapObjects);
 	REGISTER_CMD_S	    (COMMAND_CLEAR_SNAP_OBJECTS,        CommandClearSnapObjects);
 	REGISTER_CMD_S	    (COMMAND_SELECT_SNAP_OBJECTS,       CommandSelectSnapObjects);
+	REGISTER_CMD_S		(COMMAND_EDIT_SNAP_OBJECTS,			CommandEditSnapObjects);
 	REGISTER_CMD_S	    (COMMAND_REFRESH_SNAP_OBJECTS,      CommandRefreshSnapObjects);
 	REGISTER_CMD_S	    (COMMAND_REFRESH_SOUND_ENVS,        CommandRefreshSoundEnvs);
 	REGISTER_CMD_S	    (COMMAND_REFRESH_SOUND_ENV_GEOMETRY,CommandRefreshSoundEnvGeometry);
