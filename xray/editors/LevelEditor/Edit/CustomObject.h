@@ -19,6 +19,7 @@ class CCustomMotion;
 struct SAnimParams;
 class SSceneSummary;
 class ESceneCustomOTool;
+class CAnimationPath;
 
 struct SExportStreamItem{
 	int					chunk;
@@ -44,27 +45,28 @@ public:
     ObjClassID		ClassID;
     ESceneCustomOTool* ParentTool;
 private:
-    SAnimParams*	m_MotionParams;
+	SAnimParams*	m_MotionParams;
     COMotion*		m_Motion;
+    CAnimationPath* m_MotionPath;
 
     // private animation methods
     void 			AnimationOnFrame	();
-    void 			AnimationDrawPath	();
+	void 			AnimationDrawPath	();
     void			AnimationCreateKey	(float t);
     void			AnimationDeleteKey	(float t);
     void			AnimationUpdate		(float t);
 public:
 	enum{
-        flSelected			= (1<<0),
-        flVisible			= (1<<1),
-        flLocked			= (1<<2),
-        flMotion					= (1<<3),
-        flRenderAnyWayIfSelected	= (1<<4),
+    	flSelected					= (1<<0),
+    	flVisible					= (1<<1),
+    	flLocked					= (1<<2),
+    	flMotion					= (1<<3),
+    	flRenderAnyWayIfSelected	= (1<<4),
         flObjectInGroup				= (1<<5),
         flObjectInGroupUnique		= (1<<6),
         
-        flAutoKey					= (1<<30),
-        flCameraView				= (1<<31),
+    	flAutoKey					= (1<<30),
+    	flCameraView				= (1<<31),
     };
     Flags32			m_CO_Flags;
 
@@ -104,9 +106,11 @@ public:
 public:
 	LPCSTR			GetName			() const {return *FName; }
 	void			SetName			(LPCSTR N){string256 tmp; strcpy(tmp,N); strlwr(tmp); FName=tmp;}
+
     virtual Fvector& GetPosition	()	{ return FPosition; 	}
     virtual Fvector& GetRotation	()	{ return FRotation;		}
     virtual Fvector& GetScale		()	{ return FScale; 		}
+
     virtual void 	SetPosition		(const Fvector& pos)	{ FPosition.set(pos);	UpdateTransform();}
 	virtual void 	SetRotation		(const Fvector& rot)	{ FRotation.set(rot);	UpdateTransform();}
     virtual void 	SetScale		(const Fvector& scale)	{ FScale.set(scale);	UpdateTransform();}
@@ -124,9 +128,9 @@ public:
 
     BOOL 			Editable		() const ;
     
-    IC BOOL 		Motionable		()const {return m_CO_Flags.is(flMotion); 	}
-    IC BOOL 		Visible			()const {return m_CO_Flags.is(flVisible);	}
-    IC BOOL 		Selected		()const {return m_CO_Flags.is(flSelected);}
+	IC BOOL 		Motionable		()const {return m_CO_Flags.is(flMotion); 	}
+	IC BOOL 		Visible			()const {return m_CO_Flags.is(flVisible);	}
+	IC BOOL 		Selected		()const {return m_CO_Flags.is(flSelected);}
     IC BOOL			Locked			()const {return m_CO_Flags.is(flLocked);}
     IC BOOL			Valid			()const {return m_RT_Flags.is(flRT_Valid);}
     IC BOOL			IsDeleted		()const {return m_RT_Flags.is(flRT_NeedSelfDelete);}
@@ -137,9 +141,9 @@ public:
 	void			AnimationFillProp(LPCSTR pref, PropItemVec& items);
 	virtual bool 	GetSummaryInfo	(SSceneSummary* inf);
 
-    virtual void 	Select      (int  flag);
-    virtual void 	Show        (BOOL flag);
-    virtual void 	Lock        (BOOL flag);
+	virtual void 	Select			(int  flag);
+	virtual void 	Show			(BOOL flag);
+    virtual void	Lock			(BOOL flag);
     void			SetValid		(BOOL flag)	{m_RT_Flags.set(flRT_Valid,flag);}
     void			SetRenderIfSelected(BOOL flag){m_CO_Flags.set(flRenderAnyWayIfSelected,flag);}
 

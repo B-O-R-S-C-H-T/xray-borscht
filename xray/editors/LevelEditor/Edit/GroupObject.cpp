@@ -351,6 +351,27 @@ bool CGroupObject::UpdateReference(bool bForceReload)
 
         ClearInternal		(ObjectsInGroupBk);
         
+
+        // append level prefox to spawn elements
+        if(Scene->LevelPrefix().size())
+        {
+        	string256 prefix;
+        	strconcat(sizeof(prefix), prefix, Scene->LevelPrefix().c_str(), "_");
+
+        	ObjectsInGroup::iterator it, end;
+            it 	= m_ObjectsInGroup.begin();
+            end = m_ObjectsInGroup.end();
+        	for(; it != end; it++)
+            	if((*it).pObject->ClassID == OBJCLASS_SPAWNPOINT && strncmp((*it).pObject->GetName(), prefix, strlen(prefix)) != 0)
+                {
+        			string256 prefixed_name, new_name;
+                    strconcat(sizeof prefixed_name, prefixed_name, prefix, (*it).pObject->GetName());
+                    Scene->GenObjectName(OBJCLASS_SPAWNPOINT, new_name, prefixed_name);
+                    (*it).pObject->SetName(new_name);
+                }
+        }
+        
+        
     }else
     {
         ELog.Msg		(mtError,"ERROR: Can't open group file: '%s'.",fn.c_str());

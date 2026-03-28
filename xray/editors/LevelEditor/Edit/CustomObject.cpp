@@ -9,6 +9,7 @@
 #include "UI_LevelMain.h"
 #include <Layers/xrRender/D3DUtils.h>
 #include <xrEngine/motion.h>
+#include "../ECore/Editor/AnimationPath.h"
 
 #define CUSTOMOBJECT_CHUNK_PARAMS 		0xF900
 #define CUSTOMOBJECT_CHUNK_LOCK	 		0xF902
@@ -25,13 +26,14 @@ CCustomObject::CCustomObject(LPVOID data, LPCSTR name)
     ClassID 	= OBJCLASS_DUMMY;
     ParentTool	= 0;
     if (name) 	FName = name;
-    m_CO_Flags.assign	(flVisible);
+    m_CO_Flags.assign(flVisible);
     m_RT_Flags.assign(flRT_Valid);
     m_pOwnerObject	= 0;
     ResetTransform	();
     m_RT_Flags.set	(flRT_UpdateTransform,TRUE);
     m_Motion		= NULL;
     m_MotionParams 	= NULL;
+    m_MotionPath	= NULL;
     FPosition.set	(0,0,0);
     FScale.set		(1,1,1);
     FRotation.set	(0,0,0);
@@ -42,6 +44,7 @@ CCustomObject::~CCustomObject()
 {
 	xr_delete				(m_Motion);
     xr_delete				(m_MotionParams);
+    xr_delete				(m_MotionPath);
 }
 
 bool CCustomObject::IsRender()
@@ -78,7 +81,7 @@ void CCustomObject::Select( int flag )
 
 void CCustomObject::Show( BOOL flag )
 {
-    m_CO_Flags.set	   	(flVisible,flag);
+	m_CO_Flags.set	   	(flVisible,flag);
 
     if (!m_CO_Flags.is(flVisible)) 
     	m_CO_Flags.set(flSelected, FALSE);
@@ -88,14 +91,14 @@ void CCustomObject::Show( BOOL flag )
 
 void CCustomObject::Lock( BOOL flag )
 {
-    m_CO_Flags.set		(flLocked,flag);
+	m_CO_Flags.set		(flLocked,flag);
 }
 
 BOOL   CCustomObject::Editable() const 
 {
-    BOOL b1 = m_CO_Flags.is(flObjectInGroup);
+	BOOL b1 = m_CO_Flags.is(flObjectInGroup);
     BOOL b2 = m_CO_Flags.is(flObjectInGroupUnique);
-    return !b1 || (b1&&b2);
+	return !b1 || (b1&&b2);
 }
 
 bool  CCustomObject::LoadLTX(CInifile& ini, LPCSTR sect_name)
@@ -168,16 +171,16 @@ bool CCustomObject::LoadStream(IReader& F)
     }
 
 	UpdateTransform	();
-
+    
 	return true;
 }
 
 void CCustomObject::SaveLTX(CInifile& ini, LPCSTR sect_name)
 {
-    ini.w_u32		(sect_name, "co_flags", m_CO_Flags.get());	// for backward-compatibility reasons
+	ini.w_u32		(sect_name, "co_flags", m_CO_Flags.get());	// for backward-compatibility reasons
     ini.w_u32		(sect_name, "co_flags2", m_CO_Flags.get());
 
-    ini.w_string	(sect_name, "name", FName.c_str());
+	ini.w_string	(sect_name, "name", FName.c_str());
 
     ini.w_fvector3 	(sect_name, "position", FPosition);
     ini.w_fvector3 	(sect_name, "rotation", FRotation);

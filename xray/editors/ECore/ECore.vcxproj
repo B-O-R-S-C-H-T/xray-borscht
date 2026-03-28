@@ -288,6 +288,7 @@
     <ClInclude Include="..\..\xrEngine\xrTheora_Surface.h" />
     <ClInclude Include="..\..\xrEngine\xr_efflensflare.h" />
     <ClInclude Include="..\..\xrEngine\xr_input.h" />
+    <ClInclude Include="Editor\AnimationPath.h" />
     <ClInclude Include="Editor\device.h" />
     <ClInclude Include="Editor\EDetailModel.h" />
     <ClInclude Include="Editor\EditMesh.h" />
@@ -491,6 +492,7 @@
     <ClCompile Include="..\..\xrEngine\xr_efflensflare.cpp" />
     <ClCompile Include="..\..\xrEngine\Xr_input.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="Editor\AnimationPath.cpp" />
     <ClCompile Include="Editor\BoneEditor.cpp" />
     <ClCompile Include="Editor\device.cpp" />
     <ClCompile Include="Editor\DeviceScreenshot.cpp" />

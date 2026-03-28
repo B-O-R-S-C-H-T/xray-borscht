@@ -516,6 +516,9 @@
     <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="Editor\AnimationPath.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -1057,6 +1060,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\addons\ImGuizmo\ImGuizmo.cpp">
       <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\AnimationPath.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
