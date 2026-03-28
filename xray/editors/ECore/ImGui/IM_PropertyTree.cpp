@@ -1,4 +1,4 @@
-#include "stdafx.h"
+п»ї#include "stdafx.h"
 #pragma hdrstop
 
 #include "IM_PropertyTree.h"
@@ -180,7 +180,7 @@ void IM_PropertyTree::RenderItem(ImTreeNode& node) {
 	if (disabled)
 		ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 
-	ImGui::PushID(static_cast<void*>(item)); // перестраховка
+	ImGui::PushID(static_cast<void*>(item)); // РїРµСЂРµСЃС‚СЂР°С…РѕРІРєР°
 
 	switch (item->Type()) {
 		case PROP_CAPTION:
@@ -573,14 +573,50 @@ void IM_PropertyTree::RenderNumeric(PropItem* item) {
 	bool disabled = item->m_Flags.is(PropItem::flDisabled);
 
 	ImGui::PushID(item->Key());
-	if (fv) {
-		float val = fv->GetValue();
-		item->BeforeEdit<FloatValue, float>(val);
 
-		if (ImGui::InputFloat("", &val) && !disabled)
-			if (item->AfterEdit<FloatValue, float>(val))
-				if (item->ApplyValue<FloatValue, float>(val))
+	if (item->m_Flags.is(PropItem::flApplyButton) && fv) {
+
+		if (!item->m_ApplyTempSet) {
+			item->m_ApplyTempFloat = fv->GetValue();
+			item->m_ApplyTempSet   = true;
+		}
+
+		float temp = item->m_ApplyTempFloat;
+
+		const float button_width = 75.0f;
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - button_width);
+
+		bool value_changed = ImGui::InputFloat("##value", &temp);
+
+		bool enter_pressed = ImGui::IsItemDeactivatedAfterEdit() && (ImGui::IsKeyPressed(ImGuiKey_Enter, false) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter, false));
+
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine(0, 4.0f);
+
+		bool should_apply = false;
+
+		if (ImGui::Button("Apply", ImVec2(button_width - 4.0f, 0)) && !disabled)
+			should_apply = true;
+
+		if (enter_pressed && !disabled)
+			should_apply = true;
+
+		if (should_apply) {
+			float newval = temp;
+
+			if (item->AfterEdit<FloatValue, float>(newval))
+				if (item->ApplyValue<FloatValue, float>(newval))
 					Modified();
+
+			if (!item->OnApplyEvent.empty())
+				item->OnApplyEvent(item);
+
+			item->m_ApplyTempFloat = newval;
+			item->m_ApplyTempSet   = true;
+		} else if (value_changed) {
+			item->m_ApplyTempFloat = temp;
+		}
 	} else {
 		int val;
 		if (u8v) {

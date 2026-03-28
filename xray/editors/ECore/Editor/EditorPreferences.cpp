@@ -1,5 +1,9 @@
 #include "stdafx.h"
+
+#include <imgui.h>
+
 #include "../ImGui/IM_PropertyTree.h"
+#include "ImGui/IM_SVGCanvas.h"
 #include "ui_main.h"
 #include "ui_toolscustom.h"
 
@@ -47,6 +51,8 @@ CCustomPreferences::CCustomPreferences()
     log_error_color     = 0x00FFC4C4;
     log_info_color      = 0x00E7FFE6;
     log_confirmation_color = 0x00E7E6FF;
+
+    ui_scale            = 1.0f;
 }
 
 CCustomPreferences::~CCustomPreferences()
@@ -70,6 +76,18 @@ void CCustomPreferences::ApplyValues()
     Device.m_Camera.SetFlyParams	(cam_fly_speed, cam_fly_alt);
 
     ExecCommand		(COMMAND_UPDATE_GRID);
+
+	if (ImGui::GetCurrentContext() != nullptr) {
+		ImGui::GetIO().FontGlobalScale = ui_scale;
+	}
+}
+
+void CCustomPreferences::OnUIScaleApply(PropItem* item) {
+	ApplyValues();
+
+	if (ImGui::GetCurrentContext() != nullptr) {
+		IM_SVGCanvas::ForceRebuild();
+	}
 }
 
 void CCustomPreferences::OnClose	()
@@ -172,9 +190,13 @@ void CCustomPreferences::FillProp(PropItemVec& props)
     PHelper().CreateFloat	(props,"Viewport\\Far Plane", 				    &view_fp,			10.f, 	10000.f);
     PHelper().CreateAngle	(props,"Viewport\\FOV",		  				    &view_fov,			deg2rad(0.1f), deg2rad(170.f));
     PHelper().CreateColor	(props,"Viewport\\Clear Color",		           	&scene_clear_color	);
+
+    PHelper().CreateFloatWithApply(props,"UI\\Interface Scale",             &ui_scale,          0.5f, 3.0f, 0.01f, 2,
+        fastdelegate::MakeDelegate(this, &CCustomPreferences::OnUIScaleApply));
     
     ButtonValue* B = PHelper().CreateButton	(props,"Keyboard\\Common\\File","Load,Save", 0);
     B->OnBtnClickEvent.bind	(this,&CCustomPreferences::OnKeyboardCommonFileClick);
+
     ECommandVec& cmds		= GetEditorCommands();
     for (u32 cmd_idx=0; cmd_idx<cmds.size(); cmd_idx++){
     	SECommand*& CMD		= cmds[cmd_idx];
@@ -246,6 +268,8 @@ void CCustomPreferences::Load(CInifile* I)
 
     object_flags.flags	= R_U32_SAFE	("editor_prefs","object_flags"		,object_flags.flags );
 
+    ui_scale			= R_FLOAT_SAFE  ("editor_prefs", "ui_scale"         , 1.0f);
+
     // read recent list    
     for (u32 i=0; i<scene_recent_count; i++){
         AnsiString key = "recent_files_" + std::to_string(i);
@@ -305,6 +329,8 @@ void CCustomPreferences::Save(CInifile* I)
     I->w_u32	("editor_prefs","scene_clear_color",	scene_clear_color 	);
 
     I->w_u32	("editor_prefs","object_flags",		object_flags.flags);
+
+    I->w_float  ("editor_prefs", "ui_scale",        ui_scale);
 
     for (AStringIt it=scene_recent_list.begin(); it!=scene_recent_list.end(); it++){
         AnsiString L = "recent_files_" + std::to_string(it - scene_recent_list.begin());

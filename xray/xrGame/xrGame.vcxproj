@@ -620,6 +620,7 @@
     <ClInclude Include="..\xrServerEntities\pch_script.h" />
     <ClInclude Include="..\xrServerEntities\PHNetState.h" />
     <ClInclude Include="..\xrServerEntities\PHSynchronize.h" />
+    <ClInclude Include="..\xrServerEntities\PropertiesListHelper.h" />
     <ClInclude Include="..\xrServerEntities\PropertiesListTypes.h" />
     <ClInclude Include="..\xrServerEntities\restriction_space.h" />
     <ClInclude Include="..\xrServerEntities\script_callStack.h" />
@@ -1677,7 +1678,6 @@
     <ClInclude Include="problem_solver_inline.h" />
     <ClInclude Include="profiler.h" />
     <ClInclude Include="profiler_inline.h" />
-    <ClInclude Include="PropertiesListHelper.h" />
     <ClInclude Include="property_evaluator.h" />
     <ClInclude Include="property_evaluator_const.h" />
     <ClInclude Include="property_evaluator_const_inline.h" />

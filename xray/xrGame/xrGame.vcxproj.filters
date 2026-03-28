@@ -6279,9 +6279,6 @@
     <ClInclude Include="..\xrServerEntities\ItemListTypes.h">
       <Filter>Core\Server\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="PropertiesListHelper.h">
-      <Filter>Core\Server\Editor</Filter>
-    </ClInclude>
     <ClInclude Include="..\xrServerEntities\WaveForm.h">
       <Filter>Core\Server\Editor</Filter>
     </ClInclude>
@@ -7526,6 +7523,9 @@
     </ClInclude>
     <ClInclude Include="embedded_editor\render\editor_render_way_points.h">
       <Filter>Embedded Editor\render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\xrServerEntities\PropertiesListHelper.h">
+      <Filter>Core\Server\Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

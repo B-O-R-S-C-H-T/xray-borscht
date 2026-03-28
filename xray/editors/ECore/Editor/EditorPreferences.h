@@ -163,6 +163,8 @@ public:
 	//
 	shared_str		screen_font;
 
+    float			ui_scale;
+
 protected:
 	void 	        OnKeyboardCommonFileClick	(ButtonValue* value, bool& bModif, bool& bSafe);
 	void 	        OnClose	();
@@ -177,6 +179,8 @@ public:				// User declarations
 
     void			OnCreate			();
     void			OnDestroy			();
+
+    void			OnUIScaleApply      (PropItem*);
 
     virtual void	FillProp          	(PropItemVec& items);
 

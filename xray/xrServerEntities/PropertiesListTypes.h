@@ -138,33 +138,49 @@ class PropItem
     shared_str			key;
     EPropType			type;
 	void*				item;
+
 public:
 	DEFINE_VECTOR		(PropValue*,PropValueVec,PropValueIt);
+
 private:
     PropValueVec		values;
     TProperties* 		m_Owner;
+
 // events
 public:
 	typedef fastdelegate::FastDelegate<void(PropItem*)> 	TOnPropItemFocused;
     TOnDrawTextEvent	OnDrawTextEvent;
     TOnPropItemFocused	OnItemFocused;
     TOnClick			OnClickEvent;
+
+	typedef fastdelegate::FastDelegate<void(PropItem*)>		TOnApplyEvent;
+	TOnApplyEvent		OnApplyEvent;
+	bool				m_ApplyTempSet;
+	float				m_ApplyTempFloat;
+
 public:
 	u32					prop_color;
 	u32					val_color;
     Irect				draw_rect;
+
 public:
-    enum{
-    	flDisabled		= (1<<0),
-    	flShowCB		= (1<<1),
-    	flCBChecked		= (1<<2),
-        flMixed			= (1<<3),
-        flDrawThumbnail	= (1<<4),
-        flSorted		= (1<<5),
-    };
+	enum {
+		flDisabled		= (1 << 0),
+		flShowCB		= (1 << 1),
+		flCBChecked		= (1 << 2),
+		flMixed			= (1 << 3),
+		flDrawThumbnail = (1 << 4),
+		flSorted		= (1 << 5),
+		flApplyButton	= (1 << 6),
+	};
     Flags32				m_Flags;
+
 public:
-						PropItem		(EPropType _type):type(_type),prop_color(0),val_color(0),item(0),key(0),OnClickEvent(0),OnDrawTextEvent(0),OnItemFocused(0){m_Flags.zero();}
+	PropItem(EPropType _type)
+		: type(_type), prop_color(0), val_color(0), item(0), key(0), OnClickEvent(0), OnDrawTextEvent(0), OnItemFocused(0), OnApplyEvent(0),
+		  m_ApplyTempSet(false), m_ApplyTempFloat(0.0f) {
+		m_Flags.zero();
+	}
 	virtual 			~PropItem		()
     {
     	for (PropValueIt it=values.begin(); values.end() != it; ++it)
@@ -180,6 +196,7 @@ public:
     	for (PropValueIt it=values.begin(); values.end() != it; ++it)
         	(*it)->ResetValue();
         CheckMixed		();
+		m_ApplyTempSet = false;
     }
     IC void				AppendValue		(PropValue* value)
     {
