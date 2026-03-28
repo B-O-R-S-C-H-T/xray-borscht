@@ -55,6 +55,7 @@ public:
     b_vertex*		        	l_verts;
     b_face*  		        	l_faces;
     u32*						l_smgroups;
+    Fvector*					l_vnormals;
 
     xr_vector<b_mu_model>		l_mu_models;
     xr_vector<b_mu_reference>	l_mu_refs;
@@ -66,7 +67,6 @@ public:
     xr_vector<b_shader>        	l_shaders;
     xr_vector<b_shader>        	l_shaders_xrlc;
     xr_vector<b_material>      	l_materials;
-    xr_vector<b_vnormal>       	l_vnormals;
     xr_vector<b_glow>          	l_glows;
     xr_vector<b_portal>        	l_portals;
     xr_vector<Flight>          	l_light_keys;
@@ -79,7 +79,7 @@ public:
     void    BuildPortal   	(b_portal* b, CPortal* e);
     BOOL    BuildMesh       (const Fmatrix& parent, CEditableObject* object, CEditableMesh* mesh, int sector_num,
     						b_vertex* verts, int& vert_cnt, int& vert_it,
-                            b_face* faces, int& face_cnt, int& face_it, u32* smooth_groups, const Fmatrix& real_transform);
+                            b_face* faces, int& face_cnt, int& face_it, u32* smooth_groups, Fvector* vnormals);
     BOOL    BuildObject     (CSceneObject* obj);
     BOOL    BuildMUObject   (CSceneObject* obj);
 

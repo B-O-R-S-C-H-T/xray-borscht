@@ -55,7 +55,7 @@ int APIENTRY WinMain(
 
     Debug._initialize(false);
     Core._initialize("level", ELogCallback, 1, 0, true);
-    CEditableMesh::m_bDraftMeshMode = TRUE;
+    if(!strstr(Core.Params,"-hq")) CEditableMesh::m_bDraftMeshMode = TRUE;
 
     // Perform application initialization:
     if (!InitInstance(hInstance, nCmdShow)) {
