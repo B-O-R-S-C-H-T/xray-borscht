@@ -419,9 +419,14 @@ void IM_PropertyTree::RenderShortcut(PropItem* item) {
 
 	u8			   key = 0;
 	ImGuiIO&	   io  = ImGui::GetIO();
-	for (int i = 0; i < 256; i++) {
-		if (ImGui::IsKeyDown(ImGuiKey(i))) {
-			key = i;
+
+	for (int i = 0; i < 256; ++i) {
+		if ((GetAsyncKeyState(i) & 0x8000) != 0) {
+			if (i != VK_CONTROL && i != VK_MENU && i != VK_SHIFT && i != VK_LCONTROL && i != VK_RCONTROL &&
+				i != VK_LMENU && i != VK_RMENU && i != VK_LSHIFT && i != VK_RSHIFT) {
+				key = (u8)i;
+				break;
+			}
 		}
 	}
 
@@ -433,7 +438,7 @@ void IM_PropertyTree::RenderShortcut(PropItem* item) {
 	if (io.KeyAlt)
 		strcat(text, "Alt + ");
 
-	if (key != 0 && key != VK_CONTROL && key != VK_MENU && key != VK_SHIFT) {
+	if (key != 0) {
 		char key_name[64];
 		GetKeyNameText(MapVirtualKey(key, 0) << 16, key_name, sizeof(key_name));
 		strcat(text, key_name);

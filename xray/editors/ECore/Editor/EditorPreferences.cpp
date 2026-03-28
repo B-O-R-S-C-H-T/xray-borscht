@@ -93,7 +93,8 @@ void CCustomPreferences::OnUIScaleApply(PropItem* item) {
 void CCustomPreferences::OnClose	()
 {
     ApplyValues	();	
-    UI->RemoveIMWindow(IMProps);
+	UI->RemoveIMWindow(IMProps);
+	Save();
 }
 
 void CheckValidate(ShortcutValue*, const xr_shortcut& new_val, bool& result)
