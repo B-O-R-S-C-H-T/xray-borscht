@@ -8,6 +8,7 @@
 #include "ui_leveltools.h"
 #include "ESceneAIMapControls.h"
 #include <xrCore/xrPool.h>
+//#include "FrameAIMap.h"
 
 // chunks
 #define AIMAP_VERSION  				0x0003
@@ -20,6 +21,7 @@
 #define AIMAP_CHUNK_SNAP_OBJECTS	0x0007
 #define AIMAP_CHUNK_INTERNAL_DATA	0x0008
 #define AIMAP_CHUNK_INTERNAL_DATA2	0x0009
+#define AIMAP_CHUNK_IGNORED_MTLS	0x000A
 //----------------------------------------------------
 
 poolSS<SAINode,1024> g_ainode_pool;
@@ -134,10 +136,10 @@ void SAINode::LoadStream(IReader& F, ESceneAIMapTool* tools, u16 version)
     }
     else
     {
-    	F.r			(&id, sizeof(id)); n1 = (SAINode*)id;
-    	F.r			(&id, sizeof(id)); n2 = (SAINode*)id;
-    	F.r			(&id, sizeof(id)); n3 = (SAINode*)id;
-    	F.r			(&id, sizeof(id)); n4 = (SAINode*)id;
+    	F.r			(&id, sizeof(id)); n1 = (SAINode*)tools->UnpackLink(id);
+    	F.r			(&id, sizeof(id)); n2 = (SAINode*)tools->UnpackLink(id);
+    	F.r			(&id, sizeof(id)); n3 = (SAINode*)tools->UnpackLink(id);
+    	F.r			(&id, sizeof(id)); n4 = (SAINode*)tools->UnpackLink(id);
     }
 	pl				= F.r_u16(); 		pvDecompress(Plane.n,pl);
     F.r				(&np,sizeof(np)); 	tools->UnpackPosition(Pos,np,tools->m_AIBBox,tools->m_Params);
@@ -191,15 +193,16 @@ void ESceneAIMapTool::Clear(bool bOnlyNodes)
 	inherited::Clear	();
 	hash_Clear			();
 	for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++)
-    	xr_delete		(*it);
+		xr_delete		(*it);
 	m_Nodes.clear_and_free();
-    m_SelectionCount = 0;
+	m_SelectionCount = 0;
+	m_SelNodesCache.clear();
 	if (!bOnlyNodes){
-//	    m_SnapObjects.clear	();
-        m_AIBBox.invalidate	();
-        ExecCommand		(COMMAND_REFRESH_SNAP_OBJECTS);
+//		m_SnapObjects.clear	();
+		m_AIBBox.invalidate	();
+		ExecCommand		(COMMAND_REFRESH_SNAP_OBJECTS);
 		g_ainode_pool.clear	();
-        RealUpdateSnapList	();
+		RealUpdateSnapList	();
     }
 }
 //----------------------------------------------------
@@ -223,17 +226,6 @@ void ESceneAIMapTool::OnActivate()
 
 void ESceneAIMapTool::OnFrame()
 {
-	if (m_Flags.is(flUpdateHL)){
-    	m_Flags.set(flUpdateHL,FALSE);
-        for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++)
-			(*it)->flags.set(SAINode::flHLSelected,FALSE);
-        for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++){
-            SAINode& N = **it;
-            if (N.flags.is(SAINode::flSelected))
-                for (int k=0; k<4; k++)
-                    if (N.n[k]) N.n[k]->flags.set(SAINode::flHLSelected,TRUE);
-        }
-    }
 	if (m_Flags.is(flUpdateSnapList)) RealUpdateSnapList();
 }
 //----------------------------------------------------
@@ -356,20 +348,35 @@ bool ESceneAIMapTool::LoadStream(IReader& F)
     }
 
 	// snap objects
-    if (F.find_chunk(AIMAP_CHUNK_SNAP_OBJECTS)){
-    	shared_str 	buf;
+	if (F.find_chunk(AIMAP_CHUNK_SNAP_OBJECTS)){
+		shared_str 	buf;
 		int cnt 	= F.r_u32();
         if (cnt){
 	        for (int i=0; i<cnt; i++){
-    	    	F.r_stringZ	(buf);
+				F.r_stringZ	(buf);
         	    CCustomObject* O = Scene->FindObjectByName(buf.c_str(),OBJCLASS_SCENEOBJECT);
             	if (!O)		ELog.Msg(mtError,"AIMap: Can't find snap object '%s'.",buf.c_str());
 	            else		m_SnapObjects.push_back(O);
     	    }
         }
-    }
+	}
 
-    hash_FillFromNodes		();
+	m_ignored_materials.clear();
+	if (F.find_chunk(AIMAP_CHUNK_IGNORED_MTLS)) {
+		shared_str buf;
+		u32 cnt = F.r_u32();
+		for(u32 i = 0; i < cnt; i++) {
+			F.r_stringZ(buf);
+
+			SGameMtl* mtl = GMLib.GetMaterial(*buf);
+			if(mtl) m_ignored_materials.push_back(mtl->GetID());
+		}
+	}
+
+	std::sort(m_ignored_materials.begin(),m_ignored_materials.end());
+	//((TfraAIMap*)pFrame)->UpdateIgnoredMaterials();
+
+	hash_FillFromNodes		();
 
     return true;
 }
@@ -427,7 +434,19 @@ void ESceneAIMapTool::SaveStream(IWriter& F)
     F.w_u32			(m_SnapObjects.size());
     for (ObjectIt o_it=m_SnapObjects.begin(); o_it!=m_SnapObjects.end(); o_it++)
     	F.w_stringZ	((*o_it)->GetName());
-    F.close_chunk	();
+	F.close_chunk	();
+
+	F.open_chunk	(AIMAP_CHUNK_IGNORED_MTLS);
+	F.w_u32			(m_ignored_materials.size());
+
+	xr_vector<u16>::iterator it = m_ignored_materials.begin();
+	xr_vector<u16>::iterator end = m_ignored_materials.end();
+	for(; it != end; it++) {
+		SGameMtl* mtl = GMLib.GetMaterialByID(*it); R_ASSERT(mtl);
+		F.w_stringZ	(*mtl->m_Name);
+	}
+
+	F.close_chunk	();
 }
 //----------------------------------------------------
 
@@ -493,17 +512,64 @@ void ESceneAIMapTool::SelectNodesByLink(int link)
 
 void ESceneAIMapTool::SelectObjects(bool flag)
 {
-    switch (LTools->GetSubTarget()){
-    case estAIMapNode:{
-        for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++)
-//			if (!(*it)->flags.is(SAINode::flHide))
-	            SelectNode(*it, flag);
-    }break;
+	CTimer T; T.Start();
+
+	if(flag == false) {
+		xr_list<SAINode*> lst_copy = m_SelNodesCache;
+		xr_list<SAINode*>::iterator it = lst_copy.begin();
+		xr_list<SAINode*>::iterator end = lst_copy.end();
+		for (; it != end; it++)
+			SelectNode(*it, false);
+
+		if(m_SelectionCount) {
+			for (AINodeIt it=m_Nodes.begin(), end=m_Nodes.end(); it!=end; it++)
+				SelectNode(*it, flag);
+		}
+	} else {
+		for (AINodeIt it=m_Nodes.begin(), end=m_Nodes.end(); it!=end; it++)
+			SelectNode(*it, flag);
     }
-    UpdateHLSelected	();
-    UI->RedrawScene		();
+
+	ELog.Msg(mtInformation, "SelectObjects : %f s", T.GetElapsed_sec());
+
+	UI->RedrawScene		();
 }
 struct delete_sel_node_pred
+{
+	ESceneAIMapTool* tools;
+	SPBItem* pb;
+
+	delete_sel_node_pred(ESceneAIMapTool* _tools, SPBItem* _pb)
+		: pb(_pb),
+		  tools(_tools)
+	{
+    }
+
+	bool operator()(SAINode*& x)
+	{
+		// breaking links
+		for (int k=0; k<4; k++)
+			if (x->n[k]&&x->n[k]->flags.is(SAINode::flSelected))
+				x->n[k]=0;
+
+		// updating hash and freeing memory
+		if(x->flags.is(SAINode::flSelected)) {
+			AINodeVec* cell = tools->HashMap(x->Pos);
+			if(cell) {
+				AINodeIt del_it = std::remove(cell->begin(), cell->end(), x);
+				cell->erase(del_it);
+			}
+			xr_delete(x);
+
+			pb->Inc();
+			return true;
+		}
+
+		return false;
+	}
+};
+
+struct delete_sel_node_pred_huge
 {
 	bool operator()(SAINode*& x)
     {
@@ -517,41 +583,48 @@ struct delete_sel_node_pred
         return 		res; 
     }
 };
+
 void ESceneAIMapTool::RemoveSelection()
 {
-    switch (LTools->GetSubTarget()){
-    case estAIMapNode:{
-    	if (m_Nodes.size()==(u32)SelectionCount(true)){
-        	Clear	(true);
-        }else{
-        	SPBItem* pb = UI->ProgressStart(3,"Removing nodes...");
-        	// remove link to sel nodes
-	        pb->Inc("erasing nodes");
-            // remove sel nodes
-           	AINodeIt result		= std::remove_if(m_Nodes.begin(), m_Nodes.end(), delete_sel_node_pred());
-            m_Nodes.erase		(result,m_Nodes.end());
-	        pb->Inc("updating hash");
-            hash_Clear		   	();
-		    hash_FillFromNodes 	();
-	        pb->Inc("end");
-            UI->ProgressEnd(pb);
-        }
-    }break;
+	u32 sel_cnt = (u32)SelectionCount(true);
+
+	if (m_Nodes.size()==sel_cnt){
+		Clear	(true);
+	}else if(sel_cnt < 16384){
+		// a bit faster way for low amount of nodes
+		// but it's much slower for huge amount
+		SPBItem* pb = UI->ProgressStart(sel_cnt,"Removing nodes...");
+		delete_sel_node_pred pred(this,pb);
+
+		AINodeIt result	= std::remove_if(m_Nodes.begin(), m_Nodes.end(), pred);
+		m_Nodes.erase(result,m_Nodes.end());
+
+		UI->ProgressEnd(pb);
+	}else{
+		SPBItem* pb = UI->ProgressStart(3,"Removing nodes...");
+		// remove link to sel nodes
+		pb->Inc("erasing nodes");
+		// remove sel nodes
+		AINodeIt result		= std::remove_if(m_Nodes.begin(), m_Nodes.end(), delete_sel_node_pred_huge());
+		m_Nodes.erase		(result,m_Nodes.end());
+		pb->Inc("updating hash");
+		hash_Clear		   	();
+		hash_FillFromNodes 	();
+		pb->Inc("end");
+		UI->ProgressEnd(pb);
     }
-    UpdateHLSelected	();
-    UI->RedrawScene		();
+
+	m_SelectionCount    = 0;
+	m_SelNodesCache.clear();
+	UI->RedrawScene		();
 }
 
 void ESceneAIMapTool::InvertSelection()
 {
-    switch (LTools->GetSubTarget()){
-    case estAIMapNode:{
-        for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++)
-//			if (!(*it)->flags.is(SAINode::flHide))
-	            SelectNode(*it, !(*it)->flags.is(SAINode::flSelected));
-    }break;
-    }
-    UpdateHLSelected	();
+	for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++)
+//		if (!(*it)->flags.is(SAINode::flHide))
+			SelectNode(*it, !(*it)->flags.is(SAINode::flSelected));
+
     UI->RedrawScene		();
 }
 
@@ -559,14 +632,10 @@ int ESceneAIMapTool::SelectionCount(bool testflag)
 {
 /*
 	int count = 0;
-    switch (LTools->GetSubTarget()){
-    case estAIMapNode:{
-        for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++)
-            if ((*it)->flags.is(SAINode::flSelected)==testflag)
-                count++;
-    }break;
-    }
-    return count;
+	for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++)
+		if ((*it)->flags.is(SAINode::flSelected)==testflag)
+			count++;
+	return count;
 */
 	if(testflag == true)
 		return m_SelectionCount;
@@ -592,19 +661,15 @@ void ESceneAIMapTool::FillProp(LPCSTR pref, PropItemVec& items)
 
 void ESceneAIMapTool::GetBBox(Fbox& bb, bool bSelOnly)
 {
-    switch (LTools->GetSubTarget()){
-    case estAIMapNode:{
-    	if (bSelOnly){
-            for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++)
-                if ((*it)->flags.is(SAINode::flSelected)){
-                	bb.modify(Fvector().add((*it)->Pos,-m_Params.fPatchSize*0.5f));
-                	bb.modify(Fvector().add((*it)->Pos,m_Params.fPatchSize*0.5f));
-                }
-        }else{
-        	bb.merge		(m_AIBBox);
-        }
-    }break;
-    }
+	if (bSelOnly){
+		for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++)
+			if ((*it)->flags.is(SAINode::flSelected)){
+				bb.modify(Fvector().add((*it)->Pos,-m_Params.fPatchSize*0.5f));
+				bb.modify(Fvector().add((*it)->Pos,m_Params.fPatchSize*0.5f));
+			}
+	}else{
+		bb.merge		(m_AIBBox);
+	}
 }
 
 void ESceneAIMapTool::OnPatchSizeChanged(PropValue*)
@@ -647,20 +712,11 @@ void ESceneAIMapTool::SelectErrorNodes()
     }
 
   	if(not_found > 0)
-    	ELog.DlgMsg(mtWarning, "%u nodes from error list not found", not_found);
+		ELog.DlgMsg(mtWarning, "%u nodes from error list not found", not_found);
 
-    UpdateHLSelected();
     UI->RedrawScene();
 }
 
-void ESceneAIMapTool::SelectNode(SAINode *node, bool select)
-{
-	if(node->flags.is(SAINode::flSelected) != select)
-    {
-    	node->flags.set(SAINode::flSelected, select);
-        m_SelectionCount += (-1 + (int)select*2);
-    }
-}
 
 CCommandVar GenerateAiMap(CCommandVar p1, CCommandVar p2)
 {

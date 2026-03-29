@@ -77,25 +77,20 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 //.			SGameMtl* mtl 		= GMLib.GetMaterialByID(surf->_GameMtl());
 //.			if (mtl->Flags.is(SGameMtl::flPassable))continue;
 
+			Shader_xrLC* c_sh	= Device.ShaderXRLC.Get(surf->_ShaderXRLCName());
+			if (!c_sh->flags.bCollision && !c_sh->flags.bAIObstacle){
+				continue;
+			}
 
-            Shader_xrLC* c_sh	= Device.ShaderXRLC.Get(surf->_ShaderXRLCName());
-            if (!c_sh->flags.bCollision) 			continue;
-        }
-  /*
-		if(m_CFModel)
-        {
-            u16 mtl_id 	= R->material;
+			xr_vector<u16>::iterator start = m_ignored_materials.begin();
+			xr_vector<u16>::iterator end = m_ignored_materials.end();
+			if(std::find(start, end, surf->_GameMtl()) != end)
+				continue;
+		}
 
-            if(std::find(m_ignored_materials.begin(), m_ignored_materials.end(), mtl_id) != m_ignored_materials.end() )
-            {
-//.                ELog.Msg(mtInformation, "--ignore");
-                continue;
-            }
-        }
-*/
-    	tris.push_back	(tri());
+		tris.push_back	(tri());
 		tri&		D = tris.back();
-		Fvector*	V = R->verts;   
+		Fvector*	V = R->verts;
 
 		D.v[0]		= &V[0];
 		D.v[1]		= &V[1];
@@ -124,7 +119,7 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 			float	tri_min_range	= flt_max;
 			int		tri_selected	= -1;
 			float	range,u,v;
-			for (DWORD i=0; i<DWORD(tris.size()); i++){
+			for (size_t i = 0; i < tris.size(); i++){
 				if (ETOOLS::TestRayTriA(P,D,tris[i].v,u,v,range,false)){
 					if (range<tri_min_range){
 						tri_min_range	= range;
@@ -224,7 +219,7 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 				float	tri_min_range	= flt_max;
 				int		tri_selected	= -1;
 				float	range,u,v;
-				for (u32 i=0; i<tris.size(); i++){
+				for (size_t i = 0; i < tris.size(); i++){
 					if (ETOOLS::TestRayTriA(P,D,tris[i].v,u,v,range,false)){
 						if (range<tri_min_range){
 							tri_min_range	= range;
@@ -256,7 +251,6 @@ void ESceneAIMapTool::hash_Initialize()
 {
 	for (int i=0; i<=HDIM_X; i++)
 		for (int j=0; j<HDIM_Z; j++){
-//			m_HASH[i][j]			= xr_new<AINodeVec>();
 			m_HASH[i][j].clear		();
 			m_HASH[i][j].reserve	(64);
 		}
@@ -274,21 +268,16 @@ void ESceneAIMapTool::hash_Clear()
 {
 	for (int i=0; i<=HDIM_X; i++)
 		for (int j=0; j<HDIM_Z; j++)
-//			xr_delete	(m_HASH[i][j]);
 			m_HASH[i][j].clear		();
 }
 
 void ESceneAIMapTool::HashRect(const Fvector& v, float radius, Irect& result)
 {
-	Fvector				VMmin,	VMscale, VMeps, scale;
+	Fvector				VMmin,	VMscale, scale;
 
 	Fbox&				bb = m_AIBBox;
 	VMscale.set			(bb.max.x-bb.min.x, bb.max.y-bb.min.y, bb.max.z-bb.min.z);
 	VMmin.set			(bb.min);
-	VMeps.set			(float(VMscale.x/HDIM_X/2.f),float(0),float(VMscale.z/HDIM_Z/2.f));
-	VMeps.x				= (VMeps.x<EPS_L)?VMeps.x:EPS_L;
-	VMeps.y				= (VMeps.y<EPS_L)?VMeps.y:EPS_L;
-	VMeps.z				= (VMeps.z<EPS_L)?VMeps.z:EPS_L;
 	scale.set			(float(HDIM_X),float(0),float(HDIM_Z));
 	scale.div			(VMscale);
 
@@ -307,15 +296,11 @@ AINodeVec* ESceneAIMapTool::HashMap(int ix, int iz)
 AINodeVec* ESceneAIMapTool::HashMap(Fvector& V)
 {
 	// Calculate offset,scale,epsilon
-	Fvector				VMmin,	VMscale, VMeps, scale;
+	Fvector				VMmin,	VMscale, scale;
 
 	Fbox&				bb = m_AIBBox;
 	VMscale.set			(bb.max.x-bb.min.x, bb.max.y-bb.min.y, bb.max.z-bb.min.z);
 	VMmin.set			(bb.min);
-	VMeps.set			(float(VMscale.x/HDIM_X/2.f),float(0),float(VMscale.z/HDIM_Z/2.f));
-	VMeps.x				= (VMeps.x<EPS_L)?VMeps.x:EPS_L;
-	VMeps.y				= (VMeps.y<EPS_L)?VMeps.y:EPS_L;
-	VMeps.z				= (VMeps.z<EPS_L)?VMeps.z:EPS_L;
 	scale.set			(float(HDIM_X),float(0),float(HDIM_Z));
 	scale.div			(VMscale);
 
@@ -478,6 +463,9 @@ int ESceneAIMapTool::BuildNodes(const Fvector& pos, int sz, bool bIC)
 
 void ESceneAIMapTool::BuildNodes(bool bFromSelectedOnly)
 {
+	BOOL bHideNodes			= m_Flags.is(flHideNodes);
+    if(m_Flags.is(flHideNodesWhileGenerating)) m_Flags.set(flHideNodes,TRUE);
+
 	// begin
 	m_Nodes.reserve	(1024*1024);
 
@@ -521,10 +509,10 @@ void ESceneAIMapTool::BuildNodes(bool bFromSelectedOnly)
         }
     	if (bFromSelectedOnly){
 	        // select neighbour nodes
-            if (N->n1) N->n1->flags.set(SAINode::flSelected,TRUE);
-            if (N->n2) N->n2->flags.set(SAINode::flSelected,TRUE);
-            if (N->n3) N->n3->flags.set(SAINode::flSelected,TRUE);
-            if (N->n4) N->n4->flags.set(SAINode::flSelected,TRUE);
+            if (N->n1) SelectNode(N->n1, true);
+            if (N->n2) SelectNode(N->n2, true);
+            if (N->n3) SelectNode(N->n3, true);
+            if (N->n4) SelectNode(N->n4, true);
         }
         
         if (k%512==0) {
@@ -540,6 +528,9 @@ void ESceneAIMapTool::BuildNodes(bool bFromSelectedOnly)
         }
     }
     UI->ProgressEnd(pb);
+
+    // restore original value
+    m_Flags.set				(flHideNodes,bHideNodes);
 }
 
 SAINode* ESceneAIMapTool::GetNode(Fvector vAt, bool bIC)	// return node's index
@@ -598,7 +589,6 @@ void ESceneAIMapTool::UpdateLinks(SAINode* N, bool bIC)
 
 bool ESceneAIMapTool::GenerateMap(bool bFromSelectedOnly)
 {
-	std::sort(m_ignored_materials.begin(),m_ignored_materials.end());
 	bool bRes = false;
 	if (!GetSnapList()->empty()){
 	    if (!RealUpdateSnapList()) return false;
@@ -652,8 +642,15 @@ bool ESceneAIMapTool::GenerateMap(bool bFromSelectedOnly)
     //.			        SGameMtl* mtl 		= GMLib.GetMaterialByID(surf->_GameMtl());
     //.					if (mtl->Flags.is(SGameMtl::flPassable))continue;
 
-                        Shader_xrLC* c_sh	= Device.ShaderXRLC.Get(surf->_ShaderXRLCName());
-                        if (!c_sh->flags.bCollision) 			continue;
+						xr_vector<u16>::iterator start = m_ignored_materials.begin();
+						xr_vector<u16>::iterator end = m_ignored_materials.end();
+						if(std::find(start, end, surf->_GameMtl()) != end)
+							continue;
+
+						Shader_xrLC* c_sh	= Device.ShaderXRLC.Get(surf->_ShaderXRLCName());
+						if (!c_sh->flags.bCollision && !c_sh->flags.bAIObstacle){
+							continue;
+						}
                         // collect tris
                         const IntVec& face_lst 	= sp_it->second;
                         for (IntVec::const_iterator it=face_lst.begin(); it!=face_lst.end(); it++)
@@ -676,10 +673,10 @@ bool ESceneAIMapTool::GenerateMap(bool bFromSelectedOnly)
             ETOOLS::destroy_collector(CL);
     	}
 
-        // building
+		// building
         Scene->lock			();
-CTimer tm;
-tm.Start();
+		CTimer tm;
+		tm.Start();
         BuildNodes			(bFromSelectedOnly);
 tm.GetElapsed_sec();
         Scene->unlock		();
@@ -746,8 +743,7 @@ void ESceneAIMapTool::RemoveLinks()
             for (int k=0; k<4; k++) 
 		    	if ((*it)->n[k]&&(*it)->n[k]->flags.is(SAINode::flSelected))
         	    	(*it)->n[k] = 0;
-        }
-    UpdateHLSelected	();
+		}
 }
 
 static const int opposite[4]={2,3,0,1};
@@ -767,7 +763,6 @@ void ESceneAIMapTool::InvertLinks()
     // reset processing flag
 	for (AINodeIt a_it=m_Nodes.begin(); a_it!=m_Nodes.end(); a_it++)
 		(*a_it)->flags.set(SAINode::flN1|SAINode::flN2|SAINode::flN3|SAINode::flN4,FALSE);
-    UpdateHLSelected	();
 }
 
 SAINode* ESceneAIMapTool::FindNeighbor(SAINode* N, int side, bool bIgnoreConstraints)
@@ -849,7 +844,6 @@ void ESceneAIMapTool::MakeLinks(u8 side_flag, EMode mode, bool bIgnoreConstraint
     // reset processing flag
 	for (AINodeIt a_it=m_Nodes.begin(); a_it!=m_Nodes.end(); a_it++)
 		(*a_it)->flags.set(SAINode::flN1|SAINode::flN2|SAINode::flN3|SAINode::flN4,FALSE);
-    UpdateHLSelected	();
 }
 
 void ESceneAIMapTool::ResetNodes()
@@ -1054,8 +1048,6 @@ void ESceneAIMapTool::SmoothNodes()
     m_Nodes 			= smoothed;
 	DenumerateNodes		();
     hash_FillFromNodes	();
-
-    UpdateHLSelected	();
     
 	if (sm_nodes) 		Scene->UndoSave();
 }
