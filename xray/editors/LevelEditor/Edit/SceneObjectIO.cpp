@@ -42,7 +42,7 @@ bool CSceneObject::LoadLTX(CInifile& ini, LPCSTR sect_name)
             if(b_found)
             {
                 xr_string _message;
-                _message = "Object ["+ref_name+"] not found. Relace it with ["+_new_name+"] or select other from library?";
+                _message = "Object ["+ref_name+"] not found. Replace it with ["+_new_name+"] or select another from the library?";
                 mr = ELog.DlgMsg(mtConfirmation,TMsgDlgButtons() << mbYes << mbNo, _message.c_str());
                 if(mrYes==mr)
                 {
@@ -53,7 +53,11 @@ bool CSceneObject::LoadLTX(CInifile& ini, LPCSTR sect_name)
             {
                 if (mr == mrNone) {
                     mr = ELog.DlgMsg(mtConfirmation, TMsgDlgButtons() << mbYes << mbNo << mbCancel,
-                        "Object not found. Do you want to select it from library?");
+                        "Object [%s] not found in library.\n\n"
+                        "Yes      - select a replacement from the library\n"
+                        "No       - skip this object only\n"
+                        "Cancel - skip this object and ALL remaining missing objects until the end of loading",
+                        ref_name.c_str());
                     if (mr == mrCancel)
                         skipLoadAllErrorObjects = true;
                 }
@@ -127,6 +131,9 @@ bool CSceneObject::LoadStream(IReader& F)
         {
             ELog.Msg            ( mtError, "CSceneObject: '%s' not found in library", buf );
             bRes                = false;
+            if (skipLoadAllErrorObjects)
+                break;
+
             int mr              = mrNone;
 
             xr_string       _new_name;
@@ -134,7 +141,7 @@ bool CSceneObject::LoadStream(IReader& F)
             if(b_found)
             {
                 xr_string _message;
-                _message = "Object ["+xr_string(buf)+"] not found. Relace it with ["+_new_name+"] or select other from library?";
+                _message = "Object ["+xr_string(buf)+"] not found. Replace it with ["+_new_name+"] or select another from the library?";
                 mr = ELog.DlgMsg(mtConfirmation,TMsgDlgButtons() << mbYes << mbNo, _message.c_str());
                 if(mrYes==mr)
                 {
@@ -144,7 +151,11 @@ bool CSceneObject::LoadStream(IReader& F)
             if(!bRes)
             {
                 if(mr == mrNone)
-                    mr = ELog.DlgMsg(mtConfirmation,TMsgDlgButtons() << mbYes << mbNo, "Object not found. Do you want to select it from library?");
+                    mr = ELog.DlgMsg(mtConfirmation,TMsgDlgButtons() << mbYes << mbNo << mbCancel,
+                        "Object [%s] not found in library.\n\n"
+                        "Yes      - select a replacement from the library\n"
+                        "No       - skip this object only\n"
+                        "Cancel - skip this object and ALL remaining missing objects until the end of loading", buf);
                 else
                     mr = mrNone;
 

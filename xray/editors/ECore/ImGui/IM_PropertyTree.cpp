@@ -565,6 +565,7 @@ void IM_PropertyTree::OpenChooseForm(PropItem* item) {
 
 void IM_PropertyTree::RenderNumeric(PropItem* item) {
 	PropValue*	V	 = item->GetFrontValue();
+
 	U8Value*	u8v	 = dynamic_cast<U8Value*>(V);
 	U16Value*	u16v = dynamic_cast<U16Value*>(V);
 	U32Value*	u32v = dynamic_cast<U32Value*>(V);
@@ -623,74 +624,84 @@ void IM_PropertyTree::RenderNumeric(PropItem* item) {
 			item->m_ApplyTempFloat = temp;
 		}
 	} else {
-		int val;
-		if (u8v) {
+		if (fv) {
+			float val = fv->GetValue();
+			item->BeforeEdit<FloatValue, float>(val);
+
+			if (ImGui::InputFloat("", &val) && !disabled)
+				if (item->AfterEdit<FloatValue, float>(val))
+					if (item->ApplyValue<FloatValue, float>(val))
+						Modified();
+		} else {
+			int val = 0;
+
+			if (u8v) {
 			u8 val8 = u8v->GetValue();
 			item->BeforeEdit<U8Value, u8>(val8);
 			val = int(val8);
-		} else if (u16v) {
+			} else if (u16v) {
 			u16 val16 = u16v->GetValue();
 			item->BeforeEdit<U16Value, u16>(val16);
 			val = int(val16);
-		} else if (u32v) {
+			} else if (u32v) {
 			u32 val32 = u32v->GetValue();
 			item->BeforeEdit<U32Value, u32>(val32);
 			val = int(val32); // sadly imgui doesn't support 64-bit integers
-		} else if (s8v) {
+			} else if (s8v) {
 			s8 val8 = s8v->GetValue();
 			item->BeforeEdit<S8Value, s8>(val8);
 			val = int(val8);
-		} else if (s16v) {
+			} else if (s16v) {
 			s16 val16 = s16v->GetValue();
 			item->BeforeEdit<S16Value, s16>(val16);
 			val = int(val16);
-		} else if (s32v) {
+			} else if (s32v) {
 			s32 val32 = s32v->GetValue();
 			item->BeforeEdit<S32Value, s32>(val32);
 			val = int(val32);
-		} else {
-			NODEFAULT;
-		}
-
-		if (ImGui::InputInt("", &val) && !disabled) {
-			if ((u8v || u16v || u32v) && val < 0)
-				val = 0;
-
-			if (u8v) {
-				u8 val8 = u8(val);
-				if (item->AfterEdit<U8Value, u8>(val8))
-					if (item->ApplyValue<U8Value, u8>(val8))
-						Modified();
-			} else if (u16v) {
-				u16 val16 = u16(val);
-				if (item->AfterEdit<U16Value, u16>(val16))
-					if (item->ApplyValue<U16Value, u16>(val16))
-						Modified();
-			} else if (u32v) {
-				u32 val32 = u32(val);
-				if (item->AfterEdit<U32Value, u32>(val32))
-					if (item->ApplyValue<U32Value, u32>(val32))
-						Modified();
-			} else if (s8v) {
-				s8 val8 = s8(val);
-				if (item->AfterEdit<S8Value, s8>(val8))
-					if (item->ApplyValue<S8Value, s8>(val8))
-						Modified();
-			} else if (s16v) {
-				s16 val16 = s16(val);
-				if (item->AfterEdit<S16Value, s16>(val16))
-					if (item->ApplyValue<S16Value, s16>(val16))
-						Modified();
-			} else if (s32v) {
-				s32 val32 = s32(val);
-				if (item->AfterEdit<S32Value, s32>(val32))
-					if (item->ApplyValue<S32Value, s32>(val32))
-						Modified();
 			} else {
 				NODEFAULT;
 			}
+
+			if (ImGui::InputInt("", &val) && !disabled) {
+				if ((u8v || u16v || u32v) && val < 0)
+					val = 0;
+
+				if (u8v) {
+				u8 val8 = u8(val);
+				if (item->AfterEdit<U8Value, u8>(val8))
+					if (item->ApplyValue<U8Value, u8>(val8))
+							Modified();
+				} else if (u16v) {
+				u16 val16 = u16(val);
+				if (item->AfterEdit<U16Value, u16>(val16))
+					if (item->ApplyValue<U16Value, u16>(val16))
+							Modified();
+				} else if (u32v) {
+				u32 val32 = u32(val);
+				if (item->AfterEdit<U32Value, u32>(val32))
+					if (item->ApplyValue<U32Value, u32>(val32))
+							Modified();
+				} else if (s8v) {
+				s8 val8 = s8(val);
+				if (item->AfterEdit<S8Value, s8>(val8))
+					if (item->ApplyValue<S8Value, s8>(val8))
+							Modified();
+				} else if (s16v) {
+				s16 val16 = s16(val);
+				if (item->AfterEdit<S16Value, s16>(val16))
+					if (item->ApplyValue<S16Value, s16>(val16))
+							Modified();
+				} else if (s32v) {
+				s32 val32 = s32(val);
+				if (item->AfterEdit<S32Value, s32>(val32))
+					if (item->ApplyValue<S32Value, s32>(val32))
+							Modified();
+				}
+			}
 		}
 	}
+
 	ImGui::PopID();
 }
 
