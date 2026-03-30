@@ -34,6 +34,7 @@ using namespace std::placeholders;
 #define CHUNK_SNAPOBJECTS   	0x7710
 #define CHUNK_LEVELOP       	0x7711
 #define CHUNK_OBJECT_COUNT  	0x7712
+#define CHUNK_SCRIPTS			0x7713
 #define CHUNK_LEVEL_TAG			0x7777
 
 #define CHUNK_TOOLS_GUID		0x7000
@@ -435,6 +436,12 @@ void EScene::SaveLTX(LPCSTR map_name, bool bForUndo, bool bForceSaveAll)
         {
             ini.w_string	("snap_objects",(*SO)->GetName(),NULL);
         }
+
+        ini.w_string("scripts","compile_level",   xr_string("\"").append(m_ScriptCompileLevel).append("\"").c_str());
+        ini.w_string("scripts","compile_details", xr_string("\"").append(m_ScriptCompileDetails).append("\"").c_str());
+        ini.w_string("scripts","compile_aimap",   xr_string("\"").append(m_ScriptCompileAIMap).append("\"").c_str());
+        ini.w_string("scripts","compile_spawn",   xr_string("\"").append(m_ScriptCompileSpawn).append("\"").c_str());
+        ini.w_string("scripts","run_game",        xr_string("\"").append(m_ScriptRunGame).append("\"").c_str());
     }
 
     m_SaveCache.clear		();
@@ -874,6 +881,13 @@ bool EScene::LoadLTX(LPCSTR map_name, bool bUndo)
 		m_OwnerName				= ini.r_string("level_tag","owner");
         m_CreateTime			= ini.r_u32("level_tag","create_time");
 
+		if (ini.section_exist("scripts")) {
+			m_ScriptCompileLevel   = *ini.r_string_wb("scripts", "compile_level");
+			m_ScriptCompileDetails = *ini.r_string_wb("scripts", "compile_details");
+			m_ScriptCompileAIMap   = *ini.r_string_wb("scripts", "compile_aimap");
+			m_ScriptCompileSpawn   = *ini.r_string_wb("scripts", "compile_spawn");
+			m_ScriptRunGame		   = *ini.r_string_wb("scripts", "run_game");
+		}
 
         SceneToolsMapPairIt _I 	= m_SceneTools.begin();
         SceneToolsMapPairIt _E 	= m_SceneTools.end();

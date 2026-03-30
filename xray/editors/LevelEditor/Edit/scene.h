@@ -67,6 +67,13 @@ public:
 public:
 	st_LevelOptions	m_LevelOp;
 
+    // batch files to run compilers and the engine
+	xr_string		m_ScriptCompileLevel;
+	xr_string		m_ScriptCompileDetails;
+	xr_string		m_ScriptCompileAIMap;
+	xr_string		m_ScriptCompileSpawn;
+	xr_string		m_ScriptRunGame;
+
 protected:
 	bool m_Valid;
 	int m_Locked;

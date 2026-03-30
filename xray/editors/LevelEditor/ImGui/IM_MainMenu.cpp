@@ -1,4 +1,4 @@
-#include "stdafx.h"
+п»ї#include "stdafx.h"
 #pragma hdrstop
 
 #include "IM_MainMenu.h"
@@ -128,27 +128,42 @@ void IM_MainMenu::Render() {
 			ImGui::EndMenu();
 		}
 
-		if (ImGui::BeginMenu("Compile##main_compile")) {
-			if (ImGui::MenuItem("Build##compile_build"))
+		if (ImGui::BeginMenu("Build##main_build")) {
+			if (ImGui::MenuItem("Build Scene##build_scene"))
 				ExecCommand(COMMAND_BUILD);
 			ImGui::Separator();
-			if (ImGui::MenuItem("Make game##compile_make_game"))
+			if (ImGui::MenuItem("Make game##build_make_game"))
 				ExecCommand(COMMAND_MAKE_GAME);
-			if (ImGui::MenuItem("Make details##compile_make_details"))
+			if (ImGui::MenuItem("Make details##build_make_details"))
 				ExecCommand(COMMAND_MAKE_DETAILS);
-			if (ImGui::MenuItem("Make HOM##compile_make_hom"))
+			if (ImGui::MenuItem("Make HOM##build_make_hom"))
 				ExecCommand(COMMAND_MAKE_HOM);
-			if (ImGui::MenuItem("Make Sound Occluder##compile_make_som"))
+			if (ImGui::MenuItem("Make Sound Occluder##build_make_som"))
 				ExecCommand(COMMAND_MAKE_SOM);
-			if (ImGui::MenuItem("Make AI-map##compile_make_aimap"))
+			if (ImGui::MenuItem("Make AI-map##build_make_aimap"))
 				ExecCommand(COMMAND_MAKE_AIMAP);
 			ImGui::Separator();
-			if (ImGui::MenuItem("Import error list##compile_import_errors"))
+			if (ImGui::MenuItem("Import error list##build_import_errors"))
 				ExecCommand(COMMAND_IMPORT_COMPILER_ERROR);
-			if (ImGui::MenuItem("Export error list##compile_export_errors"))
+			if (ImGui::MenuItem("Export error list##build_export_errors"))
 				ExecCommand(COMMAND_EXPORT_COMPILER_ERROR);
-			if (ImGui::MenuItem("Clear error list##compile_clear_errors"))
+			if (ImGui::MenuItem("Clear error list##build_clear_errors"))
 				ExecCommand(COMMAND_CLEAR_DEBUG_DRAW);
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Compile##main_compile")) {
+			if (ImGui::MenuItem("Compile Level##compile_level"))
+				ExecCommand(COMMAND_RUN_SCRIPT, Scene->m_ScriptCompileLevel);
+			if (ImGui::MenuItem("Compile Details##compile_details"))
+				ExecCommand(COMMAND_RUN_SCRIPT, Scene->m_ScriptCompileDetails);
+			if (ImGui::MenuItem("Compile AI-map##compile_aimap"))
+				ExecCommand(COMMAND_RUN_SCRIPT, Scene->m_ScriptCompileAIMap);
+			if (ImGui::MenuItem("Compile Spawn##compile_spawn"))
+				ExecCommand(COMMAND_RUN_SCRIPT, Scene->m_ScriptCompileSpawn);
+			ImGui::Separator();
+			if (ImGui::MenuItem("Run Game##compile_run_game"))
+				ExecCommand(COMMAND_RUN_SCRIPT, Scene->m_ScriptRunGame);
 			ImGui::EndMenu();
 		}
 
@@ -214,6 +229,7 @@ void IM_MainMenu::Render() {
 			}
 			ImGui::EndMenu();
 		}
+
 		ImGui::EndMainMenuBar();
 	}
 }
@@ -262,7 +278,7 @@ void IM_About::Render() {
 				ELog.Msg(mtError, "Failed to open URL: %s (error code: %d)", url, (intptr_t)res);
 			}
 #else
-		// привет тем психам, что решат это переписать под юникс систем
+		// РїСЂРёРІРµС‚ С‚РµРј РїСЃРёС…Р°Рј, С‡С‚Рѕ СЂРµС€Р°С‚ СЌС‚Рѕ РїРµСЂРµРїРёСЃР°С‚СЊ РїРѕРґ СЋРЅРёРєСЃ СЃРёСЃС‚РµРј
 #endif
 		};
 
