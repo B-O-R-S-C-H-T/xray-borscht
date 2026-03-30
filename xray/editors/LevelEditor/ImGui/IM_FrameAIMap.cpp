@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #pragma hdrstop
 
 #include "IM_FrameAIMap.h"
@@ -158,29 +158,46 @@ void IM_FrameAIMap::Render() {
 			m_link_add = m_link_del = false;
 
 		ImGui::NextColumn();
+		
+		if(ImGui::BeginTable("dir_buttons", 3)) {
+			ImGui::TableNextRow();
+			
+			ImGui::TableNextColumn();
+			//ImGui::SmallButton("##space1");
 
-		ImGui::SmallButton("##space1");
-		ImGui::SameLine();
-		if (ImGui::SmallButton("^##up"))
-			MakeLink(1);
-		ImGui::SameLine();
-		ImGui::SmallButton("##space2");
-
-		if (ImGui::SmallButton("<##left"))
-			MakeLink(0);
-		ImGui::SameLine();
-		if (ImGui::SmallButton("+##plus"))
-			MakeLink(4);
-		ImGui::SameLine();
-		if (ImGui::SmallButton(">##right"))
-			MakeLink(2);
-
-		ImGui::SmallButton("##space3");
-		ImGui::SameLine();
-		if (ImGui::SmallButton("v##down"))
-			MakeLink(3);
-		ImGui::SameLine();
-		ImGui::SmallButton("##space4");
+			ImGui::TableNextColumn();
+			if (ImGui::SmallButton(u8"↑##up"))
+				MakeLink(1);
+			
+			ImGui::TableNextColumn();
+			//ImGui::SmallButton("##space2");
+	
+			ImGui::TableNextRow();
+	
+			ImGui::TableNextColumn();
+			if (ImGui::SmallButton(u8"←##left"))
+				MakeLink(0);
+			ImGui::TableNextColumn();
+			if (ImGui::SmallButton(u8" +##plus"))
+				MakeLink(4);
+			ImGui::TableNextColumn();
+			if (ImGui::SmallButton(u8"→##right"))
+				MakeLink(2);
+				
+			ImGui::TableNextRow();
+	
+			ImGui::TableNextColumn();
+			//ImGui::SmallButton("##space3");
+			
+			ImGui::TableNextColumn();
+			if (ImGui::SmallButton(u8"↓##down"))
+				MakeLink(3);
+				
+			ImGui::TableNextColumn();
+			//ImGui::SmallButton("##space4");
+		
+			ImGui::EndTable();
+		}
 
 		ImGui::NextColumn();
 
