@@ -30,12 +30,13 @@ CGlow::CGlow(LPVOID data, LPCSTR name):CCustomObject(data,name){
 }
 
 void CGlow::Construct(LPVOID data){
-	ClassID		= OBJCLASS_GLOW;
-    m_GShader   = 0;
-    m_fRadius	= 0.5f;
-    m_bDefLoad	= false;
-    m_Flags.zero();
-    m_ShaderName= "effects\\glow";
+	ClassID      = OBJCLASS_GLOW;
+	m_GShader    = 0;
+	m_fRadius    = 0.5f;
+	m_bDefLoad   = false;
+	m_Flags.zero ();
+	m_ShaderName = "effects\\glow";
+	m_TexName    = "glow\\glow_white";
 }
 
 CGlow::~CGlow()
@@ -78,7 +79,7 @@ void CGlow::Render(int priority, bool strictB2F)
     	if (!m_bDefLoad) OnDeviceCreate();
         ESceneGlowTool* gt 		= dynamic_cast<ESceneGlowTool*>(ParentTool);
         VERIFY					(gt);
-        RCache.set_xform_world	(Fidentity);
+		RCache.set_xform_world	(Fidentity);
 
         if (gt->m_Flags.is(ESceneGlowTool::flTestVisibility))
         { 
@@ -116,7 +117,7 @@ void CGlow::Render(int priority, bool strictB2F)
 
 bool CGlow::FrustumPick(const CFrustum& frustum)
 {
-    return (frustum.testSphere_dirty(GetPosition(),m_fRadius))?true:false;
+	return (frustum.testSphere_dirty(GetPosition(),m_fRadius))?true:false;
 }
 
 bool CGlow::RayPick(float& distance, const Fvector& start, const Fvector& direction, SRayPickInfo* pinf)
