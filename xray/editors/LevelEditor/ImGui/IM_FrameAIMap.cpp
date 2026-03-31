@@ -111,7 +111,7 @@ void IM_FrameAIMap::Render() {
 
 		if (ImGui::MenuItem("Smooth Selected"))
 			m_parent_tool->SmoothNodes();
-		if (ImGui::MenuItem("Clear AI-Map")) {
+		if (ImGui::MenuItem("Clear AI Map")) {
 			if (ELog.DlgMsg(mtConfirmation, TMsgDlgButtons() << mbYes << mbNo, "Are you sure to clear AI Map?") == mrYes) {
 				m_parent_tool->Clear();
 				Scene->UndoSave();
@@ -139,76 +139,102 @@ void IM_FrameAIMap::Render() {
 
 	if (ImGui::CollapsingHeader("AI Map Nodes", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
 		ImGui::Columns(2, "aimap_nodes", false);
-		if (ImGui::Selectable("Ignore Contraints##aimap_ignore_constraints", &m_ignore_constraints))
-			;
+		if (ImGui::Checkbox("Ignore Contraints##aimap_ignore_constraints", &m_ignore_constraints));
 		ImGui::NextColumn();
-		if (ImGui::Selectable("Auto Link##aimap_auto_link", &m_auto_link))
-			;
+		if (ImGui::Checkbox("Auto Link##aimap_auto_link", &m_auto_link));
 		ImGui::Columns(1);
+	}
 
-		ImGui::TextUnformatted("Link commands:");
+	if (ImGui::CollapsingHeader("Link Commands", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
 
-		ImGui::Columns(3);
+		if (ImGui::BeginTable("link_layout", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoSavedSettings)) {
+			ImGui::TableSetupColumn("Mode", ImGuiTableColumnFlags_WidthFixed, 155.0f);
+			ImGui::TableSetupColumn("Direction", ImGuiTableColumnFlags_WidthFixed, 170.0f);
+			ImGui::TableSetupColumn("Select by link", ImGuiTableColumnFlags_WidthFixed, 155.0f);
+			ImGui::TableHeadersRow();
 
-		if (ImGui::Selectable("Add##link_add", &m_link_add) && m_link_add)
-			m_link_del = m_link_invert = false;
-		if (ImGui::Selectable("Delete##link_del", &m_link_del) && m_link_del)
-			m_link_add = m_link_invert = false;
-		if (ImGui::Selectable("Invert##link_invert", &m_link_invert) && m_link_invert)
-			m_link_add = m_link_del = false;
-
-		ImGui::NextColumn();
-		
-		if(ImGui::BeginTable("dir_buttons", 3)) {
 			ImGui::TableNextRow();
-			
-			ImGui::TableNextColumn();
-			//ImGui::SmallButton("##space1");
 
-			ImGui::TableNextColumn();
-			if (ImGui::SmallButton(u8"↑##up"))
-				MakeLink(1);
-			
-			ImGui::TableNextColumn();
-			//ImGui::SmallButton("##space2");
-	
-			ImGui::TableNextRow();
-	
-			ImGui::TableNextColumn();
-			if (ImGui::SmallButton(u8"←##left"))
-				MakeLink(0);
-			ImGui::TableNextColumn();
-			if (ImGui::SmallButton(u8" +##plus"))
-				MakeLink(4);
-			ImGui::TableNextColumn();
-			if (ImGui::SmallButton(u8"→##right"))
-				MakeLink(2);
-				
-			ImGui::TableNextRow();
-	
-			ImGui::TableNextColumn();
-			//ImGui::SmallButton("##space3");
-			
-			ImGui::TableNextColumn();
-			if (ImGui::SmallButton(u8"↓##down"))
-				MakeLink(3);
-				
-			ImGui::TableNextColumn();
-			//ImGui::SmallButton("##space4");
-		
+			ImGui::TableSetColumnIndex(0);
+			{
+				int mode = m_link_add ? 0 : m_link_del ? 1 : 2;
+
+				ImGui::Dummy(ImVec2(0, 8));
+
+				if (ImGui::RadioButton("Add##link_add", mode == 0)) {
+					m_link_add = true;
+					m_link_del = m_link_invert = false;
+				}
+				if (ImGui::RadioButton("Delete##link_del", mode == 1)) {
+					m_link_del = true;
+					m_link_add = m_link_invert = false;
+				}
+				if (ImGui::RadioButton("Invert##link_invert", mode == 2)) {
+					m_link_invert = true;
+					m_link_add = m_link_del = false;
+				}
+			}
+
+			ImGui::TableSetColumnIndex(1);
+			{
+				const float btn = 37.0f;	// todo
+				const float gap = 1.0f;
+
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(gap, gap));
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 6));
+
+				float dpad_w  = btn * 3 + gap * 2;
+				float avail_w = ImGui::GetContentRegionAvail().x;
+				ImGui::Dummy(ImVec2((avail_w - dpad_w) * 0.5f, 0.0f));
+				ImGui::SameLine();
+
+				if (ImGui::BeginTable("dpad", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoSavedSettings)) {
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(1);
+					if (ImGui::Button(u8"↑##up", ImVec2(btn, btn)))
+						MakeLink(1);
+
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+					if (ImGui::Button(u8"←##left", ImVec2(btn, btn)))
+						MakeLink(0);
+
+					ImGui::TableSetColumnIndex(1);
+					if (ImGui::Button(u8"+##plus", ImVec2(btn, btn)))
+						MakeLink(4);
+
+					ImGui::TableSetColumnIndex(2);
+					if (ImGui::Button(u8"→##right", ImVec2(btn, btn)))
+						MakeLink(2);
+
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(1);
+					if (ImGui::Button(u8"↓##down", ImVec2(btn, btn)))
+						MakeLink(3);
+
+					ImGui::EndTable();
+				}
+
+				ImGui::PopStyleVar(2);
+			}
+
+			ImGui::TableSetColumnIndex(2);
+			{
+				ImGui::Dummy(ImVec2(0, 6));
+				if (ImGui::MenuItem("0-Link"))
+					m_parent_tool->SelectNodesByLink(0);
+
+				ImGui::Dummy(ImVec2(0, 5));
+				if (ImGui::MenuItem("1-Link"))
+					m_parent_tool->SelectNodesByLink(1);
+
+				ImGui::Dummy(ImVec2(0, 5));
+				if (ImGui::MenuItem("2-Link"))
+					m_parent_tool->SelectNodesByLink(2);
+			}
+
 			ImGui::EndTable();
 		}
-
-		ImGui::NextColumn();
-
-		if (ImGui::MenuItem("Select 0-Link"))
-			m_parent_tool->SelectNodesByLink(0);
-		if (ImGui::MenuItem("Select 1-Link"))
-			m_parent_tool->SelectNodesByLink(1);
-		if (ImGui::MenuItem("Select 2-Link"))
-			m_parent_tool->SelectNodesByLink(2);
-
-		ImGui::Columns(1);
 	}
 
 	if (ImGui::CollapsingHeader("Ignore Materials", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
