@@ -269,13 +269,13 @@ void IM_ImageEditor::UpdateLib() {
 			texture_map.insert(F);
 		}
 		// sync
-		ImageLib.SynchronizeTextures(true, true, true, &texture_map, &modif);
+		ImageLib.SynchronizeTextures(true, &texture_map, &modif);
 		ImageLib.RefreshTextures(&modif);
 	} else {
 		// save game textures
 		if (modif_map.size()) {
 			AStringVec modif;
-			ImageLib.SynchronizeTextures(true, true, true, &modif_map, &modif);
+			ImageLib.SynchronizeTextures(true, &modif_map, &modif);
 			ImageLib.RefreshTextures(&modif);
 		}
 	}

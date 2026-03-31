@@ -60,13 +60,11 @@ void __fastcall TfrmImageLib::EditLib(AnsiString& title, bool bImport)
         form->Caption 		= title;
 	    form->bImportMode 	= bImport;
         form->ebRemoveTexture->Enabled 		= !bImport;
-//.        form->ebRebuildAssociation->Enabled = !bImport;
         form->bReadonlyMode	= !FS.can_write_to_alias(_textures_);
         if (form->bReadonlyMode){
         	Log				("#!You don't have permisions to modify textures.");
 	        form->ebOk->Enabled 				= false;
             form->ebRemoveTexture->Enabled 		= false;
-//.	        form->ebRebuildAssociation->Enabled = false;
             form->m_ItemProps->SetReadOnly		(TRUE);
         }
 		form->modif_map.clear	();
@@ -121,7 +119,7 @@ void __fastcall TfrmImageLib::ImportTextures()
 	texture_map.clear();
     int new_cnt = ImageLib.GetLocalNewTextures(texture_map);
     if (new_cnt){
-    	if (ELog.DlgMsg(mtInformation,"Found %d new texture(s)",new_cnt))
+    	//if (ELog.DlgMsg(mtInformation,"Found %d new texture(s)",new_cnt))
     		EditLib(AnsiString("Update images"),true);
     }else{
     	ELog.DlgMsg(mtInformation,"Can't find new textures.");
@@ -154,7 +152,7 @@ void __fastcall TfrmImageLib::UpdateLib()
             texture_map.insert  (F);
         }
         // sync
-		ImageLib.SynchronizeTextures(true,true,true,&texture_map,&modif);
+		ImageLib.SynchronizeTextures(true,&texture_map,&modif);
         UnlockForm              ();
     	ImageLib.RefreshTextures(&modif);
     }else
@@ -164,7 +162,7 @@ void __fastcall TfrmImageLib::UpdateLib()
         {
             AStringVec modif;
 	    	LockForm();
-            ImageLib.SynchronizeTextures(true,true,true,&modif_map,&modif);
+            ImageLib.SynchronizeTextures(true,&modif_map,&modif);
             UnlockForm();
             ImageLib.RefreshTextures(&modif);
         }

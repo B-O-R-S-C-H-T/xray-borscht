@@ -146,8 +146,8 @@ private:
     float			m_fMaxAIDist;
     float			m_fBaseVolume;
     u32				m_uGameType;
-	bool			OnMaxAIDistAfterEdit(PropValue* sender, float& edit_val);
-	void			OnMaxDistChange		(PropValue* sender);
+	bool 			OnMaxAIDistAfterEdit(PropValue* sender, float& edit_val);
+	void 			OnMaxDistChange		(PropValue* sender);
 public:
 					ESoundThumbnail	(LPCSTR src_name, bool bLoad=true);
 	virtual			~ESoundThumbnail();
@@ -166,7 +166,7 @@ public:
 };
 //------------------------------------------------------------------------------
 
-EImageThumbnail* CreateThumbnail	(LPCSTR src_name, ECustomThumbnail::THMType type, bool bLoad=true);
+ECORE_API EImageThumbnail* CreateThumbnail	(LPCSTR src_name, ECustomThumbnail::THMType type, bool bLoad=true);
 
 #endif
 
