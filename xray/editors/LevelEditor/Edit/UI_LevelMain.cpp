@@ -1020,6 +1020,65 @@ CCommandVar CommandToggleAiMapVisibility(CCommandVar p1, CCommandVar p2)
     return 						TRUE;
 }
 
+CCommandVar CommandRunScript(CCommandVar p1, CCommandVar p2) {
+	if (!p1.IsString()) {
+		ELog.Msg(mtError, "CommandRunScript: invalid parameter (expected string command)");
+		return FALSE;
+	}
+
+	xr_string script = xr_string(p1);
+
+	if (Scene->m_LevelOp.m_FNLevelPath.size() == 0) {
+		ELog.DlgMsg(mtError,
+					"Cannot run script!\n"
+					"Level path is not set.\n"
+					"Please set 'Level path' in Scene Options first.");
+		return FALSE;
+	}
+
+	string_path temp_bat;
+	FS.update_path(temp_bat, _temp_, "$$temp_run_script.bat");
+
+	IWriter* F = FS.w_open(temp_bat);
+	if (!F) {
+		ELog.Msg(mtError, "Cannot create temporary batch file:\n\t%s", temp_bat);
+		return FALSE;
+	}
+
+	F->w_string(script.c_str());
+	FS.w_close(F);
+
+	static char env_buffer[4096];
+	sprintf(env_buffer, "LEVEL=%s", Scene->m_LevelOp.m_FNLevelPath.c_str());
+
+	const char* envp[2] = {env_buffer, nullptr};
+
+	ELog.Msg(mtInformation, "\nRunning script:\n\t%s", script.c_str());
+	ELog.Msg(mtInformation, "LEVEL = %s", Scene->m_LevelOp.m_FNLevelPath.c_str());
+
+	unsigned exit_code = spawnle(P_WAIT, temp_bat, temp_bat, nullptr, envp);
+
+	if (exit_code != 0) {
+		xr_string full_error;
+		full_error.reserve(2048);
+
+		full_error = "\nScript execution failed!\n";
+		full_error += "Exit code: ";
+
+		char num_buf[32];
+		sprintf(num_buf, "%u", exit_code);
+		full_error += num_buf;
+
+		ELog.DlgMsg(mtError, "%s", full_error.c_str());
+	} else {
+		ELog.Msg(mtInformation, "Script completed successfully.");
+	}
+
+	FS.file_delete(temp_bat);
+
+	return TRUE;
+}
+
 CCommandVar CommandCreateGroup(CCommandVar p1, CCommandVar p2) {
 	ESceneGroupTool* tool = dynamic_cast<ESceneGroupTool*>(Scene->GetTool(OBJCLASS_GROUP));
 	VERIFY(tool);
@@ -1132,6 +1191,7 @@ void CLevelMain::RegisterCommands()
 	REGISTER_CMD_S	    (COMMAND_CREATE_SOUND_LIB,          CommandCreateSoundLib);
 	REGISTER_CMD_SE	    (COMMAND_TOGGLE_AIMAP_VISIBILITY,   "Visibility\\Toggle AIMap",		CommandToggleAiMapVisibility,true);
 	REGISTER_CMD_S	    (COMMAND_SHOW_CLIP_EDITOR,			CommandShowClipEditor);
+    REGISTER_CMD_S      (COMMAND_RUN_SCRIPT,                CommandRunScript);
     REGISTER_CMD_S	    (COMMAND_GENERATE_AI_MAP,          	GenerateAiMap);
 	REGISTER_CMD_SE		(COMMAND_CREATE_GROUP, 				"Edit\\Create Group",			CommandCreateGroup,true);
 }

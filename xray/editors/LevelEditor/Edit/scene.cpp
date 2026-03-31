@@ -264,7 +264,13 @@ void EScene::Clear(BOOL bEditableToolsOnly)
 
     m_SaveCache.free		();
 
-	m_CountByName.clear		();
+	m_ScriptCompileLevel   = "bin\\xrLC -f %LEVEL%";
+	m_ScriptCompileDetails = "bin\\xrDO_Light -f %LEVEL%";
+	m_ScriptCompileAIMap   = "bin\\xrAI -f %LEVEL%";
+	m_ScriptCompileSpawn   = "bin\\xrAI -s %LEVEL%";
+	m_ScriptRunGame        = "bin\\xrEngine -start server(%LEVEL%/single) client(localhost)";
+
+	m_CountByName.clear();
 }
 //----------------------------------------------------
 
@@ -576,8 +582,15 @@ void EScene::FillProp(LPCSTR pref, PropItemVec& items, ObjClassID cls_id)
     V=PHelper().CreateU32		(items,PrepareKey(pref,"Scene\\Build options\\Lighting\\Error (LM zero)"),			&m_LevelOp.m_BuildParams.m_lm_rms_zero,					0,255);		V->Owner()->Enable(enabled);
     V=PHelper().CreateToken32	(items,PrepareKey(pref,"Scene\\Build options\\Lighting\\Jitter samples"),			&m_LevelOp.m_BuildParams.m_lm_jitter_samples, 			js_token);	V->Owner()->Enable(enabled);
 
+    // Batch files
+    PHelper().CreateSText		(items,PrepareKey(pref,"Scene\\Commands\\Compile Level"),&m_ScriptCompileLevel);
+    PHelper().CreateSText		(items,PrepareKey(pref,"Scene\\Commands\\Compile Detail Objects"),&m_ScriptCompileDetails);
+    PHelper().CreateSText		(items,PrepareKey(pref,"Scene\\Commands\\Compile AI Map"),&m_ScriptCompileAIMap);
+    PHelper().CreateSText		(items,PrepareKey(pref,"Scene\\Commands\\Compile Spawn"),&m_ScriptCompileSpawn);
+    PHelper().CreateSText		(items,PrepareKey(pref,"Scene\\Commands\\Run Game"),&m_ScriptRunGame);
+
     // AI maps
-    V=PHelper().CreateToken16	(items,PrepareKey(pref,"Scene\\Build options\\AI\\build.aimap version"),	    		&m_LevelOp.m_BuildParams.build_aimap_version,        ai_version_token);
+    V=PHelper().CreateToken16	(items,PrepareKey(pref,"Scene\\Build options\\AI\\build.aimap version"),            &m_LevelOp.m_BuildParams.build_aimap_version,           ai_version_token);
     
     // tools options
     if (OBJCLASS_DUMMY==cls_id)
