@@ -349,7 +349,7 @@ CExportObjectOGF::SSplit* CExportObjectOGF::FindSplit(CSurface* surf)
 
 bool CExportObjectOGF::PrepareMESH(CEditableMesh* MESH)
 {
-//        // generate normals
+	// generate normals
 	BOOL bResult = TRUE;
     MESH->GenerateVNormals(0);
     // fill faces
@@ -358,12 +358,17 @@ bool CExportObjectOGF::PrepareMESH(CEditableMesh* MESH)
         CSurface* surf 	= sp_it->first;
         u32 dwTexCnt 	= ((surf->_FVF()&D3DFVF_TEXCOUNT_MASK)>>D3DFVF_TEXCOUNT_SHIFT);	R_ASSERT(dwTexCnt==1);
         SSplit* split	= FindSplit(surf);
-        if (0==split){
+		if (0==split){
+			if (!surf->Validate()) {
+                ELog.DlgMsg		(mtError,"Surface: '%s' has invalid shader or texture.",surf->_Name());
+				bResult 		= FALSE;
+				break;
+			}
             SGameMtl* M = GMLib.GetMaterialByID(surf->_GameMtl());
             if (0==M){
-                ELog.DlgMsg		(mtError,"Surface: '%s' contains undefined game material.",surf->_Name());
-                bResult 		= FALSE; 
-                break; 
+				ELog.DlgMsg		(mtError,"Surface: '%s' contains undefined game material.",surf->_Name());
+				bResult 		= FALSE;
+				break;
             }
 //                if (!M->Flags.is(SGameMtl::flDynamic)){
 //                    ELog.DlgMsg		(mtError,"Surface: '%s' contains non-dynamic game material.",surf->_Name());
@@ -402,7 +407,7 @@ bool CExportObjectOGF::PrepareMESH(CEditableMesh* MESH)
                         }
                         R_ASSERT2		(uv,"uv empty");
                         u32 norm_id 	= (*f_it)*3+k;
-                        R_ASSERT2		(norm_id<MESH->GetFCount()*3,"Normal index out of range.");
+						R_ASSERT2		(norm_id<MESH->GetFCount()*3,"Normal index out of range.");
                         v[k].set		(MESH->m_Vertices[fv.pindex],MESH->m_VertexNormals[norm_id],*uv);
                     }   
                     elapsed_faces--;

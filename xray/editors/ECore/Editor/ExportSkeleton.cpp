@@ -493,13 +493,12 @@ void ComputeOBB_RAPID	(Fobb &B, FvectorVec& V, u32 t_cnt)
 void ComputeOBB_WML		(Fobb &B, FvectorVec& V)
 {
     if (V.size()<3) { B.invalidate(); return; }
-    float 	HV				= flt_max;
+
     {
         Wml::Box3<float> 	BOX;
         Wml::MinBox3<float> mb(V.size(), (const Wml::Vector3<float>*) V.data(), BOX);
         float hv			= BOX.Extents()[0]*BOX.Extents()[1]*BOX.Extents()[2];
-        if (hv<HV){
-        	HV 				= hv;
+		if (hv<flt_max){
             B.m_rotate.i.set(BOX.Axis(0));
             B.m_rotate.j.set(BOX.Axis(1));
             B.m_rotate.k.set(BOX.Axis(2));
@@ -545,8 +544,8 @@ bool CExportSkeleton::PrepareGeometry(u8 influence)
     }
 
     if (m_Source->BoneCount()>64){
-    	ELog.Msg(mtError,"Object cannot handle more than 64 bones.");
-     	return false;
+        ELog.Msg(mtError,"Object cannot handle more than 64 bones.");
+        return false;
     }
 
     // mem active motion
@@ -597,6 +596,11 @@ bool CExportSkeleton::PrepareGeometry(u8 influence)
             CSurface* surf 								= sp_it->first;
             u32 dwTexCnt 								= ((surf->_FVF()&D3DFVF_TEXCOUNT_MASK)>>D3DFVF_TEXCOUNT_SHIFT);
             R_ASSERT									(dwTexCnt==1);
+
+			if (!surf->Validate()) {
+                ELog.DlgMsg		(mtError,"Surface: '%s' has invalid shader or texture.",surf->_Name());
+				bRes			= FALSE;
+			}
 
             for (IntIt f_it=face_lst.begin(); f_it!=face_lst.end(); f_it++)
             {
@@ -930,10 +934,10 @@ bool CExportSkeleton::ExportMotionKeys(IWriter& F)
     int smot 				= 1;
 
     // use global transform
-    Fmatrix	mGT,mTranslate,mRotate;
-    mRotate.setHPB			(m_Source->a_vRotate.y, m_Source->a_vRotate.x, m_Source->a_vRotate.z);
-    mTranslate.translate	(m_Source->a_vPosition);
-    mGT.mul					(mTranslate,mRotate);
+	Fmatrix	mGT,mTranslate,mRotate;
+	mRotate.setHPB			(m_Source->a_vRotate.y, m_Source->a_vRotate.x, m_Source->a_vRotate.z);
+	mTranslate.translate	(m_Source->a_vPosition);
+	mGT.mul					(mTranslate,mRotate);
 
     for (SMotionIt motion_it=m_Source->FirstSMotion(); motion_it!=m_Source->LastSMotion(); motion_it++, smot++)
     {
@@ -957,13 +961,13 @@ bool CExportSkeleton::ExportMotionKeys(IWriter& F)
             float t 		= (float)frm/cur_motion->FPS();
 	        int bone_id 	= 0;
 
-            for(BoneIt b_it=b_lst.begin(); b_it!=b_lst.end(); ++b_it, ++bone_id)
+			for(BoneIt b_it=b_lst.begin(); b_it!=b_lst.end(); ++b_it, ++bone_id)
             {
 	            Fvector 				T,R;
                 if(cur_motion->BoneMotions().size()>bone_id)
                 	cur_motion->_Evaluate	(bone_id,t,T,R);
                    else
-                   {
+				   {
                        T	= (*b_it)->_Offset();
                        R	= (*b_it)->_Rotate();
                    }
@@ -972,7 +976,7 @@ bool CExportSkeleton::ExportMotionKeys(IWriter& F)
             
             m_Source->CalculateAnimation(cur_motion);
 	        bone_id 		= 0;
-            for(BoneIt b_it=b_lst.begin(); b_it!=b_lst.end(); b_it++, bone_id++)
+			for(BoneIt b_it=b_lst.begin(); b_it!=b_lst.end(); b_it++, bone_id++)
             {
                 CBone* B 			= *b_it;
                 Fmatrix mat			= B->_MTransform();
@@ -991,7 +995,7 @@ bool CExportSkeleton::ExportMotionKeys(IWriter& F)
             }
         }
         // free temp storage
-        for (u32 itm_idx=0; itm_idx<b_lst.size(); ++itm_idx)
+		for (u32 itm_idx=0; itm_idx<b_lst.size(); ++itm_idx)
         {
         	bm_item& BM 	= items[itm_idx];
             // check T
