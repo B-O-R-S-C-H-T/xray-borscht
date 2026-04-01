@@ -163,6 +163,8 @@ public:
 	IC u32	 				TimerAsync_MMT	(void)
     { return TimerAsync()+Timer_MM_Delta; }
 
+
+    void					DeferredLoadResources(bool bDeferredLoad);
 public:
     Shader_xrLC_LIB			ShaderXRLC;
 	bool					useDiffuse = true;
@@ -182,6 +184,7 @@ enum {
     rsDrawSafeRect		= (1ul<<27ul),
     rsMuteSounds		= (1ul<<28ul),
     rsEnvironment		= (1ul<<29ul),
+    rsDeffLoadResources = (1ul<<30ul)
 };
 
 #define DEFAULT_CLEARCOLOR 0x00555555

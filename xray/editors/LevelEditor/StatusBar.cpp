@@ -31,6 +31,7 @@
 #define MI_HWRENDER   116
 #define MI_LINEARFLT  117
 #define MI_TEXTURES   118
+#define MI_DEFLOAD    119
 
 #define MI_QUALITY25  120
 #define MI_QUALITY50  121
@@ -91,6 +92,7 @@ static void UpdateMenu(void)
 	
 	CheckMenu(MI_LINEARFLT, psDeviceFlags.test(rsFilterLinear));
 	CheckMenu(MI_TEXTURES, psDeviceFlags.test(rsRenderTextures));
+	CheckMenu(MI_DEFLOAD, psDeviceFlags.test(rsDeffLoadResources));
 	
 	CheckMenu(MI_W_NONE, !psDeviceFlags.test(rsEnvironment));
 }
@@ -132,6 +134,7 @@ static void CreateOptionsMenu(void)
 	AppendMenu(hmRender, MF_SEPARATOR, 0, 0);
 	AppendMenu(hmRender, MF_ENABLED|MF_STRING, MI_LINEARFLT, "Linear Filter");
 	AppendMenu(hmRender, MF_ENABLED|MF_STRING, MI_TEXTURES, "Textures");
+	AppendMenu(hmRender, MF_ENABLED|MF_STRING, MI_DEFLOAD, "Deferred Texture Loading");
 	
 	HMENU hmWeather = CreatePopupMenu();
 	AppendMenu(hmWeather, MF_ENABLED|MF_STRING, MI_W_NONE, "none");
@@ -281,6 +284,8 @@ static BOOL SB_Notify(WPARAM wParam, LPARAM lParam)
 				psDeviceFlags.invert(rsFilterLinear);
 			if(cmd == MI_TEXTURES)
 				psDeviceFlags.invert(rsRenderTextures);
+			if(cmd == MI_DEFLOAD)
+				psDeviceFlags.invert(rsDeffLoadResources);
 				
 			if(cmd == MI_W_RELOAD)
 			{
