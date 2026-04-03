@@ -219,9 +219,17 @@ bool CEditableObject::VerifyBoneParts()
             }
         }
 
-    for (U8It u_it=b_use.begin(); u_it!=b_use.end(); u_it++)
-    	if (*u_it!=1) return false;
-    return true;
+	bool bRes = true;
+    for (size_t u_it = 0; u_it < b_use.size(); u_it++){
+    	if (b_use[u_it] < 1){
+        	ELog.Msg(mtError, "Bone '%s' is not used in any part", *BoneNameByID(u_it));
+			bRes = false;
+		}else if(b_use[u_it] > 1){
+			ELog.Msg(mtError, "Bone '%s' is used in more than one part", *BoneNameByID(u_it));
+			bRes = false;
+        }
+    }
+    return bRes;
 }
 
 void CEditableObject::PrepareOGFDesc(ogf_desc& desc)
