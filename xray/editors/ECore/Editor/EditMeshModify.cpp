@@ -182,99 +182,113 @@ void CEditableMesh::OptimizeMesh(BOOL NoOpt) {
 #endif
 
 		using VMMap = ankerl::unordered_dense::map<GridKey, U32Vec>;
-		VMMap VM;
-		VM.reserve(m_VertCount);
-		VM.max_load_factor(0.92f);
+		VMMap vertex_grid;
+		vertex_grid.reserve(m_VertCount);
+		vertex_grid.max_load_factor(0.92f);
 
-		FvectorVec m_NewPoints;
-		m_NewPoints.reserve(m_VertCount);
+		FvectorVec new_vertices;
+		new_vertices.reserve(m_VertCount);
 
 		const float CELL_SIZE = EPS_L;
-		boolVec		faces_mark;
-		faces_mark.resize(m_FaceCount, false);
-		int i_del_face = 0;
 
-		for (u32 k = 0; k < m_FaceCount; k++) {
-			st_Face& face = m_Faces[k];
-			Fvector	 points[3];
-			int		 mface[3] = {-1, -1, -1};
+		boolVec		faces_to_remove;
+		faces_to_remove.resize(m_FaceCount, false);
+		int removed_face_count = 0;
 
-			for (int i = 0; i < 3; i++)
-				points[i].set(m_Vertices[face.pv[i].pindex]);
+		// Удаление дубликатов вершин
+		for (u32 face_idx = 0; face_idx < m_FaceCount; face_idx++) {
+			st_Face& current_face = m_Faces[face_idx];
+
+			Fvector	 face_points[3];
+			int		 new_vertex_indices[3] = {-1, -1, -1};
 
 			for (int i = 0; i < 3; i++) {
-				GridKey qkey  = {iFloor(points[i].x / CELL_SIZE), iFloor(points[i].y / CELL_SIZE), iFloor(points[i].z / CELL_SIZE)};
+				face_points[i].set(m_Vertices[current_face.pv[i].pindex]);
+			}
 
-				bool	found = false;
-				for (int dx = -1; dx <= 1 && !found; ++dx)
-					for (int dy = -1; dy <= 1 && !found; ++dy)
-						for (int dz = -1; dz <= 1 && !found; ++dz) {
-							GridKey nk	= {qkey.x + dx, qkey.y + dy, qkey.z + dz};
-							auto	mit = VM.find(nk);
-							if (mit != VM.end()) {
-								for (u32 idx : mit->second) {
-									if (m_NewPoints[idx].similar(points[i], EPS)) {
-										mface[i] = (int)idx;
-										found	 = true;
+			for (int i = 0; i < 3; i++) {
+				GridKey grid_key	 = {iFloor(face_points[i].x / CELL_SIZE), iFloor(face_points[i].y / CELL_SIZE), iFloor(face_points[i].z / CELL_SIZE)};
+
+				bool vertex_found = false;
+
+				for (int dx = -1; dx <= 1 && !vertex_found; ++dx) {
+					for (int dy = -1; dy <= 1 && !vertex_found; ++dy) {
+						for (int dz = -1; dz <= 1 && !vertex_found; ++dz) {
+							GridKey neighbor_key = {grid_key.x + dx, grid_key.y + dy, grid_key.z + dz};
+
+							auto it = vertex_grid.find(neighbor_key);
+							if (it != vertex_grid.end()) {
+								for (u32 existing_idx : it->second) {
+									if (new_vertices[existing_idx].similar(face_points[i], EPS)) {
+										new_vertex_indices[i] = (int)existing_idx;
+										vertex_found		  = true;
 										break;
 									}
 								}
 							}
 						}
+					}
+				}
 
-				if (!found) {
-					mface[i] = (int)m_NewPoints.size();
-					m_NewPoints.push_back(points[i]);
-					VM[qkey].push_back((u32)mface[i]);
+				if (!vertex_found) {
+					new_vertex_indices[i] = (int)new_vertices.size();
+					new_vertices.push_back(face_points[i]);
+					vertex_grid[grid_key].push_back((u32)new_vertex_indices[i]);
 				}
 			}
 
-			if ((mface[0] == mface[1]) || (mface[1] == mface[2]) || (mface[0] == mface[2])) {
-				faces_mark[k] = true;
-				i_del_face++;
+			// Не стала ли грань вырожденной после удаления дубликатов вершин?
+			if ((new_vertex_indices[0] == new_vertex_indices[1]) || (new_vertex_indices[1] == new_vertex_indices[2]) || (new_vertex_indices[0] == new_vertex_indices[2])) {
+				faces_to_remove[face_idx] = true;
+				removed_face_count++;
 			} else {
-				face.pv[0].pindex = mface[0];
-				face.pv[1].pindex = mface[1];
-				face.pv[2].pindex = mface[2];
+				current_face.pv[0].pindex = new_vertex_indices[0];
+				current_face.pv[1].pindex = new_vertex_indices[1];
+				current_face.pv[2].pindex = new_vertex_indices[2];
 			}
 		}
 
-		m_VertCount = m_NewPoints.size();
+		// Обновление массива вершин
+		m_VertCount = new_vertices.size();
 		xr_free(m_Vertices);
 		m_Vertices = xr_alloc<Fvector>(m_VertCount);
-		Memory.mem_copy(m_Vertices, &*m_NewPoints.begin(), m_NewPoints.size() * sizeof(Fvector));
+		Memory.mem_copy(m_Vertices, &*new_vertices.begin(), new_vertices.size() * sizeof(Fvector));
 
-		if (i_del_face) {
-			st_Face* old_faces = m_Faces;
-			u32*	 old_sg	   = m_SmoothGroups;
+		// Удаление вырожденных граней
+		if (removed_face_count > 0) {
+			st_Face* old_faces		   = m_Faces;
+			u32*	 old_smooth_groups = m_SmoothGroups;
 
-			u32		 new_face_count = m_FaceCount - i_del_face;
+			u32		 new_face_count	   = m_FaceCount - removed_face_count;
 
-			m_Faces					= xr_alloc<st_Face>(new_face_count);
-			m_SmoothGroups			= xr_alloc<u32>(new_face_count);
+			m_Faces					   = xr_alloc<st_Face>(new_face_count);
+			m_SmoothGroups			   = xr_alloc<u32>(new_face_count);
 
-			std::vector<u32> old_to_new(m_FaceCount, u32(-1));
-			u32				 new_idx = 0;
+			// старый_индекс_грани -> новый_индекс_грани
+			std::vector<u32> old_to_new_index_map(m_FaceCount, u32(-1));
 
-			for (u32 old_idx = 0; old_idx < m_FaceCount; ++old_idx) {
-				if (!faces_mark[old_idx]) {
-					old_to_new[old_idx]		= new_idx;
-					m_Faces[new_idx]		= old_faces[old_idx];
-					m_SmoothGroups[new_idx] = old_sg[old_idx];
-					++new_idx;
+			u32				 new_face_index = 0;
+			for (u32 old_face_index = 0; old_face_index < m_FaceCount; ++old_face_index) {
+				if (!faces_to_remove[old_face_index]) {
+					old_to_new_index_map[old_face_index] = new_face_index;
+					m_Faces[new_face_index]				 = old_faces[old_face_index];
+					m_SmoothGroups[new_face_index]		 = old_smooth_groups[old_face_index];
+					++new_face_index;
 				}
 			}
 
-			for (SurfFacesPairIt plp_it = m_SurfFaces.begin(); plp_it != m_SurfFaces.end(); ++plp_it) {
-				IntVec& pol_lst = plp_it->second;
-				for (int i = 0; i < (int)pol_lst.size();) {
-					int old_f = pol_lst[i];
-					u32 new_f = old_to_new[old_f];
-					if (new_f != u32(-1)) {
-						pol_lst[i] = (int)new_f;
+			// Обновление поверхностей
+			for (SurfFacesPairIt surf_it = m_SurfFaces.begin(); surf_it != m_SurfFaces.end(); ++surf_it) {
+				IntVec& surface_face_list = surf_it->second;
+				for (int i = 0; i < (int)surface_face_list.size();) {
+					int old_face_id = surface_face_list[i];
+					u32 new_face_id = old_to_new_index_map[old_face_id];
+
+					if (new_face_id != u32(-1)) {
+						surface_face_list[i] = (int)new_face_id;
 						++i;
 					} else {
-						pol_lst.erase(pol_lst.begin() + i);
+						surface_face_list.erase(surface_face_list.begin() + i);
 					}
 				}
 			}
@@ -282,16 +296,21 @@ void CEditableMesh::OptimizeMesh(BOOL NoOpt) {
 			m_FaceCount = new_face_count;
 
 			xr_free(old_faces);
-			xr_free(old_sg);
+			xr_free(old_smooth_groups);
 		}
 
 #ifdef _EDITOR
-		if (verts_before != m_VertCount || i_del_face > 0) {
-			float  saved	 = verts_before > 0 ? 100.0f * float(verts_before - m_VertCount) / verts_before : 0.0f;
+		LPCSTR source_file_name = (m_Parent && m_Parent->m_LibName.length() > 0) ? m_Parent->m_LibName.c_str() : "unnamed_file";
 
-			LPCSTR mesh_name = m_Name.c_str() && m_Name[0] ? m_Name.c_str() : "unnamed_mesh";
-
-			ELog.Msg(mtInformation, "Optimize %s:\n\tverts %d -> %d (%.1f%%), faces removed: %d", mesh_name, verts_before, m_VertCount, saved, i_del_face);
+		if (verts_before != m_VertCount || removed_face_count > 0) {
+			float saved_percent = verts_before > 0 ? 100.0f * float(verts_before - m_VertCount) / verts_before : 0.0f;
+			ELog.Msg(mtInformation,
+					 "Optimize %s:\n\tverts %d -> %d (%.1f%%), faces removed: %d",
+					 source_file_name,
+					 verts_before,
+					 m_VertCount,
+					 saved_percent,
+					 removed_face_count);
 		}
 #endif
 	}
