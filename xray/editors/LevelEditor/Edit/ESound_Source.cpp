@@ -7,6 +7,7 @@
 #include <Layers/xrRender/D3DUtils.h>
 #include "../ECore/Editor/ui_main.h"
 #include <xrEngine/IGame_Persistent.h>
+#include <xrEngine/Environment.h>
 //----------------------------------------------------
 
 #define VIS_RADIUS 0.25f
@@ -159,11 +160,8 @@ void ESoundSource::SaveLTX(CInifile& ini, LPCSTR sect_name)
 	inherited::SaveLTX	(ini, sect_name);
 
 	ini.w_u32			(sect_name, "version", SOUND_SOURCE_VERSION);
-
-    ini.w_u32			(sect_name, "snd_type", m_Type);
-
-    ini.w_string		(sect_name, "snd_name", m_WAVName.c_str());
-
+	ini.w_u32			(sect_name, "snd_type", (u32)m_Type);
+	ini.w_string		(sect_name, "snd_name", m_WAVName.c_str());
     ini.w_u32			(sect_name, "flags", m_Flags.get());
 
     ini.w_fvector3		(sect_name, "snd_position", m_Params.position);
@@ -243,7 +241,7 @@ bool ESoundSource::LoadStream(IReader& F)
     switch (m_Type){
     case stStaticSource: 
     	if (m_Flags.is(flPlaying)) 		Play(); 
-//.    	if (m_Flags.is(flSimulating)) 	Simulate(); 
+    	if (m_Flags.is(flSimulating)) 	Simulate(); 
     break;
     default: THROW;
     }
@@ -301,7 +299,7 @@ void ESoundSource::OnControlClick(ButtonValue* V, bool& bModif, bool& bSafe)
     switch (V->btn_num){
     case 0: Play();		break;
     case 1: Stop();		break;
-//.    case 2: Simulate(); break;
+    case 2: Simulate(); break;
 	}
     UI->RedrawScene();
     bModif = false;
@@ -325,7 +323,8 @@ void ESoundSource::FillProp(LPCSTR pref, PropItemVec& values)
 	V=PHelper().CreateFloat		(values,PrepareKey(pref,"Source\\Max dist"),	&m_Params.max_distance,		0.1f,1000.f,0.1f,1);
     V->Owner()->Enable			(FALSE);
 	V=PHelper().CreateFloat		(values,PrepareKey(pref,"Source\\Max ai dist"),	&m_Params.max_ai_distance,	0.1f,1000.f,0.1f,1);
-    V->Owner()->Enable			(FALSE);
+	V->Owner()->Enable			(FALSE);
+	PHelper().CreateCaption		(values, PrepareKey(pref,"Source\\Length"), shared_str().sprintf("%.2f sec", m_Source.get_length_sec()));
 	PHelper().CreateCaption		(values,PrepareKey(pref,"Game\\Active time\\Hint"),	"Zero - play sound looped round the clock.");
 	PHelper().CreateTime		(values,PrepareKey(pref,"Game\\Active time\\From"),	&m_ActiveTime.x);
 	PHelper().CreateTime		(values,PrepareKey(pref,"Game\\Active time\\To"),	&m_ActiveTime.y);
@@ -366,7 +365,6 @@ void ESoundSource::OnFrame()
     break;
     case stSimulate:
     {
-/*    
 		m_Flags.set			(flSimulating,TRUE);
     	if ((fis_zero(m_ActiveTime.x)&&fis_zero(m_ActiveTime.y))||
         	((g_pGamePersistent->Environment().GetGameTime()>m_ActiveTime.x)&&(g_pGamePersistent->Environment().GetGameTime()<m_ActiveTime.y)))
@@ -403,7 +401,6 @@ void ESoundSource::OnFrame()
             if (0!=m_Source._feedback())
             	m_Source.stop_deffered();
         }
-*/        
     }break;
     case stNothing:    		break;
     default: THROW;
@@ -415,10 +412,16 @@ void ESoundSource::ResetSource()
 	m_Source.destroy();
 	if (m_WAVName.size()){ 
     	m_Source.create		(*m_WAVName,st_Effect,sg_Undefined);
-        CSoundRender_Source* src= (CSoundRender_Source*)m_Source._handle();
-        m_Params.min_distance	= src->m_fMinDist;
-        m_Params.max_distance	= src->m_fMaxDist;
-        m_Params.max_ai_distance= src->m_fMaxAIDist;
+		CSoundRender_Source* src= (CSoundRender_Source*)m_Source._handle();
+		if(src){
+			m_Params.min_distance	= src->m_fMinDist;
+			m_Params.max_distance	= src->m_fMaxDist;
+			m_Params.max_ai_distance= src->m_fMaxAIDist;
+		}else{
+			m_Params.min_distance	= 1.f;
+			m_Params.max_distance	= 10.f;
+			m_Params.max_ai_distance= 10.f;
+        }
         ExecCommand			(COMMAND_UPDATE_PROPERTIES);
     }
 	m_Source.set_params(&m_Params);
