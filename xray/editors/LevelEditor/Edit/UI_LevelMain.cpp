@@ -1094,6 +1094,12 @@ CCommandVar CommandCreateGroup(CCommandVar p1, CCommandVar p2) {
 
 CCommandVar GenerateAiMap(CCommandVar p1, CCommandVar p2);
 
+CCommandVar CommandShowSceneOptions(CCommandVar p1, CCommandVar p2) {
+	if (Scene && Scene->GetSceneOptionsWnd())
+		Scene->GetSceneOptionsWnd()->Open();
+	return TRUE;
+}
+
 void CLevelMain::RegisterCommands()
 {
 	inherited::RegisterCommands	();
@@ -1156,6 +1162,7 @@ void CLevelMain::RegisterCommands()
 	REGISTER_CMD_S	    (COMMAND_SHOW_SCENE_SUMMARY,        CommandShowSceneSummary);
 	REGISTER_CMD_S	    (COMMAND_EXPORT_SCENE_SUMMARY,      CommandExportSceneSummary);
 	REGISTER_CMD_S	    (COMMAND_SCENE_HIGHLIGHT_TEXTURE,	CommandSceneHighlightTexture);
+	REGISTER_CMD_S      (COMMAND_SHOW_SCENE_OPTIONS,        CommandShowSceneOptions);
 	REGISTER_CMD_SE	    (COMMAND_OPTIONS,              		"Scene\\Options",		        CommandOptions,false);
 	REGISTER_CMD_SE	    (COMMAND_BUILD,              		"Compile\\Build",		        CommandBuild,false);
 	REGISTER_CMD_SE	    (COMMAND_MAKE_GAME,              	"Compile\\Make Game",	        CommandMakeGame,false);

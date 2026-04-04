@@ -99,7 +99,7 @@ EScene::~EScene()
 void EScene::OnCreate()
 {
     CreateSceneTools		();
-    
+
 	m_LastAvailObject 		= 0;
     m_LevelOp.Reset			();
 	ELog.Msg				( mtInformation, "Empty scene has been initialized." );
@@ -109,12 +109,22 @@ void EScene::OnCreate()
 
 	m_SummaryInfo       = xr_new<IM_PropertiesWnd>("Scene Summary Info");
 	UI->AddIMWindow     (m_SummaryInfo);
+
+	m_SceneOptionsWnd = xr_new<IM_PropertiesWnd>("Scene Options",
+        TOnModifiedEvent(this, &EScene::Modified),
+        IM_PropertyTree::TOnItemFocused(NULL),
+        TOnCloseEvent(NULL));
+	UI->AddIMWindow(m_SceneOptionsWnd);
+    UpdateSceneOptionsWnd();
 }
 
 void EScene::OnDestroy()
 {
 	UI->RemoveIMWindow	(m_SummaryInfo);
 	xr_delete			(m_SummaryInfo);
+
+	UI->RemoveIMWindow  (m_SceneOptionsWnd);
+	xr_delete           (m_SceneOptionsWnd);
 
 	UndoClear();
 	Unload(FALSE);
@@ -306,7 +316,8 @@ bool EScene::GetBox(Fbox& box, ObjectList& lst)
 void EScene::Modified()
 {
 	m_RTFlags.set(flRT_Modified|flRT_Unsaved,TRUE);
-    ExecCommand(COMMAND_UPDATE_CAPTION);
+	ExecCommand(COMMAND_UPDATE_CAPTION);
+	UpdateSceneOptionsWnd();
 }
 
 bool EScene::IsUnsaved()
@@ -541,6 +552,8 @@ void EScene::OnBuildControlClick	(ButtonValue* V, bool& bModif, bool& bSafe)
     case 2: m_LevelOp.SetCustomQuality();	break;
 	}
     ExecCommand(COMMAND_UPDATE_PROPERTIES);
+
+    Modified();
 }
 
 void EScene::OnRTFlagsChange	(PropValue* sender)
@@ -550,6 +563,30 @@ void EScene::OnRTFlagsChange	(PropValue* sender)
 
 
 void EScene::FillProp(LPCSTR pref, PropItemVec& items, ObjClassID cls_id)
+{
+    // tools options
+    if (OBJCLASS_DUMMY==cls_id)
+    {
+        SceneToolsMapPairIt _I 			= FirstTool();
+        SceneToolsMapPairIt _E			= LastTool();
+        for(; _I!=_E; _I++)
+        {
+	        ESceneToolBase* mt		= _I->second;
+            if((_I->first!=OBJCLASS_DUMMY) && mt)
+            {
+                mt->FillProp			(mt->ClassDesc(), items);
+            }
+        }
+    }else{
+        ESceneToolBase* mt				= GetTool	(cls_id);
+        if(mt)
+        {
+            mt->FillProp				(mt->ClassDesc(), items);
+        }
+    }
+}
+
+void EScene::FillSceneProps(LPCSTR pref, PropItemVec& items)
 {
 	PHelper().CreateCaption		(items,PrepareKey(pref,"Scene\\Name"),			LTools->m_LastFileName.c_str());
     PHelper().CreateRText		(items,PrepareKey(pref,"Scene\\Name prefix"),	&m_LevelOp.m_LevelPrefix);
@@ -591,27 +628,15 @@ void EScene::FillProp(LPCSTR pref, PropItemVec& items, ObjClassID cls_id)
 
     // AI maps
     V=PHelper().CreateToken16	(items,PrepareKey(pref,"Scene\\Build options\\AI\\build.aimap version"),            &m_LevelOp.m_BuildParams.build_aimap_version,           ai_version_token);
-    
-    // tools options
-    if (OBJCLASS_DUMMY==cls_id)
-    {
-        SceneToolsMapPairIt _I 			= FirstTool();
-        SceneToolsMapPairIt _E			= LastTool();
-        for(; _I!=_E; _I++)
-        {
-	        ESceneToolBase* mt		= _I->second;
-            if((_I->first!=OBJCLASS_DUMMY) && mt)
-            {
-                mt->FillProp			(mt->ClassDesc(), items);
-            }
-        }
-    }else{
-        ESceneToolBase* mt				= GetTool	(cls_id);
-        if(mt)
-        {
-            mt->FillProp				(mt->ClassDesc(), items);
-        }
-    }
+}
+
+void EScene::UpdateSceneOptionsWnd() {
+	if (!m_SceneOptionsWnd)
+		return;
+
+	PropItemVec items;
+	FillSceneProps("Scene", items);
+	m_SceneOptionsWnd->AssignItems(items);
 }
 
 void EScene::RegisterSubstObjectName(const xr_string& _from, const xr_string& _to)

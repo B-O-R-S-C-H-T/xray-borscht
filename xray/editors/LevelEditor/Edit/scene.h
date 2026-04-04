@@ -87,8 +87,12 @@ protected:
     SceneToolsMap   m_SceneTools;
 
 	IM_PropertiesWnd* m_SummaryInfo;
+	IM_PropertiesWnd* m_SceneOptionsWnd;
 
     ObjectList		m_ESO_SnapObjects; // временно здесь а вообще нужно перенести в ESceneTools
+
+public:
+	IM_PropertiesWnd* GetSceneOptionsWnd() { return m_SceneOptionsWnd; }
 
 protected:
     bool 			OnLoadAppendObject			(CCustomObject* O);
@@ -123,7 +127,6 @@ public:
 	bool 			ReadObjectLTX		(CInifile& ini, LPCSTR sect_name, CCustomObject*& O);
 	bool 			ReadObjectsStream	(IReader& F, u32 chunk_id, TAppendObject on_append, SPBItem* pb);
 	bool 			ReadObjectsLTX		(CInifile& ini,  LPCSTR sect_name_parent, LPCSTR sect_name_prefix, TAppendObject on_append, SPBItem* pb);
-
 
 	void 			SaveObjectStream	(CCustomObject* O,IWriter& F);
 	void 			SaveObjectLTX		(CCustomObject* O, LPCSTR sect_name, CInifile& ini);
@@ -287,6 +290,8 @@ public:
     shared_str 		LevelPrefix		(){return m_LevelOp.m_LevelPrefix; }
 
 	void 			FillProp		(LPCSTR pref, PropItemVec& items, ObjClassID cls_id);
+	void			FillSceneProps	(LPCSTR pref, PropItemVec& items);
+	void			UpdateSceneOptionsWnd();
 
 protected:
     typedef std::pair<xr_string,xr_string>  TSubstPair;
