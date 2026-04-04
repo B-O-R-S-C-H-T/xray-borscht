@@ -132,23 +132,16 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 			if (clicked) {
 				bool was_selected = node.selected;
 
-				if (!CheckmarkMode) {
-					if (ImGui::GetIO().KeyCtrl) {
-						SelectNode(node, !node.selected);
-					} else if (ImGui::GetIO().KeyShift && m_lastClickedNode) {
-						SelectRange(m_lastClickedNode, &node);
-					} else {
-						if (!multiselect || !ImGui::GetIO().KeyCtrl)
-							SelectAll(false);
-						SelectNode(node, true);
-						m_lastClickedNode = &node;
-					}
+				if (ImGui::GetIO().KeyCtrl) {
+					SelectNode(node, !node.selected);
+				} else if (ImGui::GetIO().KeyShift && m_lastClickedNode) {
+					SelectRange(m_lastClickedNode, &node);
 				} else {
-					bool select = !node.selected;
-					if ((select && (MaxSelectedCount < 0 || GetSelectedCount() < MaxSelectedCount)) || !select)
-						SelectNode(node, select);
+					if (!multiselect || !ImGui::GetIO().KeyCtrl)
+						SelectAll(false);
+					SelectNode(node, true);
+					m_lastClickedNode = &node;
 				}
-
 				if (node.item && !node.item->OnClickEvent.empty())
 					node.item->OnClickEvent(node.item);
 			}
@@ -175,6 +168,9 @@ void IM_Tree::SelectNode(ImTreeNode& node, bool select) {
 		if (renaming == &node)
 			renaming = NULL;
 	} else if (!node.selected && select) {
+		if (MaxSelectedCount >= 0 && GetSelectedCount() >= MaxSelectedCount) {
+			return;
+		}
 		selected.push_back(&node);
 		node.selected = true;
 
@@ -291,17 +287,11 @@ void IM_Tree::SelectRange(ImTreeNode* from, ImTreeNode* to) {
 
 	for (auto it = it_from; it <= it_to; ++it) {
 		if (!(*it)->selected) {
-			(*it)->selected = true;
-			selected.push_back(*it);
-			if ((*it)->item && !(*it)->item->OnItemFocused.empty())
-				(*it)->item->OnItemFocused((*it)->item);
+			if (MaxSelectedCount >= 0 && GetSelectedCount() >= MaxSelectedCount) {
+				break;
+			}
+			SelectNode(**it, true);
 		}
-	}
-
-	if (OnItemsFocused) {
-		ListItemsVec vec;
-		GetSelected(vec);
-		OnItemsFocused(vec);
 	}
 }
 

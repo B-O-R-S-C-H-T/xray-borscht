@@ -133,7 +133,7 @@ str_value*	str_container::dock		(str_c value)
 	// calc len
 	u32		s_len				= xr_strlen(value);
 	u32		s_len_with_zero		= (u32)s_len+1;
-	VERIFY	(HEADER+s_len_with_zero < 4096);
+	R_ASSERT3(HEADER + s_len_with_zero < MAX_SHARED_STR_LEN, "shared_str too long", value);
 
 	// setup find structure
 	char	header[sizeof(str_value)];
