@@ -248,31 +248,39 @@ void CEditableMesh::OptimizeMesh(BOOL NoOpt) {
 			st_Face* old_faces = m_Faces;
 			u32*	 old_sg	   = m_SmoothGroups;
 
-			m_Faces			   = xr_alloc<st_Face>(m_FaceCount - i_del_face);
-			m_SmoothGroups	   = xr_alloc<u32>(m_FaceCount - i_del_face);
+			u32		 new_face_count = m_FaceCount - i_del_face;
 
-			u32 new_dk		   = 0;
-			for (u32 dk = 0; dk < m_FaceCount; ++dk) {
-				if (faces_mark[dk]) {
-					for (SurfFacesPairIt plp_it = m_SurfFaces.begin(); plp_it != m_SurfFaces.end(); ++plp_it) {
-						IntVec& pol_lst = plp_it->second;
-						for (int kk = 0; kk < (int)pol_lst.size(); ++kk) {
-							int& f = pol_lst[kk];
-							if (f > (int)dk)
-								--f;
-							else if (f == (int)dk) {
-								pol_lst.erase(pol_lst.begin() + kk);
-								--kk;
-							}
-						}
-					}
-					continue;
+			m_Faces					= xr_alloc<st_Face>(new_face_count);
+			m_SmoothGroups			= xr_alloc<u32>(new_face_count);
+
+			std::vector<u32> old_to_new(m_FaceCount, u32(-1));
+			u32				 new_idx = 0;
+
+			for (u32 old_idx = 0; old_idx < m_FaceCount; ++old_idx) {
+				if (!faces_mark[old_idx]) {
+					old_to_new[old_idx]		= new_idx;
+					m_Faces[new_idx]		= old_faces[old_idx];
+					m_SmoothGroups[new_idx] = old_sg[old_idx];
+					++new_idx;
 				}
-				m_Faces[new_dk]		   = old_faces[dk];
-				m_SmoothGroups[new_dk] = old_sg[dk];
-				++new_dk;
 			}
-			m_FaceCount -= i_del_face;
+
+			for (SurfFacesPairIt plp_it = m_SurfFaces.begin(); plp_it != m_SurfFaces.end(); ++plp_it) {
+				IntVec& pol_lst = plp_it->second;
+				for (int i = 0; i < (int)pol_lst.size();) {
+					int old_f = pol_lst[i];
+					u32 new_f = old_to_new[old_f];
+					if (new_f != u32(-1)) {
+						pol_lst[i] = (int)new_f;
+						++i;
+					} else {
+						pol_lst.erase(pol_lst.begin() + i);
+					}
+				}
+			}
+
+			m_FaceCount = new_face_count;
+
 			xr_free(old_faces);
 			xr_free(old_sg);
 		}
