@@ -95,6 +95,9 @@ BOOL SceneBuilder::Compile(bool b_selected_only)
             SceneToolsMapPairIt _E	= Scene->LastTool();
             for (; _I!=_E; ++_I)
             {
+				// Issue #266
+				if (_I->first==OBJCLASS_DO) continue;
+
             	if (_I->first!=OBJCLASS_DUMMY)
                 {
                     if (_I->second->Valid())
