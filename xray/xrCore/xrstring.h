@@ -29,6 +29,8 @@ struct		XRCORE_API	str_hash_function {
 
 struct str_container_impl;
 
+const u32		MAX_SHARED_STR_LEN = 1024*1024;	// 1МБ должно быть достаточно для каждого
+
 //////////////////////////////////////////////////////////////////////////
 class		XRCORE_API	str_container
 {
