@@ -35,6 +35,10 @@ public:
 private:
 	void OnNodeSelected(shared_str path, shared_str value, bool select);
 
+protected:
+	void		 UpdateSelectionUI(float height);
+	float		 m_selection_ratio = 0.35f;
+
 public:
 	void		 Close();
 

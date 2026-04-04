@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #pragma hdrstop
 
 #include "IM_ChooseForm.h"
@@ -18,7 +18,6 @@ IM_ChooseForm::IM_ChooseForm(EChooseMode mode, int max_select, ChooseItemVec* it
 	if (max_select > 1) {
 		m_items_tree				  = IM_Tree('\\', true, true);
 		m_items_tree.MaxSelectedCount = max_select;
-		m_items_tree.CheckmarkMode	  = true;
 	}
 
 	m_items_tree.OnNodeSelected = IM_TOnNodeSelected(this, &IM_ChooseForm::OnNodeSelected);
@@ -97,6 +96,39 @@ shared_str IM_ChooseForm::GetSelected() {
 	return shared_str(selected.c_str());
 }
 
+void IM_ChooseForm::UpdateSelectionUI(float height) {
+	if (m_items_tree.MaxSelectedCount <= 1)
+		return;
+	ImGui::TextUnformatted("Selection:");
+	ImGui::BeginChild("##selection", ImVec2(-1, height), true);
+	size_t size = m_selected.size();
+	for (size_t i = 0; i < size; i++) {
+		if (ImGui::Selectable(m_selected[i].c_str(), i == m_current_item))
+			m_current_item = i;
+	}
+	ImGui::EndChild();
+	if (ImGui::Button(u8"↑##choose_up"))
+		if (m_current_item > 0 && m_current_item < m_selected.size()) {
+			std::swap(m_selected[m_current_item], m_selected[m_current_item - 1]);
+			m_current_item--;
+		}
+	ImGui::SameLine();
+	if (ImGui::Button(u8"↓##choose_down"))
+		if (m_selected.size() && m_current_item < m_selected.size() - 1) {
+			std::swap(m_selected[m_current_item], m_selected[m_current_item + 1]);
+			m_current_item++;
+		}
+	ImGui::SameLine();
+	if (ImGui::Button("Remove##choose_remove"))
+		if (m_selected.size() && m_current_item < m_selected.size())
+			m_items_tree.Select(*m_selected[m_current_item], false);
+	ImGui::SameLine();
+	if (ImGui::Button("Clear All##choose_clear")) {
+		m_items_tree.SelectAll(false);
+		m_current_item = 0;
+	}
+}
+
 void IM_ChooseForm::Render() {
 	if (!m_open) {
 		Close();
@@ -104,8 +136,8 @@ void IM_ChooseForm::Render() {
 	}
 
 	const char* caption = m_events ? m_events->caption.c_str() : "Select Item";
-
-	ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
+	const float phi		= 1.618f;
+	ImGui::SetNextWindowSize(ImVec2(550.0f, 550.0f * phi), ImGuiCond_FirstUseEver);
 
 	ImGui::OpenPopup(caption);
 	if (ImGui::BeginPopupModal(caption, &m_open)) {
@@ -126,76 +158,45 @@ void IM_ChooseForm::Render() {
 			ImGui::EndChild();
 		}
 
-		if (m_items_tree.MaxSelectedCount > 1) {
-			ImGui::TextUnformatted("Selection:");
+		ImGui::BeginChild("##lower_right", ImVec2(0, -h), true);
+		{
+			float avail = ImGui::GetContentRegionAvail().y;
 
-			ImGui::BeginChild("##selection", ImVec2(-1, 200), true);
+			if (m_items_tree.MaxSelectedCount > 1) {
+				float selection_h = avail * m_selection_ratio;
+				float splitter_h  = 8.0f;
+				float props_h	  = avail - selection_h - splitter_h;
 
-			size_t size = m_selected.size();
-			for (size_t i = 0; i < size; i++) {
-				if (ImGui::Selectable(m_selected[i].c_str(), i == m_current_item))
-					m_current_item = i;
-			}
+				UpdateSelectionUI(selection_h);
 
-			ImGui::EndChild();
+				ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.6f, 0.6f, 0.6f, 0.6f));
+				ImGui::Separator();
+				ImGui::PopStyleColor();
 
-			if (ImGui::Button("^##choose_up"))
-				if (m_current_item > 0 && m_current_item < m_selected.size()) {
-					std::swap(m_selected[m_current_item], m_selected[m_current_item - 1]);
-					m_current_item--;
+				ImGui::InvisibleButton("##vsplitter", ImVec2(-1.0f, splitter_h));
+				if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
+					ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+				}
+				if (ImGui::IsItemActive()) {
+					m_selection_ratio += ImGui::GetIO().MouseDelta.y / avail;
+					if (m_selection_ratio < 0.1f)
+						m_selection_ratio = 0.1f;
+					if (m_selection_ratio > 0.9f)
+						m_selection_ratio = 0.9f;
 				}
 
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Up");
-
-			ImGui::SameLine();
-			if (ImGui::Button("v##choose_down"))
-				if (m_selected.size() && m_current_item < m_selected.size() - 1) {
-					std::swap(m_selected[m_current_item], m_selected[m_current_item + 1]);
-					m_current_item++;
-				}
-
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Down");
-
-			ImGui::SameLine();
-			if (ImGui::Button("X##choose_unselect"))
-				if (m_selected.size() && m_current_item < m_selected.size())
-					m_items_tree.Select(*m_selected[m_current_item], false);
-
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Unselect");
-
-			ImGui::SameLine();
-			if (ImGui::Button("0##choose_clear")) {
-				m_items_tree.SelectAll(false);
-				m_current_item = 0;
-			}
-
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Clear selection");
-		}
-
-		if (m_selected.size() && m_current_item < m_selected.size()) {
-			auto path = m_selected[m_current_item];
-			if (m_events->on_thm) {
-				HDC hdc = m_thm.BeginPaint();
-				m_events->on_thm(*path, hdc, Irect().set(0, 0, m_thm.Width(), m_thm.Height()));
-				m_thm.EndPaint();
-			}
-
-			if (m_events->on_sel) {
-				PropItemVec items;
-				SChooseItem foo(*path, "");
-				m_events->on_sel(&foo, items);
-				m_props.AssignItems(items, false, false);
+				ImGui::TextUnformatted("Properties:");
+				ImGui::BeginChild("##props", ImVec2(0, props_h), true);
+				m_props.Render();
+				ImGui::EndChild();
+			} else {
+				ImGui::TextUnformatted("Properties:");
+				ImGui::BeginChild("##props", ImVec2(0, -1.0f), true);
+				m_props.Render();
+				ImGui::EndChild();
 			}
 		}
-
-		ImGui::TextUnformatted("Properties:");
-		ImGui::BeginChild("##props", ImVec2(0, -h), true);
-		m_props.Render();
-		ImGui::EndChild();
+		ImGui::EndChild(); // ##lower_right
 
 		ImGui::Columns(1);
 
