@@ -106,11 +106,8 @@ void IM_MainMenu::Render() {
 		}
 
 		if (ImGui::BeginMenu("Scene##main_scene")) {
-			if (ImGui::MenuItem("Properties##tools_props"))
-				ExecCommand(COMMAND_SHOW_PROPERTIES);
-			ImGui::Separator();
 			if (ImGui::MenuItem("Options##scene_options"))
-				ExecCommand(COMMAND_OPTIONS, CCommandVar("Scene"));
+				ExecCommand(COMMAND_SHOW_SCENE_OPTIONS);
 			ImGui::Separator();
 			if (ImGui::MenuItem("Validate##scene_validate"))
 				ExecCommand(COMMAND_VALIDATE_SCENE);
