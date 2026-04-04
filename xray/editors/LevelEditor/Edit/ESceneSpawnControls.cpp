@@ -45,7 +45,7 @@ bool TUI_ControlSpawnAdd::Start(TShiftState Shift)
     TfraSpawn* F = (TfraSpawn*)parent_tool->pFrame;
 	if (F->ebAttachObject->Down){
 		CCustomObject* from = Scene->RayPickObject(UI->ZFar(), UI->m_CurrentRStart, UI->m_CurrentRNorm, OBJCLASS_DUMMY, 0, 0);
-        if (from->ClassID!=OBJCLASS_SPAWNPOINT){
+        if (from && from->ClassID!=OBJCLASS_SPAWNPOINT){
             ObjectList 	lst;
             int cnt 	= Scene->GetQueryObjects(lst,OBJCLASS_SPAWNPOINT,1,1,0);
             if (1!=cnt)	ELog.DlgMsg(mtError,"Select one shape.");
@@ -70,7 +70,7 @@ bool TUI_ControlSpawnAdd::Start(TShiftState Shift)
 	IM_FrameSpawn& F = imSidebar.fraSpawn;
 	if (F.m_attach_object){
 		CCustomObject* from = Scene->RayPickObject(UI->ZFar(), UI->m_CurrentRStart, UI->m_CurrentRNorm, OBJCLASS_DUMMY, 0, 0);
-        if (from->ClassID!=OBJCLASS_SPAWNPOINT){
+        if (from && from->ClassID!=OBJCLASS_SPAWNPOINT){
             ObjectList 	lst;
             int cnt 	= Scene->GetQueryObjects(lst,OBJCLASS_SPAWNPOINT,1,1,0);
             if (1!=cnt)	ELog.DlgMsg(mtError,"Select one shape.");
