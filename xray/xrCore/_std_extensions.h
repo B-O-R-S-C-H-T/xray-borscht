@@ -170,7 +170,13 @@ IC u32							xr_strlen				( const char* S );
 
 // return pointer to ".ext"
 IC char*						strext					( const char* S )
-{	return (char*) strrchr(S,'.');	}
+{
+	const char *dot = strrchr(S,'.');
+	const char *s1 = strrchr(S,'\\');
+	const char *s2 = strrchr(S,'/');
+    if(dot && dot > s1 && dot > s2) return (char*)dot;
+    else return NULL;
+}
 
 IC u32							xr_strlen				( const char* S )
 {	return (u32)strlen(S);			}
