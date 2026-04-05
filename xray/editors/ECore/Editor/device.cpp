@@ -7,6 +7,8 @@
 #include "render.h"
 #include <xrEngine/GameMtlLib.h>
 #include <Layers/xrRender/ResourceManager.h>
+#include <xrEngine/Environment.h>
+#include <xrEngine/igame_persistent.h>
 #define MMNOSOUND
 #define MMNOMIDI
 #define MMNOAUX
@@ -293,6 +295,7 @@ void CRenderDevice::Reset  	()
 //		fHeight_2			= float(dwHeight/2);
     Resources->reset_end	();
     _SetupStates			();
+    g_pGamePersistent->Environment().bNeed_re_create_env = TRUE;
     u32 tm_end				= TimerAsync();
     Msg						("*** RESET [%d ms]",tm_end-tm_start);
 }
