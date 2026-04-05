@@ -19,7 +19,7 @@ CParticleMain*&	PUI=(CParticleMain*)UI;
 
 CParticleMain::CParticleMain()  
 {
-    EPrefs			= xr_new<CCustomPreferences>();
+    EPrefs			= xr_new<CPEPreferences>();
 }
 //---------------------------------------------------------------------------
 
@@ -81,7 +81,9 @@ CCommandVar CParticleTool::CommandReload(CCommandVar p1, CCommandVar p2)
 }
 CCommandVar CParticleTool::CommandValidate(CCommandVar p1, CCommandVar p2)
 {
-	Validate(true);
+	bool result = Validate(true);
+	if(result)
+    	ELog.DlgMsg	(mtInformation,"Validation OK.");
     return TRUE;
 }
 CCommandVar CParticleTool::CommandClear(CCommandVar p1, CCommandVar p2)
@@ -250,6 +252,18 @@ void CParticleMain::OutInfo()
 void CParticleMain::RealQuit()
 {
 	frmMain->Close();
+}
+//---------------------------------------------------------------------------
+void CPEPreferences::Load(CInifile *I)
+{
+	inherited::Load(I);
+	auto_play = R_BOOL_SAFE("particle_editor", "auto_play", FALSE);
+}
+//---------------------------------------------------------------------------
+void CPEPreferences::Save(CInifile *I)
+{
+	inherited::Save(I);
+	I->w_bool("particle_editor", "auto_play", auto_play);
 }
 //---------------------------------------------------------------------------
 

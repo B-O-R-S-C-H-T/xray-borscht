@@ -135,12 +135,10 @@ void CParticleTool::OnItemModified()
 
 void CParticleTool::RenderEnvironment()
 {
-/*
     if (psDeviceFlags.is(rsEnvironment)){
         g_pGamePersistent->Environment().RenderSky	();
         g_pGamePersistent->Environment().RenderClouds	();
     }
-*/    
 }
 
 void CParticleTool::Render()
@@ -178,7 +176,11 @@ void CParticleTool::Render()
     if (m_Flags.is(flAnimatedPath))
     	m_ParentAnimator->DrawPath();
 
-//.    if (psDeviceFlags.is(rsEnvironment)) g_pGamePersistent->Environment().RenderLast	();
+    if (psDeviceFlags.is(rsEnvironment)){
+    	g_pGamePersistent->Environment().RenderFlares	();
+    	g_pGamePersistent->Environment().RenderLast	();
+    }
+    
     inherited::Render	();
 }
 
@@ -488,7 +490,6 @@ bool CParticleTool::Validate(bool bMsg)
 
     if (bMsg){
         if (error_cnt>0)ELog.DlgMsg	(mtError,"Validation FAILED! Found %d error's.",error_cnt);
-        else			ELog.DlgMsg	(mtInformation,"Validation OK.");
     }
     return error_cnt==0;
 }
