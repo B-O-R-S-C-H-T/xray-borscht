@@ -5,14 +5,14 @@ class IM_Manipulator {
 public:
 	bool m_active;
 
-	IM_Manipulator() : m_active(false) {}
+	IM_Manipulator() : m_active(false), m_moving(false), m_scaling(false), m_rotating(false), m_oldCamPos(Fvector()), m_oldCamHPB(Fvector()) {}
 
 	void Render();
 
 private:
-	bool				 m_moving	= false;
-	bool				 m_scaling	= false;
-	bool				 m_rotating = false;
+	bool				 m_moving;
+	bool				 m_scaling;
+	bool				 m_rotating;
 	std::vector<Fvector> m_oldPositionValues;
 	std::vector<Fvector> m_oldScaleValues;
 	std::vector<Fvector> m_oldRotateValues;

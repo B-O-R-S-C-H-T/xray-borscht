@@ -9,6 +9,8 @@
 #include "../Edit/CustomObject.h"
 #include "../Edit/UI_LevelTools.h"
 #include "../Edit/scene.h"
+#include "../Edit/WayPoint.h"
+#include "../Edit/ESceneWayControls.h"
 
 IM_Manipulator imManipulator;
 
@@ -23,13 +25,19 @@ void IM_Manipulator::Render() {
 	if (lst.size() < 1)
 		return;
 
+	if (LTools->CurrentClassID() == OBJCLASS_WAY) {
+		if (LTools->GetAction() != etaMove) {
+			return;
+		}
+	}
+
 	bool bWorld = Tools->GetSettings(etfCSParent);
 
 	ImGuizmo::OPERATION op;
 	ImGuizmo::MODE	mode;
 	float*			snap = NULL;
 
-	ImGuizmo::SetRect(0, 0, Device.m_RealWidth, Device.m_RealHeight);
+	ImGuizmo::SetRect(0.0f, 0.0f, static_cast<float>(Device.m_RealWidth), static_cast<float>(Device.m_RealHeight));
 
 	switch (LTools->GetAction()) {
 		case etaMove:
@@ -38,9 +46,24 @@ void IM_Manipulator::Render() {
 			mode = bWorld ? ImGuizmo::WORLD : ImGuizmo::LOCAL;
 			snap = LTools->GetSettings(etfMSnap) ? &Tools->m_MoveSnap : NULL;
 
-			Fmatrix mat = lst.front()->FTransformRP, delta = Fidentity;
+			CCustomObject* first = lst.front();
+			Fmatrix		   mat   = first->FTransformRP;
 
-			bool m = ImGuizmo::Manipulate((float*)&Device.mView, (float*)&Device.mProjection, op, mode, (float*)&mat, (float*)&delta, snap);
+			CWayObject* way = dynamic_cast<CWayObject*>(first);
+			if (way) {
+				Fvector pos;
+				if ((LTools->CurrentClassID() == OBJCLASS_WAY) && (LTools->GetSubTarget() == estWayModePoint)) {
+					CWayPoint* wp = way->GetFirstSelected();
+					pos = (wp != nullptr) ? wp->GetPosition() : way->GetPosition();
+				} else {
+					pos = way->GetPosition();
+				}
+				mat = Fidentity;
+				mat.translate(pos);
+			}
+
+			Fmatrix delta = Fidentity;
+			bool m	= ImGuizmo::Manipulate((float*)&Device.mView, (float*)&Device.mProjection, op, mode, (float*)&mat, (float*)&delta, snap);
 
 			if (m) {
 				if (!m_moving) {
