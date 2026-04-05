@@ -235,9 +235,9 @@ BOOL SceneBuilder::MakeSOM( )
             VERIFY_COMPILE(BuildSOMModel(),				"Failed to build SOM model.","");
         } while(0);
 
-        if (!error_text.empty()) 	ELog.DlgMsg(mtError,error_text.c_str());
-        else if (UI->NeedAbort())	ELog.DlgMsg(mtInformation,"Building terminated...");
-        else						ELog.DlgMsg(mtInformation,"Building OK...");
+        if (!error_text.empty()) 	ELog.Msg(mtError,error_text.c_str());
+        else if (UI->NeedAbort())	ELog.Msg(mtInformation,"Building terminated...");
+        else						ELog.Msg(mtInformation,"Building OK...");
     }catch(...){
     	ELog.DlgMsg(mtError,"An error occurred in the builder routine. Editor aborted.");
         abort();
