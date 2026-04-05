@@ -137,6 +137,8 @@ void IM_MainMenu::Render() {
 				ExecCommand(COMMAND_MAKE_HOM);
 			if (ImGui::MenuItem("Make Sound Occluder##build_make_som"))
 				ExecCommand(COMMAND_MAKE_SOM);
+			if (ImGui::MenuItem("Make Sound Environment##build_make_sound_env"))
+				ExecCommand(COMMAND_MAKE_SOUND_ENV);
 			if (ImGui::MenuItem("Make AI-map##build_make_aimap"))
 				ExecCommand(COMMAND_MAKE_AIMAP);
 			ImGui::Separator();

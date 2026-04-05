@@ -247,6 +247,23 @@ BOOL SceneBuilder::MakeSOM( )
 	return error_text.empty();
 }
 //------------------------------------------------------------------------------
+
+BOOL SceneBuilder::MakeSoundEnv()
+{
+	AnsiString error_text;
+    do{
+		VERIFY_COMPILE(PreparePath(),				"Failed to prepare level path.","");
+		VERIFY_COMPILE(BuildSoundEnv(),				"Failed to build sound environment.","");
+    }while(0);
+	if (!error_text.empty()) 	ELog.Msg(mtError,error_text.c_str());
+	else if (UI->NeedAbort())	ELog.Msg(mtInformation,"Building terminated.");
+	else						ELog.Msg(mtInformation,"Sound environment succesfully exported.");
+
+	return error_text.empty();
+}
+
+//------------------------------------------------------------------------------
+
 #include "../ECore/Editor/EditObject.h"
 void SceneBuilder::OnRender()
 {
