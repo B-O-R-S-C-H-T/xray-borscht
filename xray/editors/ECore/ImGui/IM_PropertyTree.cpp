@@ -1106,10 +1106,12 @@ void IM_PropertyTree::RenderRText(PropItem* item) {
 	ImGui::PushID(item->Key());
 	bool disabled = item->m_Flags.is(PropItem::flDisabled);
 	if (ImGui::InputText("", &*text.begin(), text.size()) && !disabled) {
-		shared_str newvalue = &*text.begin();
-		if (item->AfterEdit<RTextValue, shared_str>(newvalue))
-			if (item->ApplyValue<RTextValue, shared_str>(newvalue))
-				Modified();
+		if (ImGui::IsItemDeactivatedAfterEdit()) {
+			shared_str newvalue = &*text.begin();
+			if (item->AfterEdit<RTextValue, shared_str>(newvalue))
+				if (item->ApplyValue<RTextValue, shared_str>(newvalue))
+					modified = true;
+		}
 	}
 	if (ImGui::IsItemClicked(0) && ImGui::IsMouseDoubleClicked(0)) {
 		TextDelegate*  d = xr_new<TextDelegate>(this, item);
@@ -1138,10 +1140,12 @@ void IM_PropertyTree::RenderSText(PropItem* item) {
 	ImGui::PushID(item->Key());
 	bool disabled = item->m_Flags.is(PropItem::flDisabled);
 	if (ImGui::InputText("", &*text.begin(), text.size()) && !disabled) {
-		xr_string newvalue = &*text.begin();
-		if (item->AfterEdit<STextValue, xr_string>(newvalue))
-			if (item->ApplyValue<STextValue, xr_string>(newvalue))
-				Modified();
+		if (ImGui::IsItemDeactivatedAfterEdit()) {
+			xr_string newvalue = &*text.begin();
+			if (item->AfterEdit<STextValue, xr_string>(newvalue))
+				if (item->ApplyValue<STextValue, xr_string>(newvalue))
+					modified = true;
+		}
 	}
 	if (ImGui::IsItemClicked(0) && ImGui::IsMouseDoubleClicked(0)) {
 		TextDelegate*  d = xr_new<TextDelegate>(this, item);
@@ -1171,10 +1175,12 @@ void IM_PropertyTree::RenderCText(PropItem* item) {
 	ImGui::PushID(item->Key());
 	bool disabled = item->m_Flags.is(PropItem::flDisabled);
 	if (ImGui::InputText("", &*text.begin(), text.size()) && !disabled) {
-		xr_string newvalue = &*text.begin();
-		if (item->AfterEdit<CTextValue, xr_string>(newvalue))
-			if (item->ApplyValue<CTextValue, LPCSTR>(newvalue.c_str()))
-				Modified();
+		if (ImGui::IsItemDeactivatedAfterEdit()) {
+			xr_string newvalue = &*text.begin();
+			if (item->AfterEdit<CTextValue, xr_string>(newvalue))
+				if (item->ApplyValue<CTextValue, LPCSTR>(newvalue.c_str()))
+					modified = true;
+		}
 	}
 	if (ImGui::IsItemClicked(0) && ImGui::IsMouseDoubleClicked(0)) {
 		TextDelegate*  d = xr_new<TextDelegate>(this, item);
@@ -1296,6 +1302,13 @@ void IM_PropertyTree::Render() {
 	RenderNode(root);
 
 	ImGui::PopStyleVar();
+
+	if (modified) {
+		if (!OnModifiedEvent.empty())
+			OnModifiedEvent();
+	modified = false;
+	}
+
 	ImGui::Columns(1);
 }
 
