@@ -341,7 +341,7 @@ public:
     void			    ClampByLimits	();
 #endif
 
-    bool 			    ExportOGF		(IWriter& F);
+    bool 			    ExportOGF		(IWriter& F, float scale, BOOL adjust_mass);
 };
 
 //*** Shared Bone Data ****************************************************************************

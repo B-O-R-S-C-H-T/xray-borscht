@@ -217,6 +217,8 @@ public:
 	Fvector 		t_vPosition;
     Fvector			t_vScale;
     Fvector			t_vRotate;
+	float 			a_vScale;
+	BOOL 			a_vAdjustMass;
 
     bool			bOnModified;
     IC bool			IsModified				(){return bOnModified;}
