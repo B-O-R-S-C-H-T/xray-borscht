@@ -129,7 +129,7 @@ void IM_MainMenu::Render() {
 			if (ImGui::MenuItem("Build Scene##build_scene"))
 				ExecCommand(COMMAND_BUILD);
 			ImGui::Separator();
-			if (ImGui::MenuItem("Make game##build_make_game"))
+			if (ImGui::MenuItem("Make spawn##build_make_spawn"))
 				ExecCommand(COMMAND_MAKE_GAME);
 			if (ImGui::MenuItem("Make details##build_make_details"))
 				ExecCommand(COMMAND_MAKE_DETAILS);
