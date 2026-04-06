@@ -130,16 +130,18 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 			}
 
 			if (clicked) {
-				bool was_selected = node.selected;
-
-				if (ImGui::GetIO().KeyCtrl) {
-					SelectNode(node, !node.selected);
-				} else if (ImGui::GetIO().KeyShift && m_lastClickedNode) {
+				if (ImGui::GetIO().KeyShift && m_lastClickedNode) {
 					SelectRange(m_lastClickedNode, &node);
+				} else if (CheckmarkMode) {
+					SelectNode(node, !node.selected);
+					m_lastClickedNode = &node;
 				} else {
-					if (!multiselect || !ImGui::GetIO().KeyCtrl)
+					if (ImGui::GetIO().KeyCtrl) {
+						SelectNode(node, !node.selected);
+					} else {
 						SelectAll(false);
-					SelectNode(node, true);
+						SelectNode(node, true);
+					}
 					m_lastClickedNode = &node;
 				}
 				if (node.item && !node.item->OnClickEvent.empty())

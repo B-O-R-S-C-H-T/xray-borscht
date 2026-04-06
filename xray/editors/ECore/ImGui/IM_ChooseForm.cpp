@@ -18,6 +18,7 @@ IM_ChooseForm::IM_ChooseForm(EChooseMode mode, int max_select, ChooseItemVec* it
 	if (max_select > 1) {
 		m_items_tree				  = IM_Tree('\\', true, true);
 		m_items_tree.MaxSelectedCount = max_select;
+		m_items_tree.CheckmarkMode	  = true;
 	}
 
 	m_items_tree.OnNodeSelected = IM_TOnNodeSelected(this, &IM_ChooseForm::OnNodeSelected);

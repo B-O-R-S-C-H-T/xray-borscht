@@ -65,6 +65,7 @@ private:
 public: // properties
 	bool				multiselect;
 	bool				DrawBullets;
+	bool				CheckmarkMode;
 	bool				DrawThumbnails;
 	int					MaxSelectedCount;
 	IM_TOnNodeSelected	OnNodeSelected;
@@ -72,8 +73,8 @@ public: // properties
 
 public:
 	IM_Tree(char folder_separator = '\\', bool allow_multiselect = false, bool draw_bullets = false)
-		: separator(folder_separator), multiselect(allow_multiselect), renaming(NULL), DrawBullets(draw_bullets), DrawThumbnails(false),
-		  MaxSelectedCount(-1), OnNodeSelected(NULL), OnDrawThumbnail(NULL) {}
+		: separator(folder_separator), multiselect(allow_multiselect), renaming(NULL), DrawBullets(draw_bullets),
+		  CheckmarkMode(false), DrawThumbnails(false), MaxSelectedCount(-1), OnNodeSelected(NULL), OnDrawThumbnail(NULL) {}
 
 	~IM_Tree() { Clear(); }
 
