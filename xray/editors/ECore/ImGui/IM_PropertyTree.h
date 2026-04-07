@@ -19,6 +19,11 @@ private:
 
 	bool modified;
 
+	PropItemVec m_PendingItems;
+	bool		m_HasPendingUpdate	= false;
+	bool		m_PendingFullExpand = false;
+	bool		m_PendingFullSort	= false;
+
 	struct ImTreeNode {
 		xr_string			 name;
 		xr_list<ImTreeNode>* child;
@@ -67,8 +72,7 @@ private:
 	xr_string			 GetDrawText(PropItem* item);
 
 public:
-	IM_PropertyTree(char folder_separator = '\\', bool allow_multiselect = false, bool draw_bullets = true)
-		: separator(folder_separator), multiselect(allow_multiselect), bullets(draw_bullets), modified(false), root(""), editing_node(NULL) {}
+	IM_PropertyTree(char folder_separator = '\\', bool allow_multiselect = false, bool draw_bullets = true);
 
 	~IM_PropertyTree() { Clear(); }
 
@@ -87,7 +91,7 @@ public:
 	TOnItemFocused		OnItemFocused;
 	TOnModifiedEvent	OnModifiedEvent;
 
-	void				AssignItems(PropItemVec& items, bool full_expand, bool full_sort = false);
+	void				AssignItems(PropItemVec items, bool full_expand = true, bool full_sort = false);
 	void				Modified();
 	bool				IsModified();
 

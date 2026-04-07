@@ -532,15 +532,15 @@ void EScene::HighlightTexture(LPCSTR t_name, bool allow_ratio, u32 t_width, u32 
 }
 
 xr_token		js_token	[ ]={
-	{ "1 - Low",			1	},
-	{ "4 - Medium",			4	},
-	{ "9 - High",			9	},
+	{ "1: Low",			1	},
+	{ "4: Medium",			4	},
+	{ "9: High",			9	},
 	{ 0,					0 	}
 };
 
 xr_token		ai_version_token[] = {
-    { "1 - 3-bytes links",	EXPORT_AIMAP_VERSION_1	},
-    { "2 - 4-bytes links",	EXPORT_AIMAP_VERSION_2	},
+    { "ver.1: 3-bytes links",	EXPORT_AIMAP_VERSION_1	},
+    { "ver.2: 4-bytes links",	EXPORT_AIMAP_VERSION_2	},
     { 0,					0 	}
 };
 
@@ -636,7 +636,7 @@ void EScene::UpdateSceneOptionsWnd() {
 
 	PropItemVec items;
 	FillSceneProps("Scene", items);
-	m_SceneOptionsWnd->AssignItems(items);
+	m_SceneOptionsWnd->Props().AssignItems(std::move(items), true, false);
 }
 
 void EScene::RegisterSubstObjectName(const xr_string& _from, const xr_string& _to)

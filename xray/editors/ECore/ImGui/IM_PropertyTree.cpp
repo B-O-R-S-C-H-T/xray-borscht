@@ -41,6 +41,10 @@
 	PROP_GAMETYPE,  // yes
 */
 
+IM_PropertyTree::IM_PropertyTree(char folder_separator, bool allow_multiselect, bool draw_bullets)
+	: separator(folder_separator), multiselect(allow_multiselect), bullets(draw_bullets), modified(false), m_HasPendingUpdate(false),
+	  m_PendingFullExpand(false), m_PendingFullSort(false), root(""), editing_node(nullptr) {}
+
 IM_PropertyTree::ImTreeNode* IM_PropertyTree::GetNodeChild(ImTreeNode& node, const xr_string& name) {
 	if (node.child) {
 		xr_list<ImTreeNode>::iterator it, end;
@@ -381,17 +385,18 @@ u32 IM_PropertyTree::GetSelectedCount() {
 	return selected.size();
 }
 
-void IM_PropertyTree::AssignItems(PropItemVec& items, bool full_expand, bool full_sort) {
-	this->full_expand = true; //full_expand;
-
-	Clear();
-
-	for (PropItemIt it = items.begin(); it != items.end(); it++) {
-		Add((*it)->Key(), *it);
+void IM_PropertyTree::AssignItems(PropItemVec items, bool full_expand, bool full_sort) {
+	if (m_HasPendingUpdate) {
+		m_PendingItems		= std::move(items);
+		m_PendingFullExpand = full_expand;
+		m_PendingFullSort	= full_sort;
+		return;
 	}
 
-	if (full_sort)
-		root.Sort();
+	m_PendingItems		= std::move(items);
+	m_HasPendingUpdate	= true;
+	m_PendingFullExpand = full_expand;
+	m_PendingFullSort	= full_sort;
 }
 
 void IM_PropertyTree::Modified() {
@@ -1296,6 +1301,21 @@ void IM_PropertyTree::RenderGameType(PropItem* item) {
 }
 
 void IM_PropertyTree::Render() {
+	if (m_HasPendingUpdate) {
+		Clear();
+
+		for (PropItemIt it = m_PendingItems.begin(); it != m_PendingItems.end(); ++it)
+			Add((*it)->Key(), *it);
+
+		if (m_PendingFullSort)
+			root.Sort();
+
+		full_expand = m_PendingFullExpand;
+
+		m_PendingItems.clear();
+		m_HasPendingUpdate = false;
+	}
+
 	ImGui::Columns(2, "props_cols", true);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
@@ -1306,7 +1326,7 @@ void IM_PropertyTree::Render() {
 	if (modified) {
 		if (!OnModifiedEvent.empty())
 			OnModifiedEvent();
-	modified = false;
+		modified = false;
 	}
 
 	ImGui::Columns(1);
@@ -1352,7 +1372,7 @@ IM_PropertyTree& IM_PropertiesWnd::Props() {
 }
 
 void IM_PropertiesWnd::AssignItems(PropItemVec& items) {
-	m_props.AssignItems(items, false, false);
+	m_props.AssignItems(items, false, true);
 }
 
 void IM_PropertiesWnd::Render() {

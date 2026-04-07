@@ -181,8 +181,8 @@ void IM_EditLibrary::UpdateObjectProperties() {
 		}
 	}
 
-	m_BasicProps.AssignItems(basicItems, false, false);
-	m_SurfaceProps.AssignItems(surfaceItems, false, false);
+	m_BasicProps.AssignItems(basicItems, true, false);
+	m_SurfaceProps.AssignItems(surfaceItems, true, false);
 }
 
 bool IM_EditLibrary::SelectionToReference(ListItemsVec* props) {
@@ -226,7 +226,7 @@ void IM_EditLibrary::ChangeReference(const RStringVec& items) {
 	ExecCommand(COMMAND_EVICT_OBJECTS);
 	ExecCommand(COMMAND_EVICT_TEXTURES);
 
-	ELog.Msg(mtInformation, "ChangeReference: %d objects loaded into preview", m_pEditObjects.size());
+//	ELog.Msg(mtInformation, "ChangeReference: %d objects loaded into preview", m_pEditObjects.size());
 }
 
 void IM_EditLibrary::RefreshSelected() {

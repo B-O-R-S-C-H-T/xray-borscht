@@ -243,7 +243,7 @@ void IM_ImageEditor::OnItemsFocused(ListItemsVec& items) {
 	} else
 		m_thm.Clear();
 
-	m_props.AssignItems(props, false, false);
+	m_props.AssignItems(props, true, false);
 }
 
 void IM_ImageEditor::OnTypeChange(PropValue*) { m_needupdate = true; }

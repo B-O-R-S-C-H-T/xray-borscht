@@ -153,7 +153,7 @@ void ESceneObjectTool::FillAppendRandomProperties(bool bUpdateOnly)
 	V=PHelper().CreateChoose		(items,"Objects",&m_AppendRandomObjectsStr,smObject,0,0,32);
 	V->OnChangeEvent.bind			(this,&ESceneObjectTool::OnChangeAppendRandomFlags);
 
-	m_Props->AssignItems(items);
+	m_Props->Props().AssignItems(std::move(items), true, false);
 }
 //----------------------------------------------------
 

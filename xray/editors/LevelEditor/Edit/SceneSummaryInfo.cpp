@@ -440,7 +440,7 @@ void EScene::ShowSummaryInfo		()
 	PropItemVec items;
 	s_summary.FillProp(items);
 
-	m_SummaryInfo->AssignItems(items);
+	m_SummaryInfo->Props().AssignItems(std::move(items), true, false);
 	m_SummaryInfo->Open();
 }
 
