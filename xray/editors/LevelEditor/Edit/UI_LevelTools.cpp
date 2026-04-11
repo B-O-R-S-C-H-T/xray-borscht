@@ -358,7 +358,7 @@ void CLevelTool::RealUpdateProperties()
     PropItemVec items;
 	Scene->FillProp				("",items,CurrentClassID());
 
-    m_IMProps->AssignItems		(items);
+    m_IMProps->Props().AssignItems(std::move(items), true, false);
 
 	m_Flags.set(flUpdateProperties,FALSE);
 }
