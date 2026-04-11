@@ -52,6 +52,13 @@ private:
 
 	ImTreeNode*			 m_lastClickedNode = nullptr;
 
+	bool				 full_expand		 = false;
+
+	ListItemsVec		 m_PendingItems;
+	bool				 m_HasPendingUpdate  = false;
+	bool				 m_PendingFullExpand = false;
+	bool				 m_PendingFullSort	 = false;
+
 	ImTreeNode*			 GetNode(LPCSTR path, bool must_exist);
 	void				 RenderNode(ImTreeNode& node);
 	void				 ClearNode(ImTreeNode& node) { node.Clear(); }
@@ -61,6 +68,7 @@ private:
 	void				 GetItems(ImTreeNode& node, ListItemsVec& result);
 	void				 SelectRange(ImTreeNode* from, ImTreeNode* to);
 	void				 CollectLinearOrder(ImTreeNode* node, std::vector<ImTreeNode*>& out);
+	bool				 NaturalCompare(const xr_string& lhs, const xr_string& rhs) const;
 
 public: // properties
 	bool				multiselect;
@@ -73,8 +81,9 @@ public: // properties
 
 public:
 	IM_Tree(char folder_separator = '\\', bool allow_multiselect = false, bool draw_bullets = false)
-		: separator(folder_separator), multiselect(allow_multiselect), renaming(NULL), DrawBullets(draw_bullets),
-		  CheckmarkMode(false), DrawThumbnails(false), MaxSelectedCount(-1), OnNodeSelected(NULL), OnDrawThumbnail(NULL) {}
+		: separator(folder_separator), multiselect(allow_multiselect), renaming(nullptr), DrawBullets(draw_bullets), CheckmarkMode(false),
+		  DrawThumbnails(false), MaxSelectedCount(-1), OnNodeSelected(nullptr), OnDrawThumbnail(nullptr), full_expand(false), m_HasPendingUpdate(false),
+		  m_PendingFullExpand(false), m_PendingFullSort(false), newname{} {}
 
 	~IM_Tree() { Clear(); }
 

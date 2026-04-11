@@ -54,16 +54,39 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 	if (!parent.child)
 		return;
 
-	xr_map<xr_string, ImTreeNode>::iterator it, end;
-	for (it = parent.child->begin(), end = parent.child->end(); it != end;) {
-		ImTreeNode& node   = it->second;
+	xr_vector<xr_map<xr_string, ImTreeNode>::iterator> sorted;
+	sorted.reserve(parent.child->size());
+
+	for (auto it = parent.child->begin(); it != parent.child->end(); ++it) {
+		if (it->second.item && !it->second.item->Visible())
+			continue;
+		sorted.push_back(it);
+	}
+
+	auto natural_comp = [&](const xr_map<xr_string, ImTreeNode>::iterator& a_it, const xr_map<xr_string, ImTreeNode>::iterator& b_it) -> bool
+	{
+		const xr_string& na = a_it->first;
+		const xr_string& nb = b_it->first;
+
+		if (na.empty() || nb.empty())
+			return na < nb;
+
+		bool a_normal = (na[0] >= '0' && na[0] <= '9') || (na[0] >= 'A' && na[0] <= 'Z') || (na[0] >= 'a' && na[0] <= 'z');
+		bool b_normal = (nb[0] >= '0' && nb[0] <= '9') || (nb[0] >= 'A' && nb[0] <= 'Z') || (nb[0] >= 'a' && nb[0] <= 'z');
+
+		if (a_normal != b_normal)
+			return a_normal > b_normal;
+
+		return NaturalCompare(na, nb);
+	};
+
+	std::sort(sorted.begin(), sorted.end(), natural_comp);
+
+	for (auto map_it : sorted) {
+		ImTreeNode& node   = map_it->second;
 		bool		remove = false;
 		bool		rename = false;
 
-		if (node.item && !node.item->Visible()) {
-			++it;
-			continue;
-		}
 		if (renaming == &node) {
 			ImGui::PushID(static_cast<void*>(&node));
 			xr_string current_input(newname);
@@ -89,7 +112,10 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 			if (node.selected)
 				flags |= ImGuiTreeNodeFlags_Selected;
-			bool open = ImGui::TreeNodeEx(it->first.c_str(), flags);
+			if (full_expand)
+				flags |= ImGuiTreeNodeFlags_DefaultOpen;
+
+			bool open = ImGui::TreeNodeEx(map_it->first.c_str(), flags);
 			if (ImGui::BeginPopupContextItem()) {
 				ShowContextMenu(node, remove);
 				ImGui::EndPopup();
@@ -148,16 +174,13 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 					node.item->OnClickEvent(node.item);
 			}
 		}
+
 		if (remove) {
-			auto rm = it;
-			++it;
-			parent.child->erase(rm);
+			parent.child->erase(map_it);
 		} else if (rename) {
-			xr_string nm = it->first;
-			++it;
+			xr_string nm = map_it->first;
 			RenameNode(parent, nm.c_str(), newname);
-		} else
-			++it;
+		}
 	}
 }
 
@@ -377,16 +400,17 @@ int IM_Tree::GetSelectedCount() {
 }
 
 void IM_Tree::AssignItems(ListItemsVec& items, bool full_expand, bool full_sort) {
-	// unused
-	(void)full_expand;
-	(void)full_sort;
-
-	Clear();
-
-	ListItemsVec::iterator it, end;
-	for (it = items.begin(); it != items.end(); it++) {
-		Add((*it)->Key(), *it);
+	if (m_HasPendingUpdate) {
+		m_PendingItems		= items;
+		m_PendingFullExpand = full_expand;
+		m_PendingFullSort	= full_sort;
+		return;
 	}
+
+	m_PendingItems		= items;
+	m_HasPendingUpdate	= true;
+	m_PendingFullExpand = full_expand;
+	m_PendingFullSort	= full_sort;
 }
 
 void IM_Tree::GetSelected(ListItemsVec& result) {
@@ -399,6 +423,53 @@ void IM_Tree::GetItems(ListItemsVec& result) {
 	GetItems(root, result);
 }
 
+bool IM_Tree::NaturalCompare(const xr_string& lhs, const xr_string& rhs) const {
+	size_t i = 0;
+	size_t j = 0;
+
+	while (i < lhs.size() && j < rhs.size()) {
+		if (lhs[i] >= '0' && lhs[i] <= '9' && rhs[j] >= '0' && rhs[j] <= '9') {
+			size_t num_lhs = 0;
+			size_t num_rhs = 0;
+
+			while (i < lhs.size() && lhs[i] >= '0' && lhs[i] <= '9') {
+				num_lhs = num_lhs * 10 + (lhs[i] - '0');
+				++i;
+			}
+			while (j < rhs.size() && rhs[j] >= '0' && rhs[j] <= '9') {
+				num_rhs = num_rhs * 10 + (rhs[j] - '0');
+				++j;
+			}
+
+			if (num_lhs != num_rhs)
+				return num_lhs < num_rhs;
+			continue;
+		}
+
+		if (lhs[i] != rhs[j])
+			return lhs[i] < rhs[j];
+
+		++i;
+		++j;
+	}
+
+	return lhs.size() < rhs.size();
+}
+
 void IM_Tree::Render() {
+	if (m_HasPendingUpdate) {
+		Clear();
+
+		for (ListItem* item : m_PendingItems) {
+			if (item)
+				Add(item->Key(), item);
+		}
+
+		full_expand = m_PendingFullExpand;
+
+		m_PendingItems.clear();
+		m_HasPendingUpdate = false;
+	}
+
 	RenderNode(root);
 }
