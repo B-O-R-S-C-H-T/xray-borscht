@@ -16,8 +16,8 @@ private:
 	IM_Tree					 m_Items;
 	IM_PropertyTree			 m_Props;
 	IM_Canvas				 m_Image;
-	EObjectThumbnail*		 m_Thm = nullptr;
-	IM_PropertiesWnd*		 m_IMProps;
+	EObjectThumbnail*		 m_Thm	   = nullptr;
+	IM_PropertiesWnd*		 m_IMProps = nullptr;
 
 	IM_PropertyTree			 m_BasicProps;
 	IM_PropertyTree			 m_SurfaceProps;
@@ -47,10 +47,9 @@ private:
 	void __stdcall			 OnObjectRename(LPCSTR p0, LPCSTR p1, EItemType type);
 	void __stdcall			 OnObjectRemove(LPCSTR name, EItemType type, bool& removed);
 
-//	void					 MakeThm();
-//	void					 MakeLOD(bool bHighQuality);
-//	bool					 GenerateLOD(ListItemsVec& props, bool bHighQuality);
-//	void					 Import();
+	void					 MakeThumbnail();
+	void					 MakeLOD(bool bHighQuality);
+	bool					 GenerateLOD(ListItemsVec& props, bool bHighQuality);
 	void					 Save();
 
 public:

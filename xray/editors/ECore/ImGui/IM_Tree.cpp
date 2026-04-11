@@ -456,6 +456,17 @@ bool IM_Tree::NaturalCompare(const xr_string& lhs, const xr_string& rhs) const {
 	return lhs.size() < rhs.size();
 }
 
+void IM_Tree::InvalidateCache(const shared_str& key) {
+	if (!key)
+		return;
+
+	ImTreeNode* node = GetNode(key.c_str(), true);
+	if (node && node->canvas) {
+		xr_delete(node->canvas);
+		node->canvas = nullptr;
+	}
+}
+
 void IM_Tree::Render() {
 	if (m_HasPendingUpdate) {
 		Clear();

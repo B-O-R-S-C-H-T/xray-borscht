@@ -32,11 +32,19 @@ IM_EditLibrary::IM_EditLibrary() : m_Image(128, 128) {
 
 	m_Items.multiselect			   = true;
 
+	m_Items.SetCacheInvalidator(
+		[this](const shared_str& path)
+		{
+			if (!path.empty())
+				m_Items.InvalidateCache(path);
+		});
+
 	m_BasicProps.OnModifiedEvent   = TOnModifiedEvent(this, &IM_EditLibrary::OnModified);
 	m_SurfaceProps.OnModifiedEvent = TOnModifiedEvent(this, &IM_EditLibrary::OnModified);
 	bReadOnly					   = false;
 	cbPreview					   = true;
 	m_Thm						   = nullptr;
+
 	if (!g_imEditLibrary)
 		g_imEditLibrary = this;
 }
@@ -152,6 +160,14 @@ void IM_EditLibrary::OnItemsFocused(ListItemsVec& items) {
 	}
 
 	if (m_Thm && m_Thm->Valid()) {
+		HDC	  hdc = m_Image.BeginPaint();
+		Irect r;
+		r.set(0, 0, m_Image.Width(), m_Image.Height());
+		m_Thm->Draw(hdc, r);
+		m_Image.EndPaint();
+
+	} else {
+		m_Image.Clear();
 	}
 
 	UpdateObjectProperties();
@@ -245,48 +261,68 @@ void IM_EditLibrary::Render() {
 	}
 
 	ImGui::SetNextWindowSize(ImVec2(820, 620), ImGuiCond_FirstUseEver);
+
 	if (ImGui::Begin("Object Library", &m_open, ImGuiWindowFlags_NoCollapse)) {
 		ImGui::Columns(2, "lib_cols", true);
+
 		ImGui::BeginChild("ItemsPanel", ImVec2(0, 0), true);
 		m_Items.Render();
 		ImGui::EndChild();
 
 		ImGui::NextColumn();
+
 		ImGui::BeginChild("RightPanel", ImVec2(0, 0), false);
-		if (ImGui::Button("Make Thumbnail", ImVec2(-1, 0))) {}
-		if (ImGui::Button("Make LOD", ImVec2(-1, 0))) {}
+
+		bool canMakeThumbnail = m_Items.GetSelectedCount() > 0;
+		ImGui::BeginDisabled(!canMakeThumbnail);
+		if (ImGui::Button("Make Thumbnail", ImVec2(-1, 0))) {
+			MakeThumbnail();
+		}
+		ImGui::EndDisabled();
+
+		bool canMakeLOD = cbPreview && !bReadOnly && (m_Items.GetSelectedCount() > 0);
+		ImGui::BeginDisabled(!canMakeLOD);
+		if (ImGui::Button("Make LOD", ImVec2(-1, 0))) {
+			MakeLOD(true);
+		}
+		ImGui::EndDisabled();
+
+		ImGui::Dummy(ImVec2(0, 8.0f));
+
 		ImGui::BeginGroup();
 		{
-			ImGui::BeginChild("Thumbnail", ImVec2(140, 140), true);
+			ImGui::BeginChild("Thumbnail", ImVec2(140, 140), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 			m_Image.Render();
 			ImGui::EndChild();
+
 			ImGui::SameLine();
 			ImGui::BeginGroup();
 			{
 				ImGui::Dummy(ImVec2(0, 12));
 				if (ImGui::Checkbox("Preview", &cbPreview))
 					RefreshSelected();
+
 				float used		= ImGui::GetCursorPosY();
 				float remaining = 140.0f - used - 8.0f;
 				if (remaining > 0)
 					ImGui::Dummy(ImVec2(0, remaining));
+
 				if (m_Thm && m_Thm->Valid()) {
 					ImGui::Text("Faces: %d", m_Thm->_FaceCount());
 					ImGui::Text("Vertices: %d", m_Thm->_VertexCount());
-				} else {
-					ImGui::Text("Faces: ?");
-					ImGui::Text("Vertices: ?");
 				}
 			}
 			ImGui::EndGroup();
 		}
 		ImGui::EndGroup();
-		if (ImGui::Button("Import Object", ImVec2(-1, 0))) {}
+
 		ImGui::BeginDisabled(modif_map.empty());
 		if (ImGui::Button("Save", ImVec2(-1, 0)))
 			Save();
 		ImGui::EndDisabled();
+
 		ImGui::Separator();
+
 		if (ImGui::BeginTabBar("ObjectPropsTabs")) {
 			if (ImGui::BeginTabItem("Main Options")) {
 				m_BasicProps.Render();
@@ -298,23 +334,12 @@ void IM_EditLibrary::Render() {
 			}
 			ImGui::EndTabBar();
 		}
+
 		ImGui::EndChild();
 		ImGui::Columns(1);
 	}
-	ImGui::End();
 
-	if (cbPreview) {
-		static xr_string last_selected = "";
-		shared_str		 current	   = m_Items.GetSelectedPath();
-		xr_string		 cur_str	   = current.c_str() ? current.c_str() : "";
-		if (!cur_str.empty() && cur_str != last_selected) {
-			RStringVec names;
-			names.push_back(current);
-			ChangeReference(names);
-			last_selected = cur_str;
-			UpdateObjectProperties();
-		}
-	}
+	ImGui::End();
 }
 
 void IM_EditLibrary::OnNodeSelected(shared_str path, shared_str value, bool select) {
@@ -441,4 +466,146 @@ void IM_EditLibrary::Save() {
 
 	RefreshSelected();
 	UI->RedrawScene();
+}
+
+void IM_EditLibrary::MakeThumbnail() {
+	if (!cbPreview) {
+		ELog.DlgMsg(mtError, "Cannot create thumbnail! Set preview mode.");
+		return;
+	}
+
+	xr_vector<shared_str> selected_paths;
+	m_Items.GetSelectedPaths(selected_paths);
+
+	SPBItem* pb = UI->ProgressStart(selected_paths.size(), "Creating thumbnails...");
+
+	for (const shared_str& path : selected_paths) {
+		pb->Inc(path.c_str());
+
+		RStringVec single_sel;
+		single_sel.push_back(path.c_str());
+		ChangeReference(single_sel);
+
+		UI->RedrawScene();
+
+		CEditableObject* obj = Lib.CreateEditObject(path.c_str());
+		if (obj) {
+			string_path fn;
+			FS.update_path(fn, _objects_, ChangeFileExt(path.c_str(), ".thm").c_str());
+
+			if (ImageLib.CreateOBJThumbnail(fn, obj, obj->Version())) {
+				ELog.Msg(mtInformation, "Thumbnail successfully created for '%s.object'", path.c_str());
+
+				m_Items.InvalidateCache(path);
+
+				if (selected_paths.size() == 1 || m_Items.GetSelectedPath() == path) {
+					xr_delete(m_Thm);
+
+					string_path thm_fn;
+					FS.update_path(thm_fn, _objects_, ChangeFileExt(path.c_str(), ".thm").c_str());
+
+					if (FS.exist(thm_fn)) {
+						m_Thm = xr_new<EObjectThumbnail>(path.c_str());
+					}
+
+					if (m_Thm && m_Thm->Valid()) {
+						HDC	  hdc = m_Image.BeginPaint();
+						Irect r{0, 0, m_Image.Width(), m_Image.Height()};
+						m_Thm->Draw(hdc, r);
+						m_Image.EndPaint();
+					} else {
+						m_Image.Clear();
+					}
+				}
+			} else {
+				ELog.Msg(mtError, "Failed to create thumbnail for '%s.object'!", path.c_str());
+			}
+
+			Lib.RemoveEditObject(obj);
+		} else {
+			ELog.Msg(mtError, "Cannot load '%s.object'!", path.c_str());
+		}
+
+		if (UI->NeedAbort()) {
+			break;
+		}
+	}
+
+	UI->ProgressEnd(pb);
+	UI->RedrawScene();
+}
+
+void IM_EditLibrary::MakeLOD(bool bHighQuality) {
+	if (!modif_map.empty()) {
+		ELog.Msg(mtInformation, "Save library changes before generating LOD!");
+		return;
+	}
+
+	xr_vector<shared_str> selected_paths;
+	m_Items.GetSelectedPaths(selected_paths);
+
+	ListItemsVec props;
+	for (const shared_str& path : selected_paths) {
+		ListItem* item = LHelper().CreateItem(props, path.c_str(), 0, 0, nullptr);
+	}
+
+	bool any_lod_generated = GenerateLOD(props, bHighQuality);
+
+	if (any_lod_generated) {
+		ELog.Msg(mtInformation, "LOD generation completed.");
+	} else {
+		ELog.Msg(mtInformation, "LOD generation failed!");
+	}
+}
+
+bool IM_EditLibrary::GenerateLOD(ListItemsVec& props, bool bHighQuality) {
+	if (props.empty())
+		return true;
+
+	SPBItem* pb			   = UI->ProgressStart(props.size(), "Making LOD...");
+	int		 success_count = 0;
+
+	int		 current_age   = time(NULL);
+
+	for (ListItemsIt it = props.begin(); it != props.end(); ++it) {
+		ListItem* item = *it;
+
+		RStringVec sel_strings;
+		sel_strings.push_back(item->Key());
+		ChangeReference(sel_strings);
+
+		R_ASSERT(m_pEditObjects.size() == 1);
+		CSceneObject*	 SO = m_pEditObjects[0];
+		CEditableObject* O	= SO ? SO->GetReference() : nullptr;
+
+		if (O && O->IsMUStatic()) {
+			pb->Inc(O->GetName());
+
+			BOOL bLod = O->m_objectFlags.is(CEditableObject::eoUsingLOD);
+			O->m_objectFlags.set(CEditableObject::eoUsingLOD, FALSE);
+
+			xr_string	tex_name = EFS.ChangeFileExt(O->GetName(), "");
+			string_path tmp;
+			strcpy(tmp, tex_name.c_str());
+			_ChangeSymbol(tmp, '\\', '_');
+			tex_name = xr_string("lod_") + tmp;
+			tex_name = ImageLib.UpdateFileName(tex_name);
+
+			ImageLib.CreateLODTexture(O, tex_name.c_str(), LOD_IMAGE_SIZE, LOD_IMAGE_SIZE, LOD_SAMPLE_COUNT, current_age, bHighQuality ? 4 : 1);
+
+			O->OnDeviceDestroy();
+			O->m_objectFlags.set(CEditableObject::eoUsingLOD, bLod);
+
+			ELog.Msg(mtInformation, "LOD for '%s.object' successfully created.", O->GetName());
+			++success_count;
+		} else {
+			ELog.Msg(mtError, "Can't create billboard: object %s must be of 'Multiple Usage' type!", item->Key());
+		}
+
+		if (UI->NeedAbort())
+			break;
+	}
+
+	UI->ProgressEnd(pb);
+	return (success_count > 0);
 }

@@ -1,6 +1,7 @@
 #ifndef IM_TreeH
 #define IM_TreeH
 
+#include <functional>
 #include <xrServerEntities/ItemListTypes.h>
 #include <xrServerEntities/xrEProps.h>
 
@@ -70,6 +71,8 @@ private:
 	void				 CollectLinearOrder(ImTreeNode* node, std::vector<ImTreeNode*>& out);
 	bool				 NaturalCompare(const xr_string& lhs, const xr_string& rhs) const;
 
+	std::function<void(const shared_str&)> m_OnInvalidateCache;
+
 public: // properties
 	bool				multiselect;
 	bool				DrawBullets;
@@ -112,6 +115,9 @@ public:
 	void			  GetSelected(ListItemsVec& result);
 
 	void			  GetItems(ListItemsVec& result);
+
+	void			  SetCacheInvalidator(std::function<void(const shared_str&)> func) { m_OnInvalidateCache = std::move(func); }
+	void			  InvalidateCache(const shared_str& key);
 
 	virtual void	  Render();
 };

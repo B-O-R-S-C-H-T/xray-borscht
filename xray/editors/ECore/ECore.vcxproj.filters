@@ -64,6 +64,12 @@
     <Filter Include="Editor\Preferences">
       <UniqueIdentifier>{a9501c23-65a4-40f6-ad1d-e128d9f14c8c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Editor\ImageManager">
+      <UniqueIdentifier>{d5e7aaa4-5bd9-483c-9bb9-c8bafd80053e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Thumbnail">
+      <UniqueIdentifier>{9cfa1414-2fe8-450f-a38c-8503aece28d6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -198,9 +204,6 @@
     <ClInclude Include="..\..\xrEngine\LightAnimLibrary.h">
       <Filter>xrEngine</Filter>
     </ClInclude>
-    <ClInclude Include="Editor\ImageManager.h">
-      <Filter>Editor</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xrEngine\pure.h">
       <Filter>xrEngine</Filter>
     </ClInclude>
@@ -239,9 +242,6 @@
     </ClInclude>
     <ClInclude Include="..\..\xrEngine\xrTheora_Surface.h">
       <Filter>xrEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor\EThumbnail.h">
-      <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xrEngine\SkeletonMotionDefs.h">
       <Filter>xrEngine</Filter>
@@ -540,6 +540,12 @@
     <ClInclude Include="Editor\AnimationPath.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="Editor\ImageManager.h">
+      <Filter>Editor\ImageManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\EThumbnail.h">
+      <Filter>Editor\Thumbnail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -591,12 +597,6 @@
       <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="Editor\ui_main.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor\EThumbnailSound.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor\EThumbnailGroup.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xrEngine\IInputReceiver.cpp">
@@ -680,9 +680,6 @@
     <ClCompile Include="..\..\xrEngine\LightAnimLibrary.cpp">
       <Filter>xrEngine</Filter>
     </ClCompile>
-    <ClCompile Include="Editor\ImageManager.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xrEngine\pure.cpp">
       <Filter>xrEngine</Filter>
     </ClCompile>
@@ -734,9 +731,6 @@
     <ClCompile Include="Engine\Image.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Editor\EThumbnailObject.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
     <ClCompile Include="Editor\DeviceScreenshot.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
@@ -776,9 +770,6 @@
     <ClCompile Include="..\..\xrEngine\xrTheora_Surface.cpp">
       <Filter>xrEngine</Filter>
     </ClCompile>
-    <ClCompile Include="Editor\EThumbnail.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Layers\xrRender\ResourceManager_Resources.cpp">
       <Filter>xrRender</Filter>
     </ClCompile>
@@ -814,9 +805,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Layers\xrRender\Blender_Screen_SET.cpp">
       <Filter>xrRender</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor\EThumbnailTexture.cpp">
-      <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Layers\xrRender\SkeletonAnimated.cpp">
       <Filter>xrRender</Filter>
@@ -1025,9 +1013,6 @@
     <ClCompile Include="..\..\xrEngine\ObjectAnimator.cpp">
       <Filter>xrEngine</Filter>
     </ClCompile>
-    <ClCompile Include="Editor\ImageManagerDO.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
     <ClCompile Include="Editor\EDetailModel.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
@@ -1087,6 +1072,30 @@
     </ClCompile>
     <ClCompile Include="Editor\AnimationPath.cpp">
       <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\ImageManager.cpp">
+      <Filter>Editor\ImageManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\ImageManagerDO.cpp">
+      <Filter>Editor\ImageManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\ImageManagerLOD.cpp">
+      <Filter>Editor\ImageManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EThumbnail.cpp">
+      <Filter>Editor\Thumbnail</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EThumbnailGroup.cpp">
+      <Filter>Editor\Thumbnail</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EThumbnailObject.cpp">
+      <Filter>Editor\Thumbnail</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EThumbnailSound.cpp">
+      <Filter>Editor\Thumbnail</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EThumbnailTexture.cpp">
+      <Filter>Editor\Thumbnail</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
