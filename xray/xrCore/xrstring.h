@@ -86,6 +86,7 @@ public:
 
 	// misc func
 	u32					size		()						const	{	if (0==p_) return 0; else return p_->dwLength;	}
+	bool				empty		()						const	{	return size() == 0;								}
 	void				swap		(shared_str & rhs)				{	str_value* tmp = p_; p_ = rhs.p_; rhs.p_ = tmp;	}
 	bool				equal		(const shared_str & rhs) const	{	return (p_ == rhs.p_);							}
     shared_str& __cdecl	sprintf		(const char* format, ...)		{
