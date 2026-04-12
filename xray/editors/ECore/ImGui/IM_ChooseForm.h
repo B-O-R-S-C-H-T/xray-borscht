@@ -1,4 +1,4 @@
-#ifndef IM_ChooseFormH
+﻿#ifndef IM_ChooseFormH
 #define IM_ChooseFormH
 
 #include <xrCore/ChooseTypes.H>
@@ -33,7 +33,9 @@ public:
 	IM_ChooseForm(EChooseMode mode, int max_select, ChooseItemVec* items = NULL, TOnChooseFillItems fill_items = NULL, void* fill_param = NULL);
 
 private:
-	void OnNodeSelected(shared_str path, shared_str value, bool select);
+	ChooseItemVec m_Items;
+	void		  OnNodeSelected(shared_str path, shared_str value, bool select);
+	void		  OnTreeItemsFocused(ListItemsVec& items);
 
 protected:
 	void		 UpdateSelectionUI(float height);

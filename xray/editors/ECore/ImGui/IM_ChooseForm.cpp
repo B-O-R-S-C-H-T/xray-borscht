@@ -22,32 +22,28 @@ IM_ChooseForm::IM_ChooseForm(EChooseMode mode, int max_select, ChooseItemVec* it
 	}
 
 	m_items_tree.OnNodeSelected = IM_TOnNodeSelected(this, &IM_ChooseForm::OnNodeSelected);
+	m_items_tree.OnItemsFocused.bind(this, &IM_ChooseForm::OnTreeItemsFocused);
 
 	// fill items
 	if (items) {
 		VERIFY2(fill_items.empty(), "double source");
-		ChooseItemVecIt it = items->begin();
-		for (; it != items->end(); it++)
-			m_items_tree.Add((*it).name.c_str(), (*it).hint.c_str());
+		m_Items = *items;
+	} else if (!fill_items.empty()) {
+		fill_items(m_Items, fill_param);
 	} else {
-		ChooseItemVec items;
-		if (!fill_items.empty()) {
-			fill_items(items, fill_param);
-		} else {
-			VERIFY2(m_events && !m_events->on_fill.empty(), "no source");
-			m_events->on_fill(items, fill_param);
-		}
-
-		ChooseItemVecIt it = items.begin();
-		for (; it != items.end(); it++)
-			m_items_tree.Add((*it).name.c_str(), (*it).hint.c_str());
+		VERIFY2(m_events && !m_events->on_fill.empty(), "no source");
+		m_events->on_fill(m_Items, fill_param);
 	}
+
+	ListItemsVec tree_items;
+	for (ChooseItemVecIt it = m_Items.begin(); it != m_Items.end(); ++it) {
+		ListItem* I = LHelper().CreateItem(tree_items, it->name.c_str(), 0);
+		I->m_Object = (void*)&(*it);
+	}
+	m_items_tree.AssignItems(tree_items, false, true);
 }
 
 void IM_ChooseForm::OnNodeSelected(shared_str path, shared_str value, bool select) {
-	m_props.Clear();
-	m_thm.Clear();
-
 	xr_vector<shared_str>::iterator it;
 	for (it = m_selected.begin(); it != m_selected.end(); it++) {
 		if (select && *it == path)
@@ -59,6 +55,30 @@ void IM_ChooseForm::OnNodeSelected(shared_str path, shared_str value, bool selec
 	}
 
 	m_selected.push_back(path);
+}
+
+void IM_ChooseForm::OnTreeItemsFocused(ListItemsVec& items) {
+	m_props.Clear();
+	m_thm.Clear();
+	if (items.size() == 1) {
+		ListItem* li = items.front();
+		if (li && li->m_Object) {
+			SChooseItem* itm = (SChooseItem*)li->m_Object;
+
+			PropItemVec	 prop_items;
+			if (m_events && !m_events->on_sel.empty()) {
+				m_events->on_sel(itm, prop_items);
+			}
+			m_props.AssignItems(prop_items, false, false);
+
+			if (m_show_thumbnail && m_events && !m_events->on_thm.empty()) {
+				HDC	  hdc = m_thm.BeginPaint();
+				Irect r	  = Irect().set(0, 0, m_thm.Width(), m_thm.Height());
+				m_events->on_thm(itm->name.c_str(), hdc, r);
+				m_thm.EndPaint();
+			}
+		}
+	}
 }
 
 void IM_ChooseForm::Close() {
