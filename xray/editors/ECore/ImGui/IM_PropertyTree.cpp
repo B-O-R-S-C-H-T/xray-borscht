@@ -755,7 +755,7 @@ void IM_PropertyTree::RenderFlag(PropItem* item) {
 		have_caption = f32->HaveCaption();
 	}
 
-	bool modified;
+	bool modified = false;
 	ImGui::PushID(item->Key());
 	if (have_caption) {
 		if (ImGui::Selectable(item->GetDrawText().c_str(), false)) {
