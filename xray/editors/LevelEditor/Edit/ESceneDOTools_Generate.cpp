@@ -40,66 +40,76 @@ DetailSlot&	EDetailManager::GetSlot(u32 sx, u32 sz){
 	return dtSlots[sz*dtH.size_x+sx];
 }
 
-void EDetailManager::FindClosestIndex(const Fcolor& C, SIndexDistVec& best)
+bool EDetailManager::FindClosestIndex(const Fcolor& C, SIndexDistVec& best)
 {
-	u32 index;
-    float dist = flt_max;
-    Fcolor src;
-    float inv_a = 1-C.a;
-    bool bRes=false;
-    ColorIndexPairIt S = m_ColorIndices.begin();
-    ColorIndexPairIt E = m_ColorIndices.end();
-    ColorIndexPairIt it= S;
-	for(; it!=E; it++){
-		src.set(it->first);
-        float d = inv_a+sqrtf((C.r-src.r)*(C.r-src.r)+(C.g-src.g)*(C.g-src.g)+(C.b-src.b)*(C.b-src.b));
-        if (d<dist){
-        	dist 	= d;
-            index 	= it->first;
-            bRes	= true;
+    u32				 index;
+    float			 dist = flt_max;
+    Fcolor			 src;
+    float			 inv_a = 1.0f - C.a;
+    bool			 bRes  = false;
+
+    ColorIndexPairIt S	   = m_ColorIndices.begin();
+    ColorIndexPairIt E	   = m_ColorIndices.end();
+    ColorIndexPairIt it	   = S;
+
+    for (; it != E; ++it) {
+        if (it->second.empty())
+            continue;
+
+        src.set(it->first);
+        float d = inv_a + sqrtf((C.r - src.r) * (C.r - src.r) + (C.g - src.g) * (C.g - src.g) + (C.b - src.b) * (C.b - src.b));
+
+        if (d < dist) {
+            dist  = d;
+            index = it->first;
+            bRes  = true;
         }
     }
 
-    if (bRes){
-        if (best.size()<4){
-            bool bFound=false;
-            for (u32 k=0; k<best.size(); k++){
-                if (best[k].index==index){
-                	if(dist<best[k].dist){
-	                    best[k].dist 	= dist;
-    	                best[k].index	= index;
+    if (bRes) {
+        if (best.size() < 4) {
+            bool bFound = false;
+            for (u32 k = 0; k < best.size(); ++k) {
+                if (best[k].index == index) {
+                    if (dist < best[k].dist) {
+                        best[k].dist  = dist;
+                        best[k].index = index;
                     }
                     bFound = true;
                     break;
                 }
             }
-            if (!bFound){
+            if (!bFound) {
                 best.inc();
-                best[best.size()-1].dist = dist;
-                best[best.size()-1].index= index;
+                best[best.size() - 1].dist	= dist;
+                best[best.size() - 1].index = index;
             }
-        }else{
-            int i=-1;
-            float dd=flt_max;
-            bool bFound=false;
-            for (int k=0; k<4; k++){
-                float d = dist-best[k].dist;
-                if ((d<0)&&(d<dd)){ i=k; dd=d;}
-                if (best[k].index==index){
-                	if(dist<best[k].dist){
-	                    best[k].dist 	= dist;
-    	                best[k].index    = index;
+        } else {
+            int	  i		 = -1;
+            float dd	 = flt_max;
+            bool  bFound = false;
+            for (int k = 0; k < 4; ++k) {
+                float d = dist - best[k].dist;
+                if ((d < 0) && (d < dd)) {
+                    i  = k;
+                    dd = d;
+                }
+                if (best[k].index == index) {
+                    if (dist < best[k].dist) {
+                        best[k].dist  = dist;
+                        best[k].index = index;
                     }
                     bFound = true;
                     break;
                 }
             }
-            if (!bFound&&(i>=0)){
-                best[i].dist 	= dist;
-                best[i].index	= index;
+            if (!bFound && (i >= 0)) {
+                best[i].dist  = dist;
+                best[i].index = index;
             }
         }
     }
+    return bRes;
 }
 
 bool EDetailManager::Initialize()

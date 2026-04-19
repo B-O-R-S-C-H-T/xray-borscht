@@ -339,6 +339,11 @@ void CLevelTool::ShowProperties(LPCSTR focus_to_item)
 
 void CLevelTool::RealUpdateProperties()
 {
+	if (CurrentClassID() == OBJCLASS_DO) {
+		m_IMProps->Props().Clear();
+		m_Flags.set(flUpdateProperties, FALSE);
+		return;
+	}
 /*
 	if (m_Props->Visible)
     {

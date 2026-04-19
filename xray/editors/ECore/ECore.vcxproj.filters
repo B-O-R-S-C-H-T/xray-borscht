@@ -46,9 +46,6 @@
     <Filter Include="xrRender\xrRenderDX9">
       <UniqueIdentifier>{59e608bf-9307-4816-a5c1-07b7f818c1e3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="thorvg">
-      <UniqueIdentifier>{b9477d28-9d27-4da9-b6ef-b23c444b7db3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="~Precompiled Headers">
       <UniqueIdentifier>{7cd85578-98ab-4777-a6eb-3776e6988fe9}</UniqueIdentifier>
     </Filter>
@@ -69,6 +66,12 @@
     </Filter>
     <Filter Include="Editor\Thumbnail">
       <UniqueIdentifier>{9cfa1414-2fe8-450f-a38c-8503aece28d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThorVG">
+      <UniqueIdentifier>{b9477d28-9d27-4da9-b6ef-b23c444b7db3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\FS Color Picker">
+      <UniqueIdentifier>{5f782db4-14c1-4500-bfef-0b065fb0f2fd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -532,7 +535,7 @@
       <Filter>Undo Manager</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\3rd_party\thorvg\inc\thorvg.h">
-      <Filter>thorvg</Filter>
+      <Filter>ThorVG</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_SVGCanvas.h">
       <Filter>imgui</Filter>
@@ -545,6 +548,9 @@
     </ClInclude>
     <ClInclude Include="Editor\EThumbnail.h">
       <Filter>Editor\Thumbnail</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\FSColorWrapper.h">
+      <Filter>Editor\FS Color Picker</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1096,6 +1102,9 @@
     </ClCompile>
     <ClCompile Include="Editor\EThumbnailTexture.cpp">
       <Filter>Editor\Thumbnail</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\FSColorWrapper.cpp">
+      <Filter>Editor\FS Color Picker</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

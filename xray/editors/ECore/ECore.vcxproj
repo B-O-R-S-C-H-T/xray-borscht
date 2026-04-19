@@ -304,6 +304,7 @@
     <ClInclude Include="Editor\EThumbnail.h" />
     <ClInclude Include="Editor\ExportObjectOGF.h" />
     <ClInclude Include="Editor\ExportSkeleton.h" />
+    <ClInclude Include="Editor\FSColorWrapper.h" />
     <ClInclude Include="Editor\GeometryCollector.h" />
     <ClInclude Include="Editor\ImageManager.h" />
     <ClInclude Include="Editor\Library.h" />
@@ -528,6 +529,7 @@
     <ClCompile Include="Editor\ExportObjectOGFCalculateTB.cpp" />
     <ClCompile Include="Editor\ExportSkeleton.cpp" />
     <ClCompile Include="Editor\ExportSkeletonCalculateTB.cpp" />
+    <ClCompile Include="Editor\FSColorWrapper.cpp" />
     <ClCompile Include="Editor\GeometryCollector.cpp" />
     <ClCompile Include="Editor\ImageManager.cpp" />
     <ClCompile Include="Editor\ImageManagerDO.cpp" />

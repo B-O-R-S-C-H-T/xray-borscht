@@ -582,18 +582,31 @@ void EDetailManager::OnBaseTextureChange(PropValue* prop)
     ELog.DlgMsg				(mtInformation,"Texture changed. Reinitialize objects.");
 }
 
-void EDetailManager::FillProp(LPCSTR pref, PropItemVec& items)
-{
+void EDetailManager::OnDensityApply(PropItem* item) {
+	InvalidateCache();
+	Scene->Modified();
+}
+
+void EDetailManager::FillProp(LPCSTR pref, PropItemVec& items) {
 	PropValue* P;
-    P=PHelper().CreateFloat	(items, PrepareKey(pref,"Objects per square"),				&ps_r__Detail_density);
-    P->OnChangeEvent.bind	(this,&EDetailManager::OnDensityChange);
-    P=PHelper().CreateChoose(items, PrepareKey(pref,"Base Texture"),					&m_Base.name, smTexture);
-    P->OnChangeEvent.bind	(this,&EDetailManager::OnBaseTextureChange);
-    PHelper().CreateFlag32	(items, PrepareKey(pref,"Common\\Draw objects"),			&m_Flags,	flObjectsDraw);
-    PHelper().CreateFlag32	(items, PrepareKey(pref,"Common\\Draw base texture"),		&m_Flags,	flBaseTextureDraw);
-	PHelper().CreateFlag32	(items, PrepareKey(pref,"Common\\Base texture blended"),	&m_Flags,	flBaseTextureBlended);
-	PHelper().CreateFlag32	(items, PrepareKey(pref,"Common\\Draw slot boxes"),			&m_Flags,	flSlotBoxesDraw);
-	PHelper().CreateFlag32	(items, PrepareKey(pref,"Common\\Don't merge textures"),	&m_Flags,	flDontMergeTextures);
+
+	P = PHelper().CreateFloatWithApply(items,
+									   PrepareKey(pref, "Detail Objects Density"),
+									   &ps_r__Detail_density,
+									   0.0f,
+									   1.0f,
+									   0.01f,
+									   2,
+									   fastdelegate::MakeDelegate(this, &EDetailManager::OnDensityApply));
+
+	P = PHelper().CreateChoose(items, PrepareKey(pref, "Base Detail Map"), &m_Base.name, smTexture);
+	P->OnChangeEvent.bind(this, &EDetailManager::OnBaseTextureChange);
+
+	PHelper().CreateFlag32(items, PrepareKey(pref, "Common\\Render Detail Objects"),    &m_Flags, flObjectsDraw);
+	PHelper().CreateFlag32(items, PrepareKey(pref, "Common\\Render Base Texture"),      &m_Flags, flBaseTextureDraw);
+	PHelper().CreateFlag32(items, PrepareKey(pref, "Common\\Blend Base Texture"),       &m_Flags, flBaseTextureBlended);
+	PHelper().CreateFlag32(items, PrepareKey(pref, "Common\\Show Detail Slots"),		&m_Flags, flSlotBoxesDraw);
+	PHelper().CreateFlag32(items, PrepareKey(pref, "Common\\Disable Texture Merging"),	&m_Flags, flDontMergeTextures);
 }
 
 bool EDetailManager::GetSummaryInfo(SSceneSummary* inf)
@@ -607,4 +620,3 @@ bool EDetailManager::GetSummaryInfo(SSceneSummary* inf)
     }
     return true;
 }
-

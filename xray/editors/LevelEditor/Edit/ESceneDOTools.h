@@ -68,7 +68,7 @@ class EDetailManager:
     u8					GetObject		(ColorIndexPairIt& CI, u8 id);
 
 	void 				CalcClosestCount(int part, const Fcolor& C, SIndexDistVec& best);
-	void 				FindClosestIndex(const Fcolor& C, SIndexDistVec& best);
+	bool				FindClosestIndex(const Fcolor& C, SIndexDistVec& best);
 
     DetailSlot&			GetSlot			(u32 sx, u32 sz);
 
@@ -176,6 +176,8 @@ public:
     void				ClearSlots				();
     void				ClearBase				();
 
+private:
+	void OnDensityApply(PropItem* item);
 };
 #endif /*_INCDEF_DetailObjects_H_*/
 

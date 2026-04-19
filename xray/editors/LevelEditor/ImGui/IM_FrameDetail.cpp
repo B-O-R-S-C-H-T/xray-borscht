@@ -8,9 +8,6 @@
 #include "../Edit/ESceneDOTools.h"
 #include "../Edit/Scene.h"
 #include "IM_DetailShuffle.h"
-#ifndef NO_VCL
-#include "DOShuffle.h"
-#endif
 #include "../ECore/Editor/ui_main.h"
 
 void IM_FrameDetail::Render() {
@@ -19,14 +16,16 @@ void IM_FrameDetail::Render() {
 		VERIFY(parent_tool);
 	}
 
-	if (ImGui::CollapsingHeader("DO Commands", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+	if (ImGui::CollapsingHeader("Detail Objects Commands", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
 		if (ImGui::MenuItem("First Initialize##detail_first_init")) {
 			if (parent_tool->Initialize())
 				Scene->UndoSave();
 		}
 		if (ImGui::MenuItem("Reinitialize All##detail_reinit_all")) {
-			if (parent_tool->Reinitialize())
+			if (parent_tool->Reinitialize()) {
 				Scene->UndoSave();
+				RefreshProperties();
+			}
 		}
 		if (ImGui::MenuItem("Reinitialize Objects Only##detail_reinit_objs")) {
 			if (parent_tool->UpdateObjects(true, false))
@@ -57,20 +56,30 @@ void IM_FrameDetail::Render() {
 				ExecCommand(COMMAND_UPDATE_PROPERTIES);
 				parent_tool->Clear();
 				Scene->UndoSave();
+				RefreshProperties();
 			}
 		}
 
 		ImGui::Separator();
 
 		if (ImGui::MenuItem("Object List##detail_object_list")) {
-#ifdef NO_VCL
-			auto wnd = xr_new<IM_DetailShuffle>(dynamic_cast<EDetailManager*>(Scene->GetTool(OBJCLASS_DO)));
-			UI->AddIMWindow(wnd);
-#else
-			if (TfrmDOShuffle::Run())
-				Scene->UndoSave();
-#endif
+			IM_DetailShuffle::Run(dynamic_cast<EDetailManager*>(Scene->GetTool(OBJCLASS_DO)));
 		}
+	}
+
+	ImGui::Separator();
+
+	if (ImGui::CollapsingHeader("Detail Properties", ImGuiTreeNodeFlags_DefaultOpen)) {
+		if (!m_props_initialized) {
+			PropItemVec items;
+			parent_tool->FillProp("Detail", items);
+			m_detail_props.AssignItems(std::move(items), true, false);
+			m_props_initialized = true;
+		}
+
+		ImGui::BeginChild("##detail_properties_child", ImVec2(0, 0), false);
+		m_detail_props.Render();
+		ImGui::EndChild();
 	}
 }
 

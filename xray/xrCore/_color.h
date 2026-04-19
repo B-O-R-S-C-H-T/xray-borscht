@@ -232,6 +232,30 @@ public:
 	}
 	IC  BOOL	similar_rgba(SelfCRef v, T E=EPS_L) 	const	{ return _abs(r-v.r)<E && _abs(g-v.g)<E && _abs(b-v.b)<E && _abs(a-v.a)<E;};
 	IC  BOOL	similar_rgb	(SelfCRef v, T E=EPS_L) 	const	{ return _abs(r-v.r)<E && _abs(g-v.g)<E && _abs(b-v.b)<E;};
+
+	IC SelfRef set_hsv(T h, T s, T v) {
+		if (s <= 0.0f) {
+			r = g = b = v;
+		} else {
+			T hh = h * T(6.0);
+			int i = iFloor(hh);
+			T ff = hh - i;
+			T p = v * (T(1.0) - s);
+			T q = v * (T(1.0) - (s * ff));
+			T t = v * (T(1.0) - (s * (T(1.0) - ff)));
+
+			switch (i % 6) {
+			case 0:  r = v; g = t; b = p; break;
+			case 1:  r = q; g = v; b = p; break;
+			case 2:  r = p; g = v; b = t; break;
+			case 3:  r = p; g = q; b = v; break;
+			case 4:  r = t; g = p; b = v; break;
+			case 5:  r = v; g = p; b = q; break;
+			}
+		}
+		a = T(1.0);
+		return *this;
+	}
 };
 
 

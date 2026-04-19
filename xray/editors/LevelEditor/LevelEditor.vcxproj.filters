@@ -34,6 +34,15 @@
     <Filter Include="Undo Manager">
       <UniqueIdentifier>{34580253-a0b9-486b-b075-5f1e3aaf45a7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Edit\AI Map">
+      <UniqueIdentifier>{9d1d52d1-52fb-47ea-a1e3-3fbb89891271}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Edit\Detail Objects">
+      <UniqueIdentifier>{d22adf8a-0274-4f97-9811-9d4de1861856}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Edit\Patrol Paths">
+      <UniqueIdentifier>{0dc101f8-555a-41e1-96ae-fb3f41a49307}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -102,9 +111,6 @@
     <ClInclude Include="ImGui\IM_Toolbar.h">
       <Filter>ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="Edit\WayPoint.h">
-      <Filter>Edit</Filter>
-    </ClInclude>
     <ClInclude Include="Edit\SpawnPoint.h">
       <Filter>Edit</Filter>
     </ClInclude>
@@ -147,15 +153,6 @@
     <ClInclude Include="Edit\ESceneFogVolumeTools.h">
       <Filter>Edit</Filter>
     </ClInclude>
-    <ClInclude Include="Edit\ESceneDOTools.h">
-      <Filter>Edit</Filter>
-    </ClInclude>
-    <ClInclude Include="Edit\ESceneAIMapTools.h">
-      <Filter>Edit</Filter>
-    </ClInclude>
-    <ClInclude Include="Edit\ESceneAIMapTools_Export.h">
-      <Filter>Edit</Filter>
-    </ClInclude>
     <ClInclude Include="Edit\ESceneObjectTools.h">
       <Filter>Edit</Filter>
     </ClInclude>
@@ -178,9 +175,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Edit\ESceneSpawnTools.h">
-      <Filter>Edit</Filter>
-    </ClInclude>
-    <ClInclude Include="Edit\ESceneWayControls.h">
       <Filter>Edit</Filter>
     </ClInclude>
     <ClInclude Include="Edit\EScenePSTools.h">
@@ -216,9 +210,6 @@
     <ClInclude Include="Edit\ESceneControlsCustom.h">
       <Filter>Edit</Filter>
     </ClInclude>
-    <ClInclude Include="Edit\ESceneWayTools.h">
-      <Filter>Edit</Filter>
-    </ClInclude>
     <ClInclude Include="Edit\ESceneSpawnControls.h">
       <Filter>Edit</Filter>
     </ClInclude>
@@ -242,9 +233,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Layers\xrRender\DetailManager.h">
       <Filter>xrRender</Filter>
-    </ClInclude>
-    <ClInclude Include="Edit\ESceneAIMapControls.h">
-      <Filter>Edit</Filter>
     </ClInclude>
     <ClInclude Include="Edit\glow.h">
       <Filter>Edit</Filter>
@@ -299,6 +287,27 @@
     </ClInclude>
     <ClInclude Include="ImGui\IM_EditLibrary.h">
       <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Edit\ESceneDOTools.h">
+      <Filter>Edit\Detail Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Edit\ESceneAIMapControls.h">
+      <Filter>Edit\AI Map</Filter>
+    </ClInclude>
+    <ClInclude Include="Edit\ESceneAIMapTools.h">
+      <Filter>Edit\AI Map</Filter>
+    </ClInclude>
+    <ClInclude Include="Edit\ESceneAIMapTools_Export.h">
+      <Filter>Edit\AI Map</Filter>
+    </ClInclude>
+    <ClInclude Include="Edit\WayPoint.h">
+      <Filter>Edit\Patrol Paths</Filter>
+    </ClInclude>
+    <ClInclude Include="Edit\ESceneWayControls.h">
+      <Filter>Edit\Patrol Paths</Filter>
+    </ClInclude>
+    <ClInclude Include="Edit\ESceneWayTools.h">
+      <Filter>Edit\Patrol Paths</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -362,9 +371,6 @@
     <ClCompile Include="Edit\Scene_Tools.cpp">
       <Filter>Edit</Filter>
     </ClCompile>
-    <ClCompile Include="Edit\WayPoint.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
     <ClCompile Include="Edit\ScenePick.cpp">
       <Filter>Edit</Filter>
     </ClCompile>
@@ -423,39 +429,6 @@
       <Filter>Edit</Filter>
     </ClCompile>
     <ClCompile Include="Edit\ESceneFogVolumeTools.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
-    <ClCompile Include="Edit\ESceneDOTools.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
-    <ClCompile Include="Edit\ESceneDOTools_Controls.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
-    <ClCompile Include="Edit\ESceneDOTools_Generate.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
-    <ClCompile Include="Edit\ESceneDOTools_Pick.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
-    <ClCompile Include="Edit\ESceneAIMapTools.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
-    <ClCompile Include="Edit\ESceneAIMapTools_Controls.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
-    <ClCompile Include="Edit\ESceneAIMapTools_Export.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
-    <ClCompile Include="Edit\ESceneAIMapTools_Generate.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
-    <ClCompile Include="Edit\ESceneAIMapTools_MotionSimulator.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
-    <ClCompile Include="Edit\ESceneAIMapTools_Pick.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
-    <ClCompile Include="Edit\ESceneAIMapTools_Render.cpp">
       <Filter>Edit</Filter>
     </ClCompile>
     <ClCompile Include="Edit\CustomObjectLE.cpp">
@@ -524,9 +497,6 @@
     <ClCompile Include="Edit\ESceneSpawnToolsIO.cpp">
       <Filter>Edit</Filter>
     </ClCompile>
-    <ClCompile Include="Edit\ESceneWayControls.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
     <ClCompile Include="Edit\EScenePSTools.cpp">
       <Filter>Edit</Filter>
     </ClCompile>
@@ -593,12 +563,6 @@
     <ClCompile Include="Edit\ESceneControlsCustom.cpp">
       <Filter>Edit</Filter>
     </ClCompile>
-    <ClCompile Include="Edit\ESceneWayTools.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
-    <ClCompile Include="Edit\ESceneWayToolsIO.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
     <ClCompile Include="Edit\ESceneSpawnControls.cpp">
       <Filter>Edit</Filter>
     </ClCompile>
@@ -640,9 +604,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Layers\xrRender\DetailManager_VS.cpp">
       <Filter>xrRender</Filter>
-    </ClCompile>
-    <ClCompile Include="Edit\ESceneAIMapControls.cpp">
-      <Filter>Edit</Filter>
     </ClCompile>
     <ClCompile Include="Edit\glow.cpp">
       <Filter>Edit</Filter>
@@ -706,6 +667,54 @@
     </ClCompile>
     <ClCompile Include="ImGui\IM_EditLibrary.cpp">
       <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneDOTools.cpp">
+      <Filter>Edit\Detail Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneDOTools_Controls.cpp">
+      <Filter>Edit\Detail Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneDOTools_Generate.cpp">
+      <Filter>Edit\Detail Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneDOTools_Pick.cpp">
+      <Filter>Edit\Detail Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneAIMapControls.cpp">
+      <Filter>Edit\AI Map</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneAIMapTools.cpp">
+      <Filter>Edit\AI Map</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneAIMapTools_Controls.cpp">
+      <Filter>Edit\AI Map</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneAIMapTools_Export.cpp">
+      <Filter>Edit\AI Map</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneAIMapTools_Generate.cpp">
+      <Filter>Edit\AI Map</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneAIMapTools_MotionSimulator.cpp">
+      <Filter>Edit\AI Map</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneAIMapTools_Pick.cpp">
+      <Filter>Edit\AI Map</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneAIMapTools_Render.cpp">
+      <Filter>Edit\AI Map</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\WayPoint.cpp">
+      <Filter>Edit\Patrol Paths</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneWayControls.cpp">
+      <Filter>Edit\Patrol Paths</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneWayTools.cpp">
+      <Filter>Edit\Patrol Paths</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneWayToolsIO.cpp">
+      <Filter>Edit\Patrol Paths</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
