@@ -11,7 +11,13 @@
 
 IM_ObjectListWnd* IM_ObjectListWnd::instance;
 
-void			  IM_ObjectListWnd::Render() {
+void IM_ObjectListWnd::Render() {
+	// нужно проверять перед перестроением списка, иначе упадёт на загрузке следующего уровня
+	if (Scene && Scene->ObjCount() != m_lastSceneObjCount) {
+		m_needRefresh		 = true;
+		m_lastSceneObjCount = Scene->ObjCount();
+	}
+
 	 if (m_needRefresh)
 		 refresh();
 	 if (m_needRecalcVis)
@@ -215,6 +221,8 @@ void IM_ObjectListWnd::refresh() {
 				  group.Objects.end(),
 				  [](const auto& el1, const auto& el2) { return stricmp(el1.Obj->GetName(), el2.Obj->GetName()) < 0; });
 	}
+
+	m_lastSceneObjCount = Scene ? Scene->ObjCount() : 0;
 
 	recalcVis();
 }

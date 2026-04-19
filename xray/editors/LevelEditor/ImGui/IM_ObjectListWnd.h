@@ -25,6 +25,9 @@ private:
 	char m_filter[100] = {};
 
 	bool m_needRefresh = true;
+
+	u32	 m_lastSceneObjCount = 0;
+
 	struct Object {
 		CCustomObject* Obj;
 		bool		   Selected;
