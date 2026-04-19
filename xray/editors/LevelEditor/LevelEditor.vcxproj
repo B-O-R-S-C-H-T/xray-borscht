@@ -248,6 +248,7 @@
     <ClInclude Include="ImGui\IM_FrameSector.h" />
     <ClInclude Include="ImGui\IM_FrameShape.h" />
     <ClInclude Include="ImGui\IM_FrameSpawn.h" />
+    <ClInclude Include="ImGui\IM_FrameWallmark.h" />
     <ClInclude Include="ImGui\IM_FrameWayPoint.h" />
     <ClInclude Include="ImGui\IM_Sidebar.h" />
     <ClInclude Include="ImGui\IM_MainMenu.h" />
@@ -390,6 +391,7 @@
     <ClCompile Include="ImGui\IM_FrameSector.cpp" />
     <ClCompile Include="ImGui\IM_FrameShape.cpp" />
     <ClCompile Include="ImGui\IM_FrameSpawn.cpp" />
+    <ClCompile Include="ImGui\IM_FrameWallmark.cpp" />
     <ClCompile Include="ImGui\IM_FrameWayPoint.cpp" />
     <ClCompile Include="ImGui\IM_Sidebar.cpp" />
     <ClCompile Include="ImGui\IM_MainMenu.cpp" />

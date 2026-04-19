@@ -49,6 +49,7 @@ void IM_Sidebar::OnRemove() {
 	fraShape.OnRemove();
 	fraPS.OnRemove();
 	fraWayPoint.OnRemove();
+	fraWallmark.OnRemove();
 	fraSpawn.OnRemove();
 	fraGroup.OnRemove();
 	fraAIMap.OnRemove();
@@ -205,6 +206,7 @@ void IM_Sidebar::RenderToolFrame() {
 		case OBJCLASS_SHAPE:		fraShape.Render();    break;
 		case OBJCLASS_PS:			fraPS.Render();       break;
 		case OBJCLASS_WAY:			fraWayPoint.Render(); break;
+		case OBJCLASS_WM:			fraWallmark.Render(); break;
 		case OBJCLASS_SPAWNPOINT:	fraSpawn.Render();    break;
 		case OBJCLASS_GROUP:		fraGroup.Render();    break;
 		case OBJCLASS_AIMAP:		fraAIMap.Render();    break;

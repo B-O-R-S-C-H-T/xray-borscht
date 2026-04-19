@@ -43,6 +43,9 @@
     <Filter Include="Edit\Patrol Paths">
       <UniqueIdentifier>{0dc101f8-555a-41e1-96ae-fb3f41a49307}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Edit\Wallmarks">
+      <UniqueIdentifier>{9cf5abfc-335d-4292-95bf-cbc69e89d29f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -222,12 +225,6 @@
     <ClInclude Include="..\..\xrServerEntities\gametype_chooser.h">
       <Filter>xrServerEntities</Filter>
     </ClInclude>
-    <ClInclude Include="Edit\ESceneWallmarkControls.h">
-      <Filter>Edit</Filter>
-    </ClInclude>
-    <ClInclude Include="Edit\ESceneWallmarkTools.h">
-      <Filter>Edit</Filter>
-    </ClInclude>
     <ClInclude Include="Edit\ESceneLightTools.h">
       <Filter>Edit</Filter>
     </ClInclude>
@@ -308,6 +305,15 @@
     </ClInclude>
     <ClInclude Include="Edit\ESceneWayTools.h">
       <Filter>Edit\Patrol Paths</Filter>
+    </ClInclude>
+    <ClInclude Include="Edit\ESceneWallmarkControls.h">
+      <Filter>Edit\Wallmarks</Filter>
+    </ClInclude>
+    <ClInclude Include="Edit\ESceneWallmarkTools.h">
+      <Filter>Edit\Wallmarks</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\IM_FrameWallmark.h">
+      <Filter>ImGui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -578,12 +584,6 @@
     <ClCompile Include="..\..\xrServerEntities\gametype_chooser.cpp">
       <Filter>xrServerEntities</Filter>
     </ClCompile>
-    <ClCompile Include="Edit\ESceneWallmarkControls.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
-    <ClCompile Include="Edit\ESceneWallmarkTools.cpp">
-      <Filter>Edit</Filter>
-    </ClCompile>
     <ClCompile Include="Edit\ESceneLightTools.cpp">
       <Filter>Edit</Filter>
     </ClCompile>
@@ -715,6 +715,15 @@
     </ClCompile>
     <ClCompile Include="Edit\ESceneWayToolsIO.cpp">
       <Filter>Edit\Patrol Paths</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneWallmarkControls.cpp">
+      <Filter>Edit\Wallmarks</Filter>
+    </ClCompile>
+    <ClCompile Include="Edit\ESceneWallmarkTools.cpp">
+      <Filter>Edit\Wallmarks</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\IM_FrameWallmark.cpp">
+      <Filter>ImGui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -13,6 +13,7 @@
 #include "IM_FrameShape.h"
 #include "IM_FrameSpawn.h"
 #include "IM_FrameWayPoint.h"
+#include "IM_FrameWallmark.h"
 
 class IM_Sidebar : public IM_Window {
 public:
@@ -25,6 +26,7 @@ public:
 	IM_FrameShape	 fraShape;
 	IM_FramePS		 fraPS;
 	IM_FrameWayPoint fraWayPoint;
+	IM_FrameWallmark fraWallmark;
 	IM_FrameSpawn	 fraSpawn;
 	IM_FrameGroup	 fraGroup;
 	IM_FrameAIMap	 fraAIMap;
