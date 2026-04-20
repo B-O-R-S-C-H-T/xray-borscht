@@ -516,12 +516,11 @@ void NodeGraphEditor::render()
             typedef struct _MyDummyStuff {
                 const ImVector<AvailableNodeInfo>& availableNodesInfo;
                 _MyDummyStuff(const ImVector<AvailableNodeInfo>& _availableNodesInfo) : availableNodesInfo(_availableNodesInfo){}
-                static bool item_getter(void* pmds,int idx,const char** pOut) {
+                static const char* item_getter(void* pmds, int idx) {
                     const _MyDummyStuff& mds = * ((const _MyDummyStuff*) pmds);
-                    if (idx<0 || idx>mds.availableNodesInfo.size()) return false;
+                    if (idx < 0 || idx > mds.availableNodesInfo.size()) return NULL;
                     static const char ZeroName[] = "ALL";
-                    *pOut = idx==0 ? ZeroName : mds.availableNodesInfo[idx-1].name;
-                    return true;
+                    return idx == 0 ? ZeroName : mds.availableNodesInfo[idx-1].name;
                 }
             } MyDummyStuff;
             MyDummyStuff mds(availableNodesInfo);
@@ -2119,10 +2118,9 @@ FieldInfo &FieldInfoVector::addFieldEnum(int *pdata, FieldInfo::GetNumEnumElemen
     return f;
 }
 // 2 overloads of addFieldEnum(...) follow here. Both are based on the code in imgui.cpp
-static bool NGE_Enum_Items_ArrayGetter(void* data, int idx, const char** out_text)   {
+static const char* NGE_Enum_Items_ArrayGetter(void* data, int idx) {
     const char* const* items = (const char* const*)data;
-    if (out_text) *out_text = items[idx];
-    return true;
+    return items[idx];
 }
 FieldInfo &FieldInfoVector::addFieldEnum(int *pdata, int numEnumElements, const char* const* items, const char *label, const char *tooltip)   {
     IM_ASSERT(pdata && numEnumElements>0);
@@ -2131,19 +2129,17 @@ FieldInfo &FieldInfoVector::addFieldEnum(int *pdata, int numEnumElements, const 
     f.init(FT_ENUM,(void*) pdata,label,tooltip,0,0,0,1,false,numEnumElements,NGE_Enum_Items_ArrayGetter,(void*)items);
     return f;
 }
-static bool NGE_Enum_Items_SingleStringGetter(void* data, int idx, const char** out_text)   {
+static const char* NGE_Enum_Items_SingleStringGetter(void* data, int idx) {
     // FIXME-OPT: we could pre-compute the indices to fasten this. But only 1 active combo means the waste is limited.
     const char* items_separated_by_zeros = (const char*)data;
     int items_count = 0;
     const char* p = items_separated_by_zeros;
-    while (*p)  {
-        if (idx == items_count) break;
+    while (*p) {
+        if (idx == items_count) return p;
         p += strlen(p) + 1;
         items_count++;
     }
-    if (!*p)        return false;
-    if (out_text)   *out_text = p;
-    return true;
+    return NULL;
 }
 FieldInfo &FieldInfoVector::addFieldEnum(int *pdata,const char* items_separated_by_zeros, const char *label, const char *tooltip)   {
     IM_ASSERT(pdata);
@@ -2793,13 +2789,11 @@ class ComplexNode : public Node {
     int enumIndex;      // field 3
 
     // Support static method for enumIndex (the signature is the same used by ImGui::Combo(...))
-    static bool GetTextFromEnumIndex(void* ,int value,const char** pTxt) {
-        if (!pTxt) return false;
+    static const char* GetTextFromEnumIndex(void* /*userData*/, int value) {
         static const char* values[] = {"APPLE","LEMON","ORANGE"};
         static int numValues = (int)(sizeof(values)/sizeof(values[0]));
-        if (value>=0 && value<numValues) *pTxt = values[value];
-        else *pTxt = "UNKNOWN";
-        return true;
+        if (value >= 0 && value < numValues) return values[value];
+        return "UNKNOWN";
     }
 
     virtual const char* getTooltip() const {return "ComplexNode tooltip.";}

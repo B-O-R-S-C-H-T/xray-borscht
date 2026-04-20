@@ -105,7 +105,7 @@ enum FieldType {
         bool needsRadiansToDegs;    // optional for FT_FLOAT and FT_DOUBLE only
         // used only for FT_ENUM (internally it uses FT_INT, pdata must point to an int):
         int numEnumElements;
-        typedef bool (*TextFromEnumDelegate)(void*, int, const char**); // userData is the first param
+        typedef const char* (*TextFromEnumDelegate)(void* user_data, int idx); // userData is the first param
         TextFromEnumDelegate  textFromEnumFunctionPointer;  // used only when type==FT_ENUM, otherwise set it to NULL. The method is used to convert an int to a char*.
         void* userData;          // passed to textFromEnumFunctionPointer when type==FT_ENUM (useful if you want to share the same TextFromEnumDelegate for multiple enums). Otherwise set it to NULL or use it as you like.
         typedef int (*GetNumEnumElementsDelegate)(void*); // userData is the first param

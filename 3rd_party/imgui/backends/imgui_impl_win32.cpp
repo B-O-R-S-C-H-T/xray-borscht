@@ -21,6 +21,9 @@
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
+//  2026-01-28: Inputs: Minor optimization not submitting gamepad input if packet number has not changed (reworked from 2025-09-23 attempt). (#9202, #8556)
+//  2025-12-03: Inputs: handle WM_IME_CHAR/WM_IME_COMPOSITION messages to support Unicode inputs on MBCS (non-Unicode) Windows. (#9099, #3653, #5961)
+//  2025-10-19: Inputs: Revert previous change to allow for io.ClearInputKeys() on focus-out not losing gamepad state.
 //  2025-09-23: Inputs: Minor optimization not submitting gamepad input if packet number has not changed.
 //  2025-09-18: Call platform_io.ClearPlatformHandlers() on shutdown.
 //  2025-04-30: Inputs: Fixed an issue where externally losing mouse capture (due to e.g. focus loss) would fail to claim it again the next subsequent click. (#8594)
@@ -180,7 +183,7 @@ static bool ImGui_ImplWin32_InitEx(void* hwnd, bool platform_has_own_dc)
     bd->LastMouseCursor = ImGuiMouseCursor_COUNT;
     ImGui_ImplWin32_UpdateKeyboardCodePage(io);
 
-    // Set platform dependent data in viewport
+    // Our mouse update function expect PlatformHandle to be filled for the main viewport
     ImGuiViewport* main_viewport = ImGui::GetMainViewport();
     main_viewport->PlatformHandle = main_viewport->PlatformHandleRaw = (void*)bd->hWnd;
     IM_UNUSED(platform_has_own_dc); // Used in 'docking' branch
@@ -196,7 +199,7 @@ static bool ImGui_ImplWin32_InitEx(void* hwnd, bool platform_has_own_dc)
         "xinput1_2.dll",   // DirectX SDK
         "xinput1_1.dll"    // DirectX SDK
     };
-    for (int n = 0; n < IM_ARRAYSIZE(xinput_dll_names); n++)
+    for (int n = 0; n < IM_COUNTOF(xinput_dll_names); n++)
         if (HMODULE dll = ::LoadLibraryA(xinput_dll_names[n]))
         {
             bd->XInputDLL = dll;
@@ -209,12 +212,12 @@ static bool ImGui_ImplWin32_InitEx(void* hwnd, bool platform_has_own_dc)
     return true;
 }
 
-bool     ImGui_ImplWin32_Init(void* hwnd)
+IMGUI_IMPL_API bool     ImGui_ImplWin32_Init(void* hwnd)
 {
     return ImGui_ImplWin32_InitEx(hwnd, false);
 }
 
-bool     ImGui_ImplWin32_InitForOpenGL(void* hwnd)
+IMGUI_IMPL_API bool     ImGui_ImplWin32_InitForOpenGL(void* hwnd)
 {
     // OpenGL needs CS_OWNDC
     return ImGui_ImplWin32_InitEx(hwnd, true);
@@ -225,7 +228,7 @@ void    ImGui_ImplWin32_Shutdown()
     ImGui_ImplWin32_Data* bd = ImGui_ImplWin32_GetBackendData();
     IM_ASSERT(bd != nullptr && "No platform backend to shutdown, or already shutdown?");
     ImGuiIO& io = ImGui::GetIO();
-    //ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
+    ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
 
     // Unload XInput library
 #ifndef IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
@@ -236,7 +239,7 @@ void    ImGui_ImplWin32_Shutdown()
     io.BackendPlatformName = nullptr;
     io.BackendPlatformUserData = nullptr;
     io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad);
-    //platform_io.ClearPlatformHandlers();  // bor: не линкуется
+    platform_io.ClearPlatformHandlers();
     IM_DELETE(bd);
 }
 
@@ -615,10 +618,10 @@ static ImGuiMouseSource ImGui_ImplWin32_GetMouseSourceFromMessageExtraInfo()
 // PS: We treat DBLCLK messages as regular mouse down messages, so this code will work on windows classes that have the CS_DBLCLKS flag set. Our own example app code doesn't set this flag.
 
 // Copy either line into your .cpp file to forward declare the function:
-extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);                // Use ImGui::GetCurrentContext()
-extern LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, ImGuiIO& io); // Doesn't use ImGui::GetCurrentContext()
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);                // Use ImGui::GetCurrentContext()
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, ImGuiIO& io); // Doesn't use ImGui::GetCurrentContext()
 
-LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     // Most backends don't have silent checks like this one, but we need it because WndProc are called early in CreateWindow().
     // We silently allow both context or just only backend data to be nullptr.
@@ -628,7 +631,7 @@ LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 }
 
 // This version is in theory thread-safe in the sense that no path should access ImGui::GetCurrentContext().
-LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, ImGuiIO& io)
+IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, ImGuiIO& io)
 {
     ImGui_ImplWin32_Data* bd = ImGui_ImplWin32_GetBackendData(io);
     if (bd == nullptr)
@@ -652,8 +655,8 @@ LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPARAM wParam, LPA
             bd->MouseTrackedArea = area;
         }
         POINT mouse_pos = { (LONG)GET_X_LPARAM(lParam), (LONG)GET_Y_LPARAM(lParam) };
-        if (msg == WM_NCMOUSEMOVE && ::ScreenToClient(hwnd, &mouse_pos) == FALSE) // WM_NCMOUSEMOVE are provided in absolute coordinates.
-            return 0;
+        if (msg == WM_NCMOUSEMOVE) // WM_NCMOUSEMOVE are absolute coordinates.
+             ::ScreenToClient(hwnd, &mouse_pos);
         io.AddMouseSourceEvent(mouse_source);
         io.AddMousePosEvent((float)mouse_pos.x, (float)mouse_pos.y);
         return 0;
@@ -773,6 +776,9 @@ LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPARAM wParam, LPA
     case WM_SETFOCUS:
     case WM_KILLFOCUS:
         io.AddFocusEvent(msg == WM_SETFOCUS);
+#ifndef IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
+        bd->XInputPacketNumber = 0; // FIXME: Technically, calling io.ClearInputKeys() directly would require this as well.
+#endif
         return 0;
     case WM_INPUTLANGCHANGE:
         ImGui_ImplWin32_UpdateKeyboardCodePage(io);
@@ -787,8 +793,26 @@ LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPARAM wParam, LPA
         else
         {
             wchar_t wch = 0;
-            ::MultiByteToWideChar(bd->KeyboardCodePage, MB_PRECOMPOSED, (char*)&wParam, 1, &wch, 1);
+            ::MultiByteToWideChar(bd->KeyboardCodePage, MB_PRECOMPOSED, (char*)&wParam, 2, &wch, 1);
             io.AddInputCharacter(wch);
+        }
+        return 0;
+    case WM_IME_COMPOSITION:
+    {
+        // Handling WM_IME_COMPOSITION ensure that WM_IME_CHAR value is correct even for MBCS apps.
+        // (see #9099, #3653 and https://stackoverflow.com/questions/77450354 topics) 
+        LRESULT result = ::DefWindowProcW(hwnd, msg, wParam, lParam);
+        return (lParam & GCS_RESULTSTR) ? 1 : result;
+    }
+    case WM_IME_CHAR:
+        if (::IsWindowUnicode(hwnd) == FALSE)
+        {
+            if (::IsDBCSLeadByte(HIBYTE(wParam)))
+                wParam = (WPARAM)MAKEWORD(HIBYTE(wParam), LOBYTE(wParam));
+            wchar_t wch = 0;
+            ::MultiByteToWideChar(bd->KeyboardCodePage, MB_PRECOMPOSED, (char*)&wParam, 2, &wch, 1);
+            io.AddInputCharacterUTF16(wch);
+            return 1;
         }
         return 0;
     case WM_SETCURSOR:
@@ -814,7 +838,7 @@ LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPARAM wParam, LPA
 // - Your own app may already do this via a manifest or explicit calls. This is mostly useful for our examples/ apps.
 // - In theory we could call simple functions from Windows SDK such as SetProcessDPIAware(), SetProcessDpiAwareness(), etc.
 //   but most of the functions provided by Microsoft require Windows 8.1/10+ SDK at compile time and Windows 8/10+ at runtime,
-//   neither we want to require the user to have. So we dynamically select and load those functions to avoid dependencies.
+//   neither of which we want to require the user to have. So we dynamically select and load those functions to avoid dependencies.
 //---------------------------------------------------------------------------------------------------------
 // This is the scheme successfully used by GLFW (from which we borrowed some of the code) and other apps aiming to be highly portable.
 // ImGui_ImplWin32_EnableDpiAwareness() is just a helper called by main.cpp, we don't call it automatically.

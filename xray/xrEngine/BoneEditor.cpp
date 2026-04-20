@@ -230,7 +230,7 @@ void CBone::ClampByLimits()
 }
 #endif
 
-bool CBone::ExportOGF(IWriter& F)
+bool CBone::ExportOGF(IWriter& F, [[maybe_unused]] float scale, [[maybe_unused]] BOOL adjust_mass)
 {
 	// check valid
 	if (!shape.Valid()){

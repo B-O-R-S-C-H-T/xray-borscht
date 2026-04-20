@@ -25,37 +25,34 @@ Fvector4 convert(const Fvector4& v)
     return result;
 }
 
-bool enumCycle(void* data, int idx, const char** item)
+const char* enumCycle(void* data, int idx)
 {
     xr_vector<shared_str>* cycles = (xr_vector<shared_str>*)data;
-    *item = (*cycles)[idx].c_str();
-    return true;
+    return (*cycles)[idx].c_str();
 }
 
-bool enumWeather(void* data, int idx, const char** item)
+const char* enumWeather(void* data, int idx)
 {
     xr_vector<CEnvDescriptor*>* envs = (xr_vector<CEnvDescriptor*>*)data;
-    *item = (*envs)[idx]->m_identifier.c_str();
-    return true;
+    return (*envs)[idx]->m_identifier.c_str();
 }
 
 const char* empty = "";
-bool enumIniWithEmpty(void* data, int idx, const char** item)
+const char* enumIniWithEmpty(void* data, int idx)
 {
     if (idx == 0)
-        *item = empty;
-    else {
+        return empty;
+    else
+    {
         CInifile* ini = (CInifile*)data;
-        *item = ini->sections()[idx - 1]->Name.c_str();
+        return ini->sections()[idx - 1]->Name.c_str();
     }
-    return true;
 }
 
-bool enumIni(void* data, int idx, const char** item)
+const char* enumIni(void* data, int idx)
 {
     CInifile* ini = (CInifile*)data;
-    *item = ini->sections()[idx]->Name.c_str();
-    return true;
+    return ini->sections()[idx]->Name.c_str();
 }
 
 bool getScriptWeather()

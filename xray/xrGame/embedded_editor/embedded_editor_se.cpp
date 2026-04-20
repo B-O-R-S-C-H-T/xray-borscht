@@ -125,12 +125,13 @@ void showSeEditor(bool& show)
     ImGui::Text("Pixel shaders(%d):", pss.size());
     if (ImGui::ListBox(
             "##PixelShadersList", &selected,
-            [](void* data, int idx, const char** out_text) -> bool {
+            [](void* data, int idx) -> const char* {
                 xr_vector<ref_ps>* psList = (xr_vector<ref_ps>*)data;
-                *out_text = (*psList)[idx]->cName.c_str();
-                return true;
+                if (idx < 0 || idx >= (int)psList->size())
+                    return "???";
+                return (*psList)[idx]->cName.c_str();
             },
-            &psList, pss.size())) {
+            &psList, (int)pss.size())) {
         if (selected == -1) {
             curPs = ref_ps();
             editor.SetText(std::string());
