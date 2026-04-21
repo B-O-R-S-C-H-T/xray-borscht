@@ -513,7 +513,6 @@
     <ClInclude Include="..\xrRender\HOM.h" />
     <ClInclude Include="..\xrRender\HW.h" />
     <ClInclude Include="..\xrRender\HWCaps.h" />
-    <ClInclude Include="..\xrRender\imgui_setup.h" />
     <ClInclude Include="..\xrRender\IRenderDetailModel.h" />
     <ClInclude Include="..\xrRender\KinematicAnimatedDefs.h" />
     <ClInclude Include="..\xrRender\light.h" />
@@ -664,10 +663,6 @@
     <ClCompile Include="..\xrRender\HOM.cpp" />
     <ClCompile Include="..\xrRender\HW.cpp" />
     <ClCompile Include="..\xrRender\HWCaps.cpp" />
-    <ClCompile Include="..\xrRender\imgui_setup.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\xrRender\light.cpp" />
     <ClCompile Include="..\xrRender\LightTrack.cpp" />
     <ClCompile Include="..\xrRender\Light_DB.cpp" />

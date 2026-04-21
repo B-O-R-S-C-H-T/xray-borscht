@@ -18,7 +18,7 @@
 #include "../xrCore/FS_impl.h"
 #include "xrSash.h"
 #include "igame_persistent.h"
-#include "../Layers/xrRender/imgui_setup.h"
+#include "../Layers/xrRender/imgui_manager.h"
 
 ENGINE_API CRenderDevice Device;
 ENGINE_API BOOL g_bRendering = FALSE; 

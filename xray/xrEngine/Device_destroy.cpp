@@ -4,7 +4,7 @@
 #include "IGame_Persistent.h"
 #include "xr_IOConsole.h"
 #include "Environment.h"
-#include "../Layers/xrRender/imgui_setup.h"
+#include "../Layers/xrRender/imgui_manager.h"
 
 void CRenderDevice::_Destroy	(BOOL bKeepTextures)
 {
@@ -31,10 +31,12 @@ void CRenderDevice::Destroy	(void) {
 
 	_Destroy					(FALSE);
 
+	m_pRender->ImGuiBackendShutdown();
+
 	// real destroy
 	m_pRender->DestroyHW();
 
-	imgui_destroy_context();
+	imgui_manager::instance().shutdown();
 
 	//xr_delete					(Resources);
 	//HW.DestroyDevice			();

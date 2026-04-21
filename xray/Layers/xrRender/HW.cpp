@@ -9,7 +9,6 @@
 #include "HW.h"
 #ifndef _EDITOR
 	#include "../../xrEngine/XR_IOConsole.h"
-	#include "imgui_setup.h"
 #endif
 
 #ifndef _EDITOR
@@ -166,10 +165,6 @@ D3DFORMAT CHW::selectDepthStencil	(D3DFORMAT fTarget)
 
 void	CHW::DestroyDevice	()
 {
-#ifndef _EDITOR
-	Device.m_pRender->ImGuiBackendShutdown();
-#endif
-
 	_SHOW_REF				("refCount:pBaseZB",pBaseZB);
 	_RELEASE				(pBaseZB);
 
@@ -338,7 +333,6 @@ void CHW::CreateDevice(HWND m_hWnd, bool move_window)
 		TerminateProcess	(GetCurrentProcess(),0);
 	}
 
-
     // Set up the presentation parameters
 	D3DPRESENT_PARAMETERS&	P	= DevPP;
     ZeroMemory				( &P, sizeof(P) );
@@ -426,10 +420,6 @@ void CHW::CreateDevice(HWND m_hWnd, bool move_window)
 #ifndef _EDITOR
 	updateWindowProps							(m_hWnd);
 	fill_vid_mode_list							(this);
-
-	Device.m_pRender->ImGuiBackendInit();
-	imgui_build_fonts();
-	ImGui_ImplWin32_Init(m_hWnd);
 #endif
 }
 

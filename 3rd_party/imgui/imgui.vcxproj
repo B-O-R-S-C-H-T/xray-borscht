@@ -153,7 +153,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;DEBUG;_WINDOWS;_USRDLL;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;IMGUI_API=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;DEBUG;_WINDOWS;_USRDLL;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;IMGUI_API=__declspec(dllexport);IMPLOT_API=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -200,7 +200,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;IMGUI_API=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;IMGUI_API=__declspec(dllexport);IMPLOT_API=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -213,6 +213,15 @@
     <ClCompile Include="addons\ImGuiColorTextEdit\TextEditor.cpp" />
     <ClCompile Include="addons\imguinodegrapheditor\imguinodegrapheditor.cpp" />
     <ClCompile Include="addons\ImGuizmo\ImGuizmo.cpp" />
+    <ClCompile Include="addons\implot\implot.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="addons\implot\implot_demo.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="addons\implot\implot_items.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
     <ClCompile Include="imgui_draw.cpp" />
@@ -223,6 +232,8 @@
     <ClInclude Include="addons\ImGuiColorTextEdit\TextEditor.h" />
     <ClInclude Include="addons\imguinodegrapheditor\imguinodegrapheditor.h" />
     <ClInclude Include="addons\ImGuizmo\ImGuizmo.h" />
+    <ClInclude Include="addons\implot\implot.h" />
+    <ClInclude Include="addons\implot\implot_internal.h" />
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />
     <ClInclude Include="imgui_internal.h" />

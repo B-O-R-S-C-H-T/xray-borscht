@@ -99,7 +99,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>FreeImage.lib;MagicFM.lib;dxguid.lib;dinput8.lib;d3dx9.lib;vfw32.lib;winmm.lib;thorvg-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>FreeImage.lib;MagicFM.lib;dxguid.lib;dinput8.lib;d3dx9.lib;vfw32.lib;winmm.lib;thorvg-1.lib;imgui.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)intermediate\$(Platform)-$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -171,7 +171,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>FreeImage.lib;MagicFM.lib;dxguid.lib;dinput8.lib;d3dx9.lib;vfw32.lib;winmm.lib;thorvg-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>FreeImage.lib;MagicFM.lib;dxguid.lib;dinput8.lib;d3dx9.lib;vfw32.lib;winmm.lib;thorvg-1.lib;imgui.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalLibraryDirectories>$(SolutionDir)intermediate\$(Platform)-$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
@@ -179,13 +179,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx9.h" />
     <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.h" />
-    <ClInclude Include="..\..\..\3rd_party\imgui\imconfig.h" />
-    <ClInclude Include="..\..\..\3rd_party\imgui\imgui.h" />
-    <ClInclude Include="..\..\..\3rd_party\imgui\imgui_internal.h" />
-    <ClInclude Include="..\..\..\3rd_party\imgui\imgui_user.h" />
-    <ClInclude Include="..\..\..\3rd_party\imgui\imstb_rectpack.h" />
-    <ClInclude Include="..\..\..\3rd_party\imgui\imstb_textedit.h" />
-    <ClInclude Include="..\..\..\3rd_party\imgui\imstb_truetype.h" />
     <ClInclude Include="..\..\..\3rd_party\NvMender2003\convert.h" />
     <ClInclude Include="..\..\..\3rd_party\NvMender2003\mender_input_output.h" />
     <ClInclude Include="..\..\..\3rd_party\NvMender2003\NVMeshMender.h" />
@@ -239,7 +232,7 @@
     <ClInclude Include="..\..\Layers\xrRender\FVisual.h" />
     <ClInclude Include="..\..\Layers\xrRender\HW.h" />
     <ClInclude Include="..\..\Layers\xrRender\HWCaps.h" />
-    <ClInclude Include="..\..\Layers\xrRender\imgui_setup.h" />
+    <ClInclude Include="..\..\Layers\xrRender\imgui_manager.h" />
     <ClInclude Include="..\..\Layers\xrRender\ModelPool.h" />
     <ClInclude Include="..\..\Layers\xrRender\ParticleEffect.h" />
     <ClInclude Include="..\..\Layers\xrRender\ParticleEffectDef.h" />
@@ -338,52 +331,12 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\3rd_party\imgui\addons\ImGuizmo\ImGuizmo.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx9.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\3rd_party\imgui\imgui.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\3rd_party\imgui\imgui_demo.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\3rd_party\imgui\imgui_draw.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\3rd_party\imgui\imgui_tables.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\3rd_party\imgui\imgui_widgets.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\NvMender2003\NVMeshMender.cpp" />
@@ -437,7 +390,7 @@
     <ClCompile Include="..\..\Layers\xrRender\FVisual.cpp" />
     <ClCompile Include="..\..\Layers\xrRender\HW.cpp" />
     <ClCompile Include="..\..\Layers\xrRender\HWCaps.cpp" />
-    <ClCompile Include="..\..\Layers\xrRender\imgui_setup.cpp" />
+    <ClCompile Include="..\..\Layers\xrRender\imgui_manager.cpp" />
     <ClCompile Include="..\..\Layers\xrRender\ModelPool.cpp" />
     <ClCompile Include="..\..\Layers\xrRender\ParticleEffect.cpp" />
     <ClCompile Include="..\..\Layers\xrRender\ParticleEffectDef.cpp" />

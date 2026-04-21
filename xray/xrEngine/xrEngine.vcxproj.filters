@@ -148,8 +148,11 @@
     <Filter Include="OpenAutomate">
       <UniqueIdentifier>{276c0b84-ec71-4936-8261-a686d10644b6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="RenderRef\Execution &amp; 3D\Device\imgui">
+    <Filter Include="RenderRef\Execution &amp; 3D\Device\ImGui">
       <UniqueIdentifier>{7eb57f67-a880-4d03-848e-8cc8e4df30e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderRef\Execution &amp; 3D\Device\ImGui\Backends">
+      <UniqueIdentifier>{4e885c54-9dd1-4575-b3c7-858f5aff183b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -436,16 +439,16 @@
       <Filter>OpenAutomate</Filter>
     </ClInclude>
     <ClInclude Include="..\..\3rd_party\imgui\backends\imgui_impl_dx9.h">
-      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
+      <Filter>RenderRef\Execution &amp; 3D\Device\ImGui\Backends</Filter>
     </ClInclude>
     <ClInclude Include="..\..\3rd_party\imgui\backends\imgui_impl_dx11.h">
-      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
+      <Filter>RenderRef\Execution &amp; 3D\Device\ImGui\Backends</Filter>
     </ClInclude>
     <ClInclude Include="..\..\3rd_party\imgui\backends\imgui_impl_win32.h">
-      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
+      <Filter>RenderRef\Execution &amp; 3D\Device\ImGui\Backends</Filter>
     </ClInclude>
-    <ClInclude Include="..\Layers\xrRender\imgui_setup.h">
-      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
+    <ClInclude Include="..\Layers\xrRender\imgui_manager.h">
+      <Filter>RenderRef\Execution &amp; 3D\Device\ImGui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -732,16 +735,16 @@
       <Filter>Engine\Console</Filter>
     </ClCompile>
     <ClCompile Include="..\..\3rd_party\imgui\backends\imgui_impl_dx9.cpp">
-      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
+      <Filter>RenderRef\Execution &amp; 3D\Device\ImGui\Backends</Filter>
     </ClCompile>
     <ClCompile Include="..\..\3rd_party\imgui\backends\imgui_impl_dx11.cpp">
-      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
+      <Filter>RenderRef\Execution &amp; 3D\Device\ImGui\Backends</Filter>
     </ClCompile>
     <ClCompile Include="..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
-      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
+      <Filter>RenderRef\Execution &amp; 3D\Device\ImGui\Backends</Filter>
     </ClCompile>
-    <ClCompile Include="..\Layers\xrRender\imgui_setup.cpp">
-      <Filter>RenderRef\Execution &amp; 3D\Device\imgui</Filter>
+    <ClCompile Include="..\Layers\xrRender\imgui_manager.cpp">
+      <Filter>RenderRef\Execution &amp; 3D\Device\ImGui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

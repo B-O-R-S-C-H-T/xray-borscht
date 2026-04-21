@@ -13,8 +13,20 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="addons">
+    <Filter Include="Addons">
       <UniqueIdentifier>{d4982901-7f51-4352-adaf-c6ee97bc7d7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Addons\ImPlot">
+      <UniqueIdentifier>{b4ce2130-e9f1-429c-84b7-e0ad45a70aae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Addons\ImGuizmo">
+      <UniqueIdentifier>{659ee09a-2529-42af-8caf-7bf929a16555}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Addons\ImGuiNodeGraphEditor">
+      <UniqueIdentifier>{f8716855-ff88-4605-87f9-d7305f688bd3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Addons\TextEditor">
+      <UniqueIdentifier>{a77036cc-d279-47be-ab0f-4c193ae4a1fb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -27,20 +39,29 @@
     <ClCompile Include="imgui_draw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="addons\imguinodegrapheditor\imguinodegrapheditor.cpp">
-      <Filter>addons</Filter>
-    </ClCompile>
-    <ClCompile Include="addons\ImGuizmo\ImGuizmo.cpp">
-      <Filter>addons</Filter>
-    </ClCompile>
-    <ClCompile Include="addons\ImGuiColorTextEdit\TextEditor.cpp">
-      <Filter>addons</Filter>
-    </ClCompile>
     <ClCompile Include="imgui_tables.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="imgui_widgets.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="addons\implot\implot_demo.cpp">
+      <Filter>Addons\ImPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="addons\implot\implot_items.cpp">
+      <Filter>Addons\ImPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="addons\ImGuizmo\ImGuizmo.cpp">
+      <Filter>Addons\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="addons\implot\implot.cpp">
+      <Filter>Addons\ImPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="addons\imguinodegrapheditor\imguinodegrapheditor.cpp">
+      <Filter>Addons\ImGuiNodeGraphEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="addons\ImGuiColorTextEdit\TextEditor.cpp">
+      <Filter>Addons\TextEditor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -49,15 +70,6 @@
     </ClInclude>
     <ClInclude Include="imgui_internal.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="addons\imguinodegrapheditor\imguinodegrapheditor.h">
-      <Filter>addons</Filter>
-    </ClInclude>
-    <ClInclude Include="addons\ImGuizmo\ImGuizmo.h">
-      <Filter>addons</Filter>
-    </ClInclude>
-    <ClInclude Include="addons\ImGuiColorTextEdit\TextEditor.h">
-      <Filter>addons</Filter>
     </ClInclude>
     <ClInclude Include="imstb_rectpack.h">
       <Filter>Header Files</Filter>
@@ -70,6 +82,21 @@
     </ClInclude>
     <ClInclude Include="imconfig.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="addons\implot\implot_internal.h">
+      <Filter>Addons\ImPlot</Filter>
+    </ClInclude>
+    <ClInclude Include="addons\ImGuizmo\ImGuizmo.h">
+      <Filter>Addons\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="addons\implot\implot.h">
+      <Filter>Addons\ImPlot</Filter>
+    </ClInclude>
+    <ClInclude Include="addons\imguinodegrapheditor\imguinodegrapheditor.h">
+      <Filter>Addons\ImGuiNodeGraphEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="addons\ImGuiColorTextEdit\TextEditor.h">
+      <Filter>Addons\TextEditor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

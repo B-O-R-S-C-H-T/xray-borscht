@@ -15,8 +15,6 @@
 
 #include <d3dx/d3dx11core.h>
 
-#include "../xrRender/imgui_setup.h"
-
 #ifndef _EDITOR
 void	fill_vid_mode_list			(CHW* _hw);
 void	free_vid_mode_list			();
@@ -412,16 +410,10 @@ void CHW::CreateDevice( HWND m_hWnd, bool move_window )
 	updateWindowProps							(m_hWnd);
 	fill_vid_mode_list							(this);
 #endif
-
-	Device.m_pRender->ImGuiBackendInit();
-	imgui_build_fonts();
-	ImGui_ImplWin32_Init(m_hWnd);
 }
 
 void CHW::DestroyDevice()
 {
-	Device.m_pRender->ImGuiBackendShutdown();
-
 	//	Destroy state managers
 	StateManager.Reset();
 	RSManager.ClearStateArray();

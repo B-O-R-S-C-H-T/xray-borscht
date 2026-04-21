@@ -17,7 +17,7 @@
 #endif
 #include <utils/ETools/ETools.h>
 
-#include "../../Layers/xrRender/imgui_setup.h"
+#include "../../Layers/xrRender/imgui_manager.h"
 #include "../ImGui/IM_Log.h"
 #include "../ImGui/IM_Window.h"
 #include "../ImGui/IM_SVGCanvas.h"
@@ -70,17 +70,17 @@ TUI::~TUI()
 void TUI::OnDeviceCreate()
 {
 	DUImpl.OnDeviceCreate();
-	imgui_create_context();
+	imgui_manager::instance().initialize();
 	ImGui_ImplDX9_Init(HW.pDevice);
-	imgui_build_fonts();
-	ImGui_ImplWin32_Init(m_D3DWindow->Handle);
+	imgui_manager::instance().build_fonts();
+	imgui_manager::instance().init_platform(m_D3DWindow->Handle);
 }
 
 void TUI::OnDeviceDestroy()
 {
 	DUImpl.OnDeviceDestroy();
 	ImGui_ImplDX9_Shutdown();
-	imgui_destroy_context();
+	imgui_manager::instance().shutdown();
 }
 
 bool TUI::IsModified()

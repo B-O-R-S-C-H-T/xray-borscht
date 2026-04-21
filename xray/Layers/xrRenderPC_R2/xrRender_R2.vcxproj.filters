@@ -166,7 +166,7 @@
     <Filter Include="pch">
       <UniqueIdentifier>{612cb47e-22e7-4d3c-866d-f97856d0ddae}</UniqueIdentifier>
     </Filter>
-    <Filter Include="imgui_render">
+    <Filter Include="ImGui Backends">
       <UniqueIdentifier>{088049fb-4e3b-4540-ae7f-0473e8063084}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -661,13 +661,10 @@
       <Filter>Models\Editor\NvMender2003</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx9.h">
-      <Filter>imgui_render</Filter>
+      <Filter>ImGui Backends</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.h">
-      <Filter>imgui_render</Filter>
-    </ClInclude>
-    <ClInclude Include="..\xrRender\imgui_setup.h">
-      <Filter>imgui_render</Filter>
+      <Filter>ImGui Backends</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1200,13 +1197,10 @@
       <Filter>Models\Editor\NvMender2003</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx9.cpp">
-      <Filter>imgui_render</Filter>
+      <Filter>ImGui Backends</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
-      <Filter>imgui_render</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xrRender\imgui_setup.cpp">
-      <Filter>imgui_render</Filter>
+      <Filter>ImGui Backends</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

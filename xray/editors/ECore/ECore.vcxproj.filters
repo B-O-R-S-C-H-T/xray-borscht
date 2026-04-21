@@ -55,9 +55,6 @@
     <Filter Include="Undo Manager">
       <UniqueIdentifier>{16b326b1-dbaa-4bbf-90f4-b6e521797840}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ImGui">
-      <UniqueIdentifier>{4ef78859-ccdc-450f-a6cf-eeb044d3b614}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Editor\Preferences">
       <UniqueIdentifier>{a9501c23-65a4-40f6-ad1d-e128d9f14c8c}</UniqueIdentifier>
     </Filter>
@@ -72,6 +69,15 @@
     </Filter>
     <Filter Include="Editor\FS Color Picker">
       <UniqueIdentifier>{5f782db4-14c1-4500-bfef-0b065fb0f2fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui">
+      <UniqueIdentifier>{c5e75169-a131-4bb4-8237-c92a5a7b34e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui\Backends">
+      <UniqueIdentifier>{0b813892-cc8c-415d-86a9-33e256957b20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI Common">
+      <UniqueIdentifier>{4ef78859-ccdc-450f-a6cf-eeb044d3b614}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -421,7 +427,7 @@
       <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_Log.h">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Layers\xrRender\D3DUtils.h">
       <Filter>xrRender</Filter>
@@ -442,25 +448,25 @@
       <Filter>xrRender</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_Tree.h">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_PropertyTree.h">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_Canvas.h">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_TextEditor.h">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_ChooseForm.h">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\utf8.h">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_Window.h">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xrEngine\ObjectAnimator.h">
       <Filter>xrEngine</Filter>
@@ -493,37 +499,7 @@
       <Filter>NvMender2003</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_ImageEditor.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\3rd_party\imgui\imgui_user.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx9.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\3rd_party\imgui\imgui.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\3rd_party\imgui\imgui_internal.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\3rd_party\imgui\imstb_rectpack.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\3rd_party\imgui\imstb_textedit.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\3rd_party\imgui\imstb_truetype.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Layers\xrRender\imgui_setup.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\3rd_party\imgui\imconfig.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.h">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClInclude>
     <ClInclude Include="Editor\undo_manager.h">
       <Filter>Undo Manager</Filter>
@@ -538,7 +514,7 @@
       <Filter>ThorVG</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\IM_SVGCanvas.h">
-      <Filter>imgui</Filter>
+      <Filter>UI Common</Filter>
     </ClInclude>
     <ClInclude Include="Editor\AnimationPath.h">
       <Filter>Editor</Filter>
@@ -551,6 +527,15 @@
     </ClInclude>
     <ClInclude Include="Editor\FSColorWrapper.h">
       <Filter>Editor\FS Color Picker</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx9.h">
+      <Filter>ImGui\Backends</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.h">
+      <Filter>ImGui\Backends</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Layers\xrRender\imgui_manager.h">
+      <Filter>ImGui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -975,7 +960,7 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_Log.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Layers\xrRender\D3DUtils.cpp">
       <Filter>xrRender</Filter>
@@ -996,25 +981,25 @@
       <Filter>xrRender</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_Tree.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_PropertyTree.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_Canvas.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_TextEditor.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_ChooseForm.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\utf8.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_Window.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xrEngine\ObjectAnimator.cpp">
       <Filter>xrEngine</Filter>
@@ -1041,40 +1026,13 @@
       <Filter>NvMender2003</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_ImageEditor.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx9.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\3rd_party\imgui\imgui.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\3rd_party\imgui\imgui_demo.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\3rd_party\imgui\imgui_draw.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\3rd_party\imgui\imgui_tables.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\3rd_party\imgui\imgui_widgets.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Layers\xrRender\imgui_setup.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\3rd_party\imgui\addons\ImGuizmo\ImGuizmo.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>UI Common</Filter>
     </ClCompile>
     <ClCompile Include="Editor\EditorPreferences.cpp">
       <Filter>Editor\Preferences</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_SVGCanvas.cpp">
-      <Filter>imgui</Filter>
+      <Filter>UI Common</Filter>
     </ClCompile>
     <ClCompile Include="Editor\AnimationPath.cpp">
       <Filter>Editor</Filter>
@@ -1105,6 +1063,15 @@
     </ClCompile>
     <ClCompile Include="Editor\FSColorWrapper.cpp">
       <Filter>Editor\FS Color Picker</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx9.cpp">
+      <Filter>ImGui\Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_win32.cpp">
+      <Filter>ImGui\Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Layers\xrRender\imgui_manager.cpp">
+      <Filter>ImGui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -3,7 +3,7 @@
 #include "../Include/xrRender/DrawUtils.h"
 #include "render.h"
 #include "dedicated_server_only.h"
-#include "../Layers/xrRender/imgui_setup.h"
+#include "../Layers/xrRender/imgui_manager.h"
 
 void SetupGPU(IRenderDeviceRender *pRender)
 {
@@ -170,7 +170,7 @@ PROTECT_API void CRenderDevice::Create	()
 	fFOV				= 90.f;
 	fASPECT				= 1.f;
 
-	imgui_create_context();
+	imgui_manager::instance().initialize();
 
 	m_pRender->Create	(
 		m_hWnd,
@@ -180,6 +180,10 @@ PROTECT_API void CRenderDevice::Create	()
 		fHeight_2,
 		true
 	);
+
+	imgui_manager::instance().build_fonts();
+	imgui_manager::instance().init_platform(m_hWnd);
+	m_pRender->ImGuiBackendInit();
 
 	string_path			fname; 
 	FS.update_path		(fname,"$game_data$","shaders.xr");
