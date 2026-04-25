@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #pragma hdrstop
 
+#include <xrServerEntities/ai_sounds.h>
+
 #include "EThumbnail.h"
-//#include "ImageManager.h"
-#pragma package(smart_init)
 
 //------------------------------------------------------------------------------
 #define THM_SOUND_VERSION				0x0014
@@ -14,7 +14,7 @@
 //------------------------------------------------------------------------------
 ESoundThumbnail::ESoundThumbnail(LPCSTR src_name, bool bLoad):ECustomThumbnail(src_name,ETSound)
 {
-    m_fQuality 		= 0.f;
+    m_fQuality 		= 1.f;
     m_fMinDist 		= 1.f;
     m_fMaxDist		= 300.f;
     m_fMaxAIDist	= 300.f;
@@ -108,61 +108,32 @@ void ESoundThumbnail::Save(int age, LPCSTR path)
     {
 	    FS.set_file_age	(fn,age?age:m_Age);
     }else{
-        Log			("!Can't save thumbnail:",fn);
+		ELog.Msg(mtInformation, "Cannot save thumbnail:", fn);
     }
 }
 //------------------------------------------------------------------------------
 
-#include <xrServerEntities/ai_sounds.h>
-#ifndef NO_VCL
-#include "../../xrEProps/PropertiesList.h"
-#endif
+bool ESoundThumbnail::OnMaxAIDistAfterEdit(PropValue* sender, float& edit_val) {
+	if (edit_val > m_fMaxDist)
+		edit_val = m_fMaxDist;
 
-bool ESoundThumbnail::OnMaxAIDistAfterEdit(PropValue* sender, float& edit_val)
-{
-#ifndef NO_VCL
-    TProperties* P	= sender->Owner()->Owner(); 		VERIFY(P);
-    PropItem* S 	= P->FindItem("Max Dist"); 			VERIFY(S);
-    FloatValue* V 	= dynamic_cast<FloatValue*>(S->GetFrontValue());VERIFY(V);
-#else
-    FloatValue* V = dynamic_cast<FloatValue*>(sender); VERIFY(V);
-#endif
-    float max_val 	= V->GetValue	();
-	return edit_val<max_val;
+	return true;
 }
-void ESoundThumbnail::OnMaxDistChange(PropValue* sender)
-{
-    #ifndef NO_VCL
-    FloatValue* SV 	= dynamic_cast<FloatValue*>(sender);VERIFY(SV);
-    TProperties* P	= sender->Owner()->Owner(); 		VERIFY(P);
-    PropItem* S 	= P->FindItem("Max AI Dist"); 		VERIFY(S);
-    bool bChanged 	= false;
-    for (PropItem::PropValueIt it=S->Values().begin(); S->Values().end() != it; ++it){
-	    FloatValue* CV = dynamic_cast<FloatValue*>(*it);VERIFY(CV);
-        CV->lim_mx	= *SV->value;
-        if (*CV->value>CV->lim_mx){ 
-        	ELog.DlgMsg	(mtInformation,"'Max AI Dist' <= 'Max Dist'. 'Max AI Dist' will be clamped.");
-        	bChanged	= true;
-        	*CV->value 	= CV->lim_mx;
-        }
-        if (!CV->Equal(S->Values().front()))
-            S->m_Flags.set(PropItem::flMixed,TRUE);
-    }
-	if (bChanged){ 
-    	P->Modified		();
-        P->RefreshForm	();
-    }
-    #endif
+
+void ESoundThumbnail::OnMaxDistChange(PropValue* sender) {
+	if (m_fMaxAIDist > m_fMaxDist) {
+		m_fMaxAIDist = m_fMaxDist;
+	}
 }
 
 void ESoundThumbnail::FillProp(PropItemVec& items)
 {                                    
 	FloatValue* V	= 0;  
-    PHelper().CreateFloat		(items, "Quality", 		&m_fQuality);
-    PHelper().CreateFloat		(items, "Min Dist",		&m_fMinDist, 	0.01f,1000.f);
-    V = PHelper().CreateFloat	(items, "Max Dist",		&m_fMaxDist, 	0.1f,1000.f);
+    PHelper().CreateFloat		(items, "OGG Quality", 		&m_fQuality);
+    PHelper().CreateFloat		(items, "Min Distance",	&m_fMinDist, 	0.01f,1000.f);
+    V = PHelper().CreateFloat	(items, "Max Distance",	&m_fMaxDist, 	0.1f,1000.f);
     V->OnChangeEvent.bind		(this,&ESoundThumbnail::OnMaxDistChange);
-    V = PHelper().CreateFloat	(items, "Max AI Dist",	&m_fMaxAIDist, 	0.1f,1000.f);
+    V = PHelper().CreateFloat	(items, "Max AI Distance",	&m_fMaxAIDist, 	0.1f,1000.f);
     V->OnAfterEditEvent.bind	(this,&ESoundThumbnail::OnMaxAIDistAfterEdit);
     PHelper().CreateFloat		(items, "Base Volume",	&m_fBaseVolume, 0.f,2.f);
     PHelper().CreateToken32		(items, "Game Type",	&m_uGameType, 	anomaly_type_token);
@@ -171,10 +142,9 @@ void ESoundThumbnail::FillProp(PropItemVec& items)
 
 void ESoundThumbnail::FillInfo(PropItemVec& items)
 {
-    //AnsiString().sprintf("%3.2f"
-    PHelper().CreateCaption		(items, "Quality", 		std::to_string(m_fQuality).c_str());
-    PHelper().CreateCaption		(items, "Min Dist", 	std::to_string(m_fMinDist).c_str());
-    PHelper().CreateCaption		(items, "Max Dist",		std::to_string(m_fMaxDist).c_str());
+    PHelper().CreateCaption		(items, "OGG Quality", 		std::to_string(m_fQuality).c_str());
+    PHelper().CreateCaption		(items, "Min Distance", std::to_string(m_fMinDist).c_str());
+    PHelper().CreateCaption		(items, "Max Distance",	std::to_string(m_fMaxDist).c_str());
     PHelper().CreateCaption		(items, "Max AI Dist",	std::to_string(m_fMaxAIDist).c_str());
     PHelper().CreateCaption		(items, "Base Volume",	std::to_string(m_fBaseVolume).c_str());
     PHelper().CreateCaption		(items, "Game Type",	get_token_name(anomaly_type_token,m_uGameType));

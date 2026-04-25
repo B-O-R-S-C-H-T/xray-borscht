@@ -537,6 +537,9 @@
     <ClInclude Include="..\..\Layers\xrRender\imgui_manager.h">
       <Filter>ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="ImGui\IM_SoundEditor.h">
+      <Filter>UI Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -1072,6 +1075,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Layers\xrRender\imgui_manager.cpp">
       <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\IM_SoundEditor.cpp">
+      <Filter>UI Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

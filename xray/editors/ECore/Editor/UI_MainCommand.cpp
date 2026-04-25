@@ -1,5 +1,3 @@
-//---------------------------------------------------------------------------
-
 #include "stdafx.h"
 #pragma hdrstop
 
@@ -13,6 +11,7 @@
 #include "../../xrEProps/TextForm.h"
 #else
 #include <editors/ECore/ImGui/IM_ImageEditor.h>
+#include <editors/ECore/ImGui/IM_SoundEditor.h>
 #endif
 #include <Layers/xrRender/D3DUtils.h>
 
@@ -345,6 +344,8 @@ CCommandVar 	CommandSoundEditor(CCommandVar p1, CCommandVar p2)
 {
 #ifndef NO_VCL
     TfrmSoundLib::EditLib(AnsiString("Sound Editor"));
+#else
+	imSoundEditor.Open();
 #endif
     return				TRUE;
 }

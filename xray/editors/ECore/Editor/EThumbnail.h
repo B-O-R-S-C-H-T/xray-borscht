@@ -160,6 +160,7 @@ public:
 	virtual void	FillInfo		(PropItemVec& values);
     float			MinDist			(){return m_fMinDist;}
     float			MaxDist			(){return m_fMaxDist;};
+	float			MaxAIDist		(){return m_fMaxAIDist;}
     float			BaseVolume		(){return m_fBaseVolume;};
    	void			SetMinDist		(float d){m_fMinDist=d;}
     void			SetMaxDist		(float d){m_fMaxDist=d;};
