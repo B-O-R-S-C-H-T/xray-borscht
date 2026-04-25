@@ -40,6 +40,8 @@ enum EPropType{
     PROP_SH_TOKEN,
 	PROP_TEXTURE2,
     PROP_GAMETYPE,
+
+	PROP_PLOT,
 };
 
 // refs
@@ -715,6 +717,28 @@ public:
     }
 };
 //------------------------------------------------------------------------------
+
+class PlotValue : public PropValue {
+public:
+	typedef fastdelegate::FastDelegate<void(PlotValue*, void*)> TOnDrawPlotEvent;
+
+	TOnDrawPlotEvent OnDrawPlotEvent;
+	shared_str       caption;
+
+public:
+	PlotValue(const shared_str& _caption = "") : caption(_caption) {}
+
+	virtual xr_string GetDrawText(TOnDrawTextEvent OnDrawText) override { return caption.size() ? caption.c_str() : "Plot"; }
+
+	virtual void ResetValue() override {}
+	virtual bool Equal(PropValue* val) override { return true; }
+
+	void Draw() {
+		 if (!OnDrawPlotEvent.empty())
+			 OnDrawPlotEvent(this, nullptr);
+	}
+};
+
 #pragma pack( pop )
 
 #endif

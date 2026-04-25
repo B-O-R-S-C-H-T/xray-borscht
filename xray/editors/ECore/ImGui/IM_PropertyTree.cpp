@@ -284,6 +284,16 @@ void IM_PropertyTree::RenderItem(ImTreeNode& node) {
 			RenderCanvas(item, node.canvas);
 			break;
 
+		case PROP_PLOT: {
+			PlotValue* PV = dynamic_cast<PlotValue*>(item->GetFrontValue());
+			VERIFY(PV);
+
+			if (PV->OnDrawPlotEvent.empty())
+				ImGui::TextUnformatted("(empty plot)");
+			else
+				PV->Draw();
+		} break;
+
 		case PROP_TIME:
 			RenderTime(item);
 			break;

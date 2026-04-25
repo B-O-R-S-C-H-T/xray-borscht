@@ -75,6 +75,8 @@ public:
     virtual CTextValue* 		__stdcall	CreateCName		    (PropItemVec& items, shared_str key, LPSTR val, u32 sz, ListItem* owner);
 	virtual TokenValueSH*   	__stdcall	CreateTokenSH	    (PropItemVec& items, shared_str key, u32* val, const TokenValueSH::Item* lst, u32 cnt);
     virtual CTextValue* 		__stdcall	CreateTexture		(PropItemVec& items, shared_str key, LPSTR val, u32 sz);
+
+	virtual PlotValue*			__stdcall CreatePlot			(PropItemVec& items, shared_str key, PlotValue::TOnDrawPlotEvent on_draw, shared_str caption = "") override;
 };
 //---------------------------------------------------------------------------
 #endif

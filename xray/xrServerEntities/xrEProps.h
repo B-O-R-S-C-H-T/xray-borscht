@@ -123,6 +123,9 @@ public:
 	virtual RTextValue* 		__stdcall	CreateNameCB		(PropItemVec& items, shared_str key, shared_str* val, TOnDrawTextEvent=0, RTextValue::TOnBeforeEditEvent=0, RTextValue::TOnAfterEditEvent=0)=0;
 
 	virtual GameTypeValue*		__stdcall	CreateGameType		(PropItemVec& items, shared_str key, GameTypeChooser* val)=0;
+
+	virtual PlotValue*			__stdcall	CreatePlot			(PropItemVec& items, shared_str key, PlotValue::TOnDrawPlotEvent on_draw, shared_str caption = "") = 0;
+
 	// obsolette    
     virtual CTextValue* 		__stdcall	CreateCText			(PropItemVec& items, shared_str key, LPSTR val, u32 sz)=0;
 	virtual CListValue* 	 	__stdcall	CreateCList		    (PropItemVec& items, shared_str key, LPSTR val, u32 sz, xr_string* lst, u32 cnt)=0;

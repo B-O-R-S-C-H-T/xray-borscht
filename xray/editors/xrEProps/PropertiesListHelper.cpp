@@ -273,5 +273,9 @@ bool CPropHelper::CNameAfterEdit(PropValue* sender, xr_string& edit_val)
 }
 //---------------------------------------------------------------------------
 
-
+PlotValue* CPropHelper::CreatePlot(PropItemVec& items, shared_str key, PlotValue::TOnDrawPlotEvent on_draw, shared_str caption) {
+	PlotValue* PV		= xr_new<PlotValue>(caption);
+	PV->OnDrawPlotEvent = on_draw;
+	return (PlotValue*)AppendValue(items, key, PV, PROP_PLOT);
+}
 
