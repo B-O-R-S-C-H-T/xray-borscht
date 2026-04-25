@@ -40,7 +40,7 @@ IM_ChooseForm::IM_ChooseForm(EChooseMode mode, int max_select, ChooseItemVec* it
 		ListItem* I = LHelper().CreateItem(tree_items, it->name.c_str(), 0);
 		I->m_Object = (void*)&(*it);
 	}
-	m_items_tree.AssignItems(tree_items, false, true);
+	m_items_tree.AssignItems(tree_items, false);
 }
 
 void IM_ChooseForm::OnNodeSelected(shared_str path, shared_str value, bool select) {

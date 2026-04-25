@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #pragma hdrstop
 
 #include "IM_Tree.h"
@@ -54,133 +54,144 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 	if (!parent.child)
 		return;
 
-	xr_vector<xr_map<xr_string, ImTreeNode>::iterator> sorted;
-	sorted.reserve(parent.child->size());
+	xr_vector<xr_map<xr_string, ImTreeNode>::iterator> folders;
+	xr_vector<xr_map<xr_string, ImTreeNode>::iterator> files;
 
 	for (auto it = parent.child->begin(); it != parent.child->end(); ++it) {
 		if (it->second.item && !it->second.item->Visible())
 			continue;
-		sorted.push_back(it);
+
+		if (it->second.child) // folder
+			folders.push_back(it);
+		else // file
+			files.push_back(it);
 	}
 
-	auto natural_comp = [&](const xr_map<xr_string, ImTreeNode>::iterator& a_it, const xr_map<xr_string, ImTreeNode>::iterator& b_it) -> bool
+	std::sort(folders.begin(), folders.end(), [&](const auto& a, const auto& b) { return a->first < b->first; });
+
+	std::sort(files.begin(), files.end(), [&](const auto& a, const auto& b) { return NaturalCompare(a->first, b->first); });
+
+	auto render_list = [&](auto& list)
 	{
-		const xr_string& na = a_it->first;
-		const xr_string& nb = b_it->first;
+		for (auto map_it : list) {
+			ImTreeNode& node   = map_it->second;
+			bool		remove = false;
+			bool		rename = false;
 
-		if (na.empty() || nb.empty())
-			return na < nb;
+			if (renaming == &node) {
+				ImGui::PushID(static_cast<void*>(&node));
+				xr_string current_input(newname);
+				if (current_input.empty() || current_input.find('\\') != xr_string::npos) {
+					xr_string basename_only = GetBasename(node.name);
+					strcpy(newname, basename_only.c_str());
+				}
+				ImGui::InputText("##rename_input", newname, sizeof(newname));
+				ImGui::SameLine();
+				bool ok = ImGui::Button("OK");
+				ImGui::PopID();
 
-		bool a_normal = (na[0] >= '0' && na[0] <= '9') || (na[0] >= 'A' && na[0] <= 'Z') || (na[0] >= 'a' && na[0] <= 'z');
-		bool b_normal = (nb[0] >= '0' && nb[0] <= '9') || (nb[0] >= 'A' && nb[0] <= 'Z') || (nb[0] >= 'a' && nb[0] <= 'z');
+				if ((GetAsyncKeyState(VK_RETURN) & 0x8000) || ok) {
+					xr_string new_key(newname);
+					if (parent.child->find(new_key) == parent.child->end()) {
+						rename	 = true;
+						renaming = nullptr;
+					} else {
+						ELog.Msg(mtError, u8"Element '%s' already exists", newname);
+					}
+				}
+			}
+			// folder
+			else if (node.child) {
+				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+				if (node.selected)
+					flags |= ImGuiTreeNodeFlags_Selected;
+				if (full_expand)
+					flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
-		if (a_normal != b_normal)
-			return a_normal > b_normal;
+				bool open	 = ImGui::TreeNodeEx(map_it->first.c_str(), flags);
+				node.is_open = open;
 
-		return NaturalCompare(na, nb);
+				if (ImGui::BeginPopupContextItem()) {
+					ShowContextMenu(node, remove);
+					ImGui::EndPopup();
+				}
+
+				if (open) {
+					RenderNode(node);
+					ImGui::TreePop();
+				}
+			// file
+			} else {
+				xr_string display_name = GetBasename(node.name);
+				if (DrawBullets)
+					ImGui::Bullet();
+
+				bool clicked = ImGui::Selectable(display_name.c_str(), node.selected);
+
+				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && !OnItemRename.empty()) {
+					SelectAll(false);
+					SelectNode(node, true);
+					strcpy(newname, GetBasename(node.name).c_str());
+					renaming = &node;
+				}
+
+				if (ImGui::BeginPopupContextItem()) {
+					ShowContextMenu(node, remove);
+					ImGui::EndPopup();
+				}
+
+				if (DrawThumbnails && !OnDrawThumbnail.empty()) {
+					if (!node.canvas) {
+						const int w = 150, h = 150;
+						node.canvas = xr_new<IM_Canvas>(w, h);
+						HDC hdc		= node.canvas->BeginPaint();
+						OnDrawThumbnail(*node.name, hdc, Irect().set(0, 0, w, h));
+						node.canvas->EndPaint();
+					}
+					node.canvas->Render();
+					if (ImGui::IsItemClicked())
+						clicked = true;
+				}
+
+				if (clicked) {
+					if (ImGui::GetIO().KeyShift && m_lastClickedNode) {
+						SelectRange(m_lastClickedNode, &node);
+					} else if (CheckmarkMode) {
+						SelectNode(node, !node.selected);
+						m_lastClickedNode = &node;
+					} else {
+						if (ImGui::GetIO().KeyCtrl)
+							SelectNode(node, !node.selected);
+						else {
+							SelectAll(false);
+							SelectNode(node, true);
+						}
+						m_lastClickedNode = &node;
+					}
+
+					if (node.item && !node.item->OnClickEvent.empty())
+						node.item->OnClickEvent(node.item);
+				}
+			}
+
+			if (remove)
+				parent.child->erase(map_it);
+			else if (rename) {
+				xr_string nm = map_it->first;
+				RenameNode(parent, nm.c_str(), newname);
+			}
+		}
 	};
 
-	std::sort(sorted.begin(), sorted.end(), natural_comp);
+	render_list(folders);
+	render_list(files);
+}
 
-	for (auto map_it : sorted) {
-		ImTreeNode& node   = map_it->second;
-		bool		remove = false;
-		bool		rename = false;
-
-		if (renaming == &node) {
-			ImGui::PushID(static_cast<void*>(&node));
-			xr_string current_input(newname);
-			if (current_input.empty() || current_input.find('\\') != xr_string::npos) {
-				xr_string basename_only = GetBasename(node.name);
-				strcpy(newname, basename_only.c_str());
-			}
-			ImGui::InputText("##rename_input", newname, sizeof(newname));
-			ImGui::SameLine();
-			bool ok = ImGui::Button("OK");
-			ImGui::PopID();
-			if (GetAsyncKeyState(VK_RETURN) & 0x8000 || ok) {
-				xr_string new_key(newname);
-				if (parent.child->find(new_key) == parent.child->end()) {
-					rename	 = true;
-					renaming = nullptr;
-				} else {
-					ELog.Msg(mtError, u8"Element '%s' already exists", newname);
-				}
-			}
-		// folder
-		} else if (node.child) {
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
-			if (node.selected)
-				flags |= ImGuiTreeNodeFlags_Selected;
-			if (full_expand)
-				flags |= ImGuiTreeNodeFlags_DefaultOpen;
-
-			bool open = ImGui::TreeNodeEx(map_it->first.c_str(), flags);
-			if (ImGui::BeginPopupContextItem()) {
-				ShowContextMenu(node, remove);
-				ImGui::EndPopup();
-			}
-			if (open) {
-				RenderNode(node);
-				ImGui::TreePop();
-			}
-		// file
-		} else {
-			xr_string display_name = GetBasename(node.name);
-			if (DrawBullets)
-				ImGui::Bullet();
-			bool clicked = ImGui::Selectable(display_name.c_str(), node.selected);
-
-			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && !OnItemRename.empty()) {
-				SelectAll(false);
-				SelectNode(node, true);
-				strcpy(newname, GetBasename(node.name).c_str());
-				renaming = &node;
-			}
-
-			if (ImGui::BeginPopupContextItem()) {
-				ShowContextMenu(node, remove);
-				ImGui::EndPopup();
-			}
-			if (DrawThumbnails && !OnDrawThumbnail.empty()) {
-				if (!node.canvas) {
-					const int w = 150, h = 150;
-					node.canvas = xr_new<IM_Canvas>(w, h);
-					HDC hdc		= node.canvas->BeginPaint();
-					OnDrawThumbnail(*node.name, hdc, Irect().set(0, 0, w, h));
-					node.canvas->EndPaint();
-				}
-				node.canvas->Render();
-				if (ImGui::IsItemClicked())
-					clicked = true;
-			}
-
-			if (clicked) {
-				if (ImGui::GetIO().KeyShift && m_lastClickedNode) {
-					SelectRange(m_lastClickedNode, &node);
-				} else if (CheckmarkMode) {
-					SelectNode(node, !node.selected);
-					m_lastClickedNode = &node;
-				} else {
-					if (ImGui::GetIO().KeyCtrl) {
-						SelectNode(node, !node.selected);
-					} else {
-						SelectAll(false);
-						SelectNode(node, true);
-					}
-					m_lastClickedNode = &node;
-				}
-				if (node.item && !node.item->OnClickEvent.empty())
-					node.item->OnClickEvent(node.item);
-			}
-		}
-
-		if (remove) {
-			parent.child->erase(map_it);
-		} else if (rename) {
-			xr_string nm = map_it->first;
-			RenameNode(parent, nm.c_str(), newname);
-		}
+void IM_Tree::NotifySelectionChanged() {
+	if (OnItemsFocused) {
+		ListItemsVec vec;
+		GetSelected(vec);
+		OnItemsFocused(vec);
 	}
 }
 
@@ -191,7 +202,7 @@ void IM_Tree::SelectNode(ImTreeNode& node, bool select) {
 		if (!OnNodeSelected.empty())
 			OnNodeSelected(node.name, node.value, select);
 		if (renaming == &node)
-			renaming = NULL;
+			renaming = nullptr;
 	} else if (!node.selected && select) {
 		if (MaxSelectedCount >= 0 && GetSelectedCount() >= MaxSelectedCount) {
 			return;
@@ -205,14 +216,11 @@ void IM_Tree::SelectNode(ImTreeNode& node, bool select) {
 		if (node.item && !node.item->OnItemFocused.empty())
 			node.item->OnItemFocused(node.item);
 		if (OnItemFocused)
-			OnItemFocused(NULL);
+			OnItemFocused(nullptr);
 	}
 
-	if (OnItemsFocused) {
-		ListItemsVec vec;
-		GetSelected(vec);
-		OnItemsFocused(vec);
-	}
+	if (!m_InBatchSelection)
+		NotifySelectionChanged();
 }
 
 bool IM_Tree::RenameNode(ImTreeNode& parent, LPCSTR oldname, LPCSTR newname) {
@@ -286,12 +294,19 @@ void IM_Tree::GetItems(ImTreeNode& node, ListItemsVec& result) {
 void IM_Tree::CollectLinearOrder(ImTreeNode* node, std::vector<ImTreeNode*>& out) {
 	if (!node)
 		return;
+
 	if (!node->child) {
 		out.push_back(node);
 		return;
 	}
-	for (auto& pair : *node->child)
-		CollectLinearOrder(&pair.second, out);
+
+	bool should_recurse = (node == &root) || node->is_open;
+
+	if (should_recurse) {
+		for (auto& pair : *node->child) {
+			CollectLinearOrder(&pair.second, out);
+		}
+	}
 }
 
 void IM_Tree::SelectRange(ImTreeNode* from, ImTreeNode* to) {
@@ -310,6 +325,8 @@ void IM_Tree::SelectRange(ImTreeNode* from, ImTreeNode* to) {
 	if (it_from > it_to)
 		std::swap(it_from, it_to);
 
+	m_InBatchSelection = true;
+
 	for (auto it = it_from; it <= it_to; ++it) {
 		if (!(*it)->selected) {
 			if (MaxSelectedCount >= 0 && GetSelectedCount() >= MaxSelectedCount) {
@@ -318,6 +335,9 @@ void IM_Tree::SelectRange(ImTreeNode* from, ImTreeNode* to) {
 			SelectNode(**it, true);
 		}
 	}
+
+	m_InBatchSelection = false;
+	NotifySelectionChanged();
 }
 
 void IM_Tree::Add(LPCSTR path, LPCSTR value) {
@@ -344,27 +364,31 @@ void IM_Tree::Clear() {
 
 void IM_Tree::Select(LPCSTR path, bool select) {
 	ImTreeNode* node = GetNode(path, true);
+	if (!node)
+		return;
 
-	if (node) {
-		if (!multiselect)
-			SelectAll(false);
-
-		SelectNode(*node, select);
-	}
+	m_InBatchSelection = true;
+	SelectNode(*node, select);
+	m_InBatchSelection = false;
+	NotifySelectionChanged();
 }
 
 void IM_Tree::SelectAll(bool select) {
 	if (select) {
 		if (!multiselect)
 			return;
-
+		return;
 		// todo
-	} else {
-		xr_list<ImTreeNode*>		   sel = selected; // copy
-		xr_list<ImTreeNode*>::iterator it;
-		for (it = sel.begin(); it != sel.end(); it++)
-			SelectNode(**it, false);
 	}
+
+	xr_list<ImTreeNode*> sel = selected; // copy
+	m_InBatchSelection		 = true;
+
+	for (auto it = sel.begin(); it != sel.end(); ++it)
+		SelectNode(**it, false);
+
+	m_InBatchSelection = false;
+	NotifySelectionChanged();
 }
 
 shared_str IM_Tree::GetSelected() {
@@ -399,18 +423,16 @@ int IM_Tree::GetSelectedCount() {
 	return selected.size();
 }
 
-void IM_Tree::AssignItems(ListItemsVec& items, bool full_expand, bool full_sort) {
+void IM_Tree::AssignItems(ListItemsVec& items, bool full_expand) {
 	if (m_HasPendingUpdate) {
 		m_PendingItems		= items;
 		m_PendingFullExpand = full_expand;
-		m_PendingFullSort	= full_sort;
 		return;
 	}
 
 	m_PendingItems		= items;
 	m_HasPendingUpdate	= true;
 	m_PendingFullExpand = full_expand;
-	m_PendingFullSort	= full_sort;
 }
 
 void IM_Tree::GetSelected(ListItemsVec& result) {

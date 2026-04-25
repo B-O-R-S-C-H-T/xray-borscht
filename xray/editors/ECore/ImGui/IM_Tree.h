@@ -18,6 +18,7 @@ private:
 	struct ImTreeNode {
 		xr_map<xr_string, ImTreeNode>* child;
 		bool						   selected;
+		bool						   is_open;
 
 		shared_str name;
 		shared_str value;
@@ -25,7 +26,7 @@ private:
 
 		IM_Canvas* canvas;
 
-		ImTreeNode() : child(NULL), selected(false), name(NULL), value(NULL), item(NULL), canvas(NULL) {}
+		ImTreeNode() : child(NULL), selected(false), is_open(false), name(NULL), value(NULL), item(NULL), canvas(NULL) {}
 
 		void Clear() {
 			if (child)
@@ -58,7 +59,8 @@ private:
 	ListItemsVec		 m_PendingItems;
 	bool				 m_HasPendingUpdate  = false;
 	bool				 m_PendingFullExpand = false;
-	bool				 m_PendingFullSort	 = false;
+
+	bool				 m_InBatchSelection  = false;
 
 	ImTreeNode*			 GetNode(LPCSTR path, bool must_exist);
 	void				 RenderNode(ImTreeNode& node);
@@ -70,6 +72,7 @@ private:
 	void				 SelectRange(ImTreeNode* from, ImTreeNode* to);
 	void				 CollectLinearOrder(ImTreeNode* node, std::vector<ImTreeNode*>& out);
 	bool				 NaturalCompare(const xr_string& lhs, const xr_string& rhs) const;
+	void				 NotifySelectionChanged();
 
 	std::function<void(const shared_str&)> m_OnInvalidateCache;
 
@@ -86,7 +89,7 @@ public:
 	IM_Tree(char folder_separator = '\\', bool allow_multiselect = false, bool draw_bullets = false)
 		: separator(folder_separator), multiselect(allow_multiselect), renaming(nullptr), DrawBullets(draw_bullets), CheckmarkMode(false),
 		  DrawThumbnails(false), MaxSelectedCount(-1), OnNodeSelected(nullptr), OnDrawThumbnail(nullptr), full_expand(false), m_HasPendingUpdate(false),
-		  m_PendingFullExpand(false), m_PendingFullSort(false), newname{} {}
+		  m_PendingFullExpand(false), newname{} { root.is_open = true; }
 
 	~IM_Tree() { Clear(); }
 
@@ -111,7 +114,7 @@ public:
 	TOnItemRename	  OnItemRename;
 	TOnItemRemove	  OnItemRemove;
 
-	void			  AssignItems(ListItemsVec& items, bool full_expand, bool full_sort = false);
+	void			  AssignItems(ListItemsVec& items, bool full_expand);
 	void			  GetSelected(ListItemsVec& result);
 
 	void			  GetItems(ListItemsVec& result);

@@ -58,7 +58,7 @@ void IM_ImageEditor::Open(bool import) {
 			R_ASSERT2(I->m_Object, it->name.c_str());
 		}
 		UI->ProgressEnd(pb);
-		m_items.AssignItems(items, false, true);
+		m_items.AssignItems(items, false);
 
 		UI->AddIMWindow(this);
 		m_open = true;
