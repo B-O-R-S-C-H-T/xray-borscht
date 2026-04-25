@@ -200,7 +200,7 @@ void __stdcall IM_SoundEditor::OnItemsFocused(ListItemsVec& items) {
 		}
 	}
 
-	if (!m_Flags.is(flReadOnly)) {
+	if (!m_Flags.is(flReadOnly) && m_THM_Current.size()) {
 		ButtonValue* B = PHelper().CreateButton(props, "Auto-Play", bAutoPlay ? "on" : "off", ButtonValue::flFirstOnly);
 		B->OnBtnClickEvent.bind(this, &IM_SoundEditor::OnControl2Click);
 	}
@@ -210,6 +210,7 @@ void __stdcall IM_SoundEditor::OnItemsFocused(ListItemsVec& items) {
 		B->OnBtnClickEvent.bind(this, &IM_SoundEditor::OnSyncCurrentClick);
 	}
 
+	m_props.Clear();
 	m_props.AssignItems(props, false, false);
 }
 

@@ -389,6 +389,9 @@ void IM_Tree::SelectAll(bool select) {
 
 	m_InBatchSelection = false;
 	NotifySelectionChanged();
+
+	m_lastClickedNode = nullptr;
+	renaming		  = nullptr;
 }
 
 shared_str IM_Tree::GetSelected() {
@@ -505,4 +508,9 @@ void IM_Tree::Render() {
 	}
 
 	RenderNode(root);
+
+	if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByPopup) &&
+		ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsAnyItemHovered() && !ImGui::IsAnyItemActive()) {
+		SelectAll(false);
+	}
 }
