@@ -70,7 +70,7 @@ private:
 	void				 ShowContextMenu(ImTreeNode& node, bool& removed);
 	void				 GetItems(ImTreeNode& node, ListItemsVec& result);
 	void				 SelectRange(ImTreeNode* from, ImTreeNode* to);
-	void				 CollectLinearOrder(ImTreeNode* node, std::vector<ImTreeNode*>& out);
+	void				 CollectLinearOrder(ImTreeNode* node, std::vector<ImTreeNode*>& out, bool onlyRootLevelFiles = false);
 	bool				 NaturalCompare(const xr_string& lhs, const xr_string& rhs) const;
 	void				 NotifySelectionChanged();
 

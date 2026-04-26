@@ -291,7 +291,7 @@ void IM_Tree::GetItems(ImTreeNode& node, ListItemsVec& result) {
 	}
 }
 
-void IM_Tree::CollectLinearOrder(ImTreeNode* node, std::vector<ImTreeNode*>& out) {
+void IM_Tree::CollectLinearOrder(ImTreeNode* node, std::vector<ImTreeNode*>& out, bool onlyRootLevelFiles) {
 	if (!node)
 		return;
 
@@ -300,11 +300,19 @@ void IM_Tree::CollectLinearOrder(ImTreeNode* node, std::vector<ImTreeNode*>& out
 		return;
 	}
 
+	if (onlyRootLevelFiles && node == &root) {
+		for (auto& pair : *node->child) {
+			if (!pair.second.child)
+				out.push_back(&pair.second);
+		}
+		return;
+	}
+
 	bool should_recurse = (node == &root) || node->is_open;
 
 	if (should_recurse) {
 		for (auto& pair : *node->child) {
-			CollectLinearOrder(&pair.second, out);
+			CollectLinearOrder(&pair.second, out, onlyRootLevelFiles);
 		}
 	}
 }
@@ -313,8 +321,10 @@ void IM_Tree::SelectRange(ImTreeNode* from, ImTreeNode* to) {
 	if (!from || !to)
 		return;
 
+	bool isRootLevel = (strchr(from->name.c_str(), '\\') == nullptr) && (strchr(to->name.c_str(), '\\') == nullptr);
+
 	std::vector<ImTreeNode*> linear;
-	CollectLinearOrder(&root, linear);
+	CollectLinearOrder(&root, linear, isRootLevel);
 
 	auto it_from = std::find(linear.begin(), linear.end(), from);
 	auto it_to	 = std::find(linear.begin(), linear.end(), to);
