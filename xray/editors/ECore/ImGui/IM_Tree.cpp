@@ -67,7 +67,7 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 			files.push_back(it);
 	}
 
-	std::sort(folders.begin(), folders.end(), [&](const auto& a, const auto& b) { return a->first < b->first; });
+	std::sort(folders.begin(), folders.end(), [](const auto& a, const auto& b) { return a->first < b->first; });
 
 	std::sort(files.begin(), files.end(), [&](const auto& a, const auto& b) { return NaturalCompare(a->first, b->first); });
 
@@ -77,6 +77,8 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 			ImTreeNode& node   = map_it->second;
 			bool		remove = false;
 			bool		rename = false;
+
+			ImGui::PushID(&node);
 
 			if (renaming == &node) {
 				ImGui::PushID(static_cast<void*>(&node));
@@ -173,6 +175,8 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 						node.item->OnClickEvent(node.item);
 				}
 			}
+
+			ImGui::PopID();
 
 			if (remove)
 				parent.child->erase(map_it);
