@@ -10,7 +10,7 @@ class ESoundThumbnail;
 class ECORE_API CSoundManager
 {
 public:
-	void 		MakeGameSound		(ESoundThumbnail* THM, LPCSTR src_name, LPCSTR game_name);
+	bool 		MakeGameSound		(ESoundThumbnail* THM, LPCSTR src_name, LPCSTR game_name);
 				CSoundManager		(){}
 	virtual		~CSoundManager		(){;}
                     

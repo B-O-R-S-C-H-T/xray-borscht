@@ -183,22 +183,29 @@ void CSoundManager::CreateSoundThumbnail(ESoundThumbnail* THM, const AnsiString&
     }
 }                             
 
-void CSoundManager::MakeGameSound(ESoundThumbnail* THM, LPCSTR src_name, LPCSTR game_name)
-{
-	VerifyPath		(game_name);
-    CMemoryWriter 	F;
-    F.w_u32			(OGG_COMMENT_VERSION);
-    F.w_float		(THM->m_fMinDist);
-    F.w_float		(THM->m_fMaxDist);
-    F.w_float		(THM->m_fBaseVolume);
-    F.w_u32			(THM->m_uGameType);
-    F.w_float		(THM->m_fMaxAIDist);
+bool CSoundManager::MakeGameSound(ESoundThumbnail* THM, LPCSTR src_name, LPCSTR game_name) {
+	VerifyPath(game_name);
 
-	if (!ETOOLS::ogg_enc(src_name, game_name, THM->m_fQuality, F.pointer(), F.size()))
-    {
-    	FS.file_delete(game_name);
-    	ELog.DlgMsg(mtError,"Can't make game sound '%s'.",game_name);
-    }
+	if (!FS.exist(src_name)) {
+		ELog.Msg(mtError, "Cannot make game sound '%s': source .wav file not found!", game_name);
+		return false;
+	}
+
+	CMemoryWriter 	F;
+	F.w_u32			(OGG_COMMENT_VERSION);
+	F.w_float		(THM->m_fMinDist);
+	F.w_float		(THM->m_fMaxDist);
+	F.w_float		(THM->m_fBaseVolume);
+	F.w_u32			(THM->m_uGameType);
+	F.w_float		(THM->m_fMaxAIDist);
+
+	if (!ETOOLS::ogg_enc(src_name, game_name, THM->m_fQuality, F.pointer(), F.size())) {
+		FS.file_delete(game_name);
+		ELog.Msg(mtError, "Cannot make game sound '%s': ogg_enc failed!", game_name);
+		return false;
+	}
+
+	return true;
 }
 
 //------------------------------------------------------------------------------

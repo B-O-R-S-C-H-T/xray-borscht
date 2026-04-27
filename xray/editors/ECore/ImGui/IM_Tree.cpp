@@ -125,10 +125,20 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 			// file
 			} else {
 				xr_string display_name = GetBasename(node.name);
+
+				bool color_pushed = false;
+				if (node.item && node.item->prop_color != 0) {
+					ImGui::PushStyleColor(ImGuiCol_Text, ImU32(node.item->prop_color));
+					color_pushed = true;
+				}
+
 				if (DrawBullets)
 					ImGui::Bullet();
 
 				bool clicked = ImGui::Selectable(display_name.c_str(), node.selected);
+
+				if (color_pushed)
+					ImGui::PopStyleColor();
 
 				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && !OnItemRename.empty()) {
 					SelectAll(false);

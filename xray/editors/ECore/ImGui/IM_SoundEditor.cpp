@@ -93,16 +93,29 @@ void IM_SoundEditor::Render() {
 }
 
 void IM_SoundEditor::InitItemsList() {
-	FS_FileSet sound_map;
-	SndLib->GetSounds(sound_map, TRUE);
+	FS_FileSet wav_map;
+	SndLib->GetSounds(wav_map, TRUE);
+
+	FS_FileSet thm_map;
+	FS.file_list(thm_map, _sounds_, FS_ListFiles | FS_ClampExt, "*.thm");
 
 	ListItemsVec items;
 
-	// fill items
-	FS_FileSetIt it = sound_map.begin();
-	FS_FileSetIt _E = sound_map.end();
-	for (; it != _E; it++)
+	for (auto it = wav_map.begin(); it != wav_map.end(); ++it)
 		LHelper().CreateItem(items, it->name.c_str(), 0);
+
+	for (auto it = thm_map.begin(); it != thm_map.end(); ++it) {
+		xr_string	base = EFS.ChangeFileExt(it->name, "");
+		string_path wav_path;
+		FS.update_path(wav_path, _sounds_, (base + ".wav").c_str());
+
+		if (!FS.exist(wav_path)) {
+			ListItem* item = LHelper().CreateItem(items, it->name.c_str(), 0);
+			item->SetName(base.c_str());
+
+			item->prop_color = ImGui::GetColorU32(ImVec4(1.0f, 0.7f, 0.7f, 1.0f));	// todo
+		}
+	}
 
 	m_items.AssignItems(items, false);
 }
@@ -170,6 +183,9 @@ void __stdcall IM_SoundEditor::OnItemsFocused(ListItemsVec& items) {
 	if (!items.empty()) {
 		for (ListItem* prop : items) {
 			if (prop) {
+				if (prop->prop_color != 0)	// todo
+					ELog.Msg(mtError, "Sound '%s' has .thm file but missing corresponding .wav!", prop->Key());
+
 				ESoundThumbnail* thm = FindUsedTHM(prop->Key());
 				if (!thm)
 					m_THM_Used.push_back(thm = xr_new<ESoundThumbnail>(prop->Key()));
@@ -242,8 +258,10 @@ void __stdcall IM_SoundEditor::OnSyncCurrentClick(ButtonValue* V, bool& bModif, 
 		m_Snd.destroy();
 	}
 
-	THMIt it   = m_THM_Current.begin();
-	THMIt it_e = m_THM_Current.end();
+	THMIt it			= m_THM_Current.begin();
+	THMIt it_e			= m_THM_Current.end();
+	int	  success_count = 0;
+	int	  total_count	= m_THM_Current.size();
 
 	for (; it != it_e; ++it) {
 		ESoundThumbnail* pTHM = *it;
@@ -255,12 +273,16 @@ void __stdcall IM_SoundEditor::OnSyncCurrentClick(ButtonValue* V, bool& bModif, 
 		FS.update_path	(game_name, _game_sounds_, pTHM->SrcName());
 		strconcat		(sizeof(game_name), game_name, game_name, ".ogg");
 
-		ELog.Msg		(mtInformation, "Synchronizing [%s]", game_name);
+		ELog.Msg		(mtInformation, "Synchronizing '%s'", game_name);
 
-		SndLib->MakeGameSound(pTHM, src_name, game_name);
+		if (SndLib->MakeGameSound(pTHM, src_name, game_name))
+			success_count++;
 	}
 
-	ELog.Msg(mtInformation, "All sounds have been successfully synchronized.");
+	if (success_count == total_count)
+		ELog.Msg(mtInformation, "All sounds have been successfully synchronized.");
+	else
+		ELog.Msg(mtWarning, "%d of %d sounds were successfully synchronized.", success_count, total_count);
 }
 
 void __stdcall IM_SoundEditor::OnAttClick(ButtonValue* V, bool& bModif, bool& bSafe) {
@@ -351,6 +373,6 @@ void IM_SoundEditor::PlaySound(LPCSTR name, u32& size, float& time) {
 		time				= src->length_sec();
 		if (!bAutoPlay)		m_Snd.stop();
 	} else {
-		ELog.Msg(mtError, "The sound '%s' is currently not synchronized to GAMEDATA!", name);
+		ELog.Msg(mtError, "Sound '%s' is currently not synchronized to GAMEDATA!", name);
 	}
 }
