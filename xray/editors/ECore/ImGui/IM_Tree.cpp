@@ -99,6 +99,7 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 						renaming = nullptr;
 					} else {
 						ELog.Msg(mtError, u8"Element '%s' already exists", newname);
+						renaming = nullptr;
 					}
 				}
 			}
@@ -188,9 +189,7 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 
 			ImGui::PopID();
 
-			if (remove)
-				parent.child->erase(map_it);
-			else if (rename) {
+			if (rename) {
 				xr_string nm = map_it->first;
 				RenameNode(parent, nm.c_str(), newname);
 			}
@@ -285,12 +284,24 @@ void IM_Tree::ShowContextMenu(ImTreeNode& node, bool& removed) {
 	if (!OnItemRename.empty() && ImGui::MenuItem("Rename##tree_context_rename")) {
 		SelectAll(false);
 		SelectNode(node, true);
-		strcpy(newname, *node.name);
+		strcpy(newname, GetBasename(node.name).c_str());
 		renaming = &node;
 	}
 
-	if (!OnItemRemove.empty() && ImGui::MenuItem("Remove##tree_context_remove"))
-		OnItemRemove(*node.name, node.child ? TYPE_FOLDER : TYPE_OBJECT, removed);
+	if (!OnItemRemove.empty() && ImGui::MenuItem("Remove##tree_context_remove")) {
+		if (GetSelectedCount() > 1 && node.selected) {
+			ListItemsVec sel;
+			GetSelected(sel);
+			for (ListItem* item : sel) {
+				if (item && item->Visible()) {
+					bool res = false;
+					OnItemRemove(item->Key(), (EItemType)item->Type(), res);
+				}
+			}
+		} else {
+			OnItemRemove(*node.name, node.child ? TYPE_FOLDER : TYPE_OBJECT, removed);
+		}
+	}
 }
 
 void IM_Tree::GetItems(ImTreeNode& node, ListItemsVec& result) {

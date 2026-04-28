@@ -49,6 +49,52 @@ void IM_SoundEditor::OnRemove() {
 }
 
 void IM_SoundEditor::Render() {
+	if (has_pending_rename) {
+		has_pending_rename = false;
+		m_Snd.destroy();
+		SndLib->RenameSound(pending_rename_old, pending_rename_new, TYPE_OBJECT, false);
+
+		m_THM_Current.clear();
+		m_props.Clear();
+		modif_map.clear();
+		DestroyUsedTHM();
+		InitItemsList();
+		m_items.SelectAll(false);
+
+		ELog.Msg(mtInformation, "Sound renamed: %s → %s", pending_rename_old, pending_rename_new);
+	}
+
+	if (!pending_removes.empty()) {
+		m_Snd.destroy();
+
+		if (has_dangerous_remove) {
+			xr_string msg = "Some of selected sounds have a compiled .ogg file in GAMEDATA, but are missing the source .wav file!\n\n"
+							"Are you sure you want to continue?";
+
+			if (ELog.DlgMsg(mtConfirmation, msg.c_str()) != mrYes) {
+				pending_removes.clear();
+				has_dangerous_remove = false;
+				return;
+			}
+		}
+
+		for (const shared_str& fname : pending_removes) {
+			bool dummy = false;
+			SndLib->RemoveSound(fname.c_str(), TYPE_OBJECT, false);
+			ELog.Msg(mtInformation, "Sound removed: %s", fname.c_str());
+		}
+
+		pending_removes.clear();
+		has_dangerous_remove = false;
+
+		m_THM_Current.clear();
+		m_props.Clear();
+		modif_map.clear();
+		DestroyUsedTHM();
+		InitItemsList();
+		m_items.SelectAll(false);
+	}
+
 	if (!m_open) {
 		Close();
 		return;
@@ -342,23 +388,31 @@ void __stdcall IM_SoundEditor::OnPlotDraw(PlotValue* sender, void*) {
 	}
 }
 
+bool IM_SoundEditor::IsDangerousSound(LPCSTR fname) const {
+	string_path ogg_path, wav_path;
+	FS.update_path(ogg_path, _game_sounds_, ChangeFileExt(fname, ".ogg").c_str());
+	FS.update_path(wav_path, _sounds_, ChangeFileExt(fname, ".wav").c_str());
+
+	return FS.exist(ogg_path) && !FS.exist(wav_path);
+}
+
 void __stdcall IM_SoundEditor::RemoveSound(LPCSTR fname, EItemType type, bool& res) {
-	// delete it from modif map
 	FS_FileSetIt it = modif_map.find(FS_File(fname));
-	if (it != modif_map.end()) modif_map.erase(it);
-	// remove sound source
-	res = SndLib->RemoveSound(fname, type);
+	if (it != modif_map.end())
+		modif_map.erase(it);
+
+	pending_removes.push_back(fname);
+
+	if (IsDangerousSound(fname))
+		has_dangerous_remove = true;
+
+	res = true;
 }
 
 void __stdcall IM_SoundEditor::RenameSound(LPCSTR p0, LPCSTR p1, EItemType type) {
-	// rename sound source
-	SndLib->RenameSound(p0, p1, type);
-	// delete old from map
-	FS_FileSetIt old_it = modif_map.find(FS_File(p0));
-	if (old_it != modif_map.end()) {
-		modif_map.erase	(old_it);
-		AppendModif		(p1);
-	}
+	strcpy(pending_rename_old, p0);
+	strcpy(pending_rename_new, p1);
+	has_pending_rename = true;
 }
 
 void IM_SoundEditor::PlaySound(LPCSTR name, u32& size, float& time) {
@@ -372,7 +426,7 @@ void IM_SoundEditor::PlaySound(LPCSTR name, u32& size, float& time) {
 		size				= F.size;
 		time				= src->length_sec();
 		if (!bAutoPlay)		m_Snd.stop();
-	} else {
-		ELog.Msg(mtError, "Sound '%s' is currently not synchronized to GAMEDATA!", name);
+	} else {	// fixme
+		ELog.Msg(mtWarning, "Sound '%s' is currently not synchronized to GAMEDATA!", name);
 	}
 }

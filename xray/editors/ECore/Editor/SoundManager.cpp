@@ -67,55 +67,67 @@ void CSoundManager::MuteSounds(BOOL bVal)
     else		::psSoundVEffects = psDeviceFlags.is(rsMuteSounds)?0.f:1.f;
 }
 
-void CSoundManager::RenameSound(LPCSTR nm0, LPCSTR nm1, EItemType type)
-{
-	if (TYPE_FOLDER==type){
-    	FS.dir_delete			(_sounds_,nm0,FALSE);
-    	FS.dir_delete			(_game_sounds_,nm0,FALSE);
-    }else if (TYPE_OBJECT==type){
-        string_path fn0,fn1,temp;
-        // rename base file
-        FS.update_path(fn0,_sounds_,nm0); 	strcat(fn0,".wav");
-        FS.update_path(fn1,_sounds_,nm1);	strcat(fn1,".wav");
-        FS.file_rename(fn0,fn1,false);
+void CSoundManager::RenameSound(LPCSTR nm0, LPCSTR nm1, EItemType type, bool refresh /* = true */) {
+	if (TYPE_FOLDER == type) {
+		FS.dir_delete			(_sounds_, nm0, FALSE);
+		FS.dir_delete			(_game_sounds_, nm0, FALSE);
+		return;
+	}
 
-        // rename thm
-        FS.update_path(fn0,_sounds_,nm0);	strcat(fn0,".thm");
-        FS.update_path(fn1,_sounds_,nm1);	strcat(fn1,".thm");
-        FS.file_rename(fn0,fn1,false);
+	if (TYPE_OBJECT == type) {
+		string_path fn0, fn1;
+		// rename base file
+		FS.update_path(fn0, _sounds_, nm0);		strcat(fn0, ".wav");
+		FS.update_path(fn1, _sounds_, nm1);		strcat(fn1, ".wav");
+		FS.file_rename(fn0, fn1, false);
 
-        // rename ogg
-        FS.update_path(fn0,_game_sounds_,nm0);	strcat(fn0,".ogg");
-        FS.update_path(fn1,_game_sounds_,nm1);	strcat(fn1,".ogg");
-        FS.file_rename(fn0,fn1,false);
+		// rename thm
+		FS.update_path(fn0, _sounds_, nm0);		strcat(fn0, ".thm");
+		FS.update_path(fn1, _sounds_, nm1);		strcat(fn1, ".thm");
+		if (FS.exist(fn0))
+			FS.file_rename(fn0, fn1, false);
 
-	    Sound->refresh_sources();
+		// rename ogg
+		FS.update_path(fn0, _game_sounds_, nm0);	strcat(fn0, ".ogg");
+		FS.update_path(fn1, _game_sounds_, nm1);	strcat(fn1, ".ogg");
+		if (FS.exist(fn0))
+			FS.file_rename(fn0, fn1, false);
+
+		if (refresh)
+			Sound->refresh_sources();
 	}
 }
 
-BOOL CSoundManager::RemoveSound(LPCSTR fname, EItemType type)
-{
-	if (TYPE_FOLDER==type){
-    	FS.dir_delete			(_sounds_,fname,FALSE);
-    	FS.dir_delete			(_game_sounds_,fname,FALSE);
+BOOL CSoundManager::RemoveSound(LPCSTR fname, EItemType type, bool refresh /* = true */) {
+	if (TYPE_FOLDER == type) {
+		FS.dir_delete(_sounds_, fname, FALSE);
+		FS.dir_delete(_game_sounds_, fname, FALSE);
+		if (refresh)
+			Sound->refresh_sources();
 		return TRUE;
-    }else if (TYPE_OBJECT==type){
-        xr_string src_name;
-        src_name				= EFS.ChangeFileExt(fname,".wav");
-        if (FS.exist(_sounds_,src_name.c_str())){
-            xr_string thm_name = EFS.ChangeFileExt(fname,".thm");
-            xr_string game_name= EFS.ChangeFileExt(fname,".ogg");
-            // source
-            FS.file_delete		(_sounds_,src_name.c_str());
-            // thumbnail
-            FS.file_delete		(_sounds_,thm_name.c_str());
-            // game
-            FS.file_delete		(_game_sounds_,game_name.c_str());
-		    Sound->refresh_sources();
-            return TRUE;
-        }
-    }
-    return FALSE;
+	}
+
+	if (TYPE_OBJECT == type) {
+		xr_string base_name = EFS.ChangeFileExt(fname, "");
+
+		// source
+		xr_string wav_name	= EFS.ChangeFileExt(base_name, ".wav");
+		if (FS.exist(_sounds_, wav_name.c_str()))
+			FS.file_delete(_sounds_, wav_name.c_str());
+		// thumbnail
+		xr_string thm_name = EFS.ChangeFileExt(base_name, ".thm");
+		FS.file_delete(_sounds_, thm_name.c_str());
+		// game
+		xr_string game_name = EFS.ChangeFileExt(base_name, ".ogg");
+		FS.file_delete(_game_sounds_, game_name.c_str());
+
+		if (refresh)
+			Sound->refresh_sources();
+
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 //------------------------------------------------------------------------------

@@ -29,6 +29,14 @@ public:
 	BOOL	   bAutoPlay = TRUE;
 
 public:
+	string_path			  pending_rename_old = {};
+	string_path			  pending_rename_new = {};
+	bool				  has_pending_rename = false;
+
+	xr_vector<shared_str> pending_removes;
+	bool				  has_dangerous_remove = false;
+
+public:
 	IM_SoundEditor();
 	~IM_SoundEditor() = default;
 
@@ -55,6 +63,7 @@ public:
 	void __stdcall	 OnAttClick(ButtonValue* sender, bool& bModif, bool& bSafe);
 	void __stdcall	 OnPlotDraw(PlotValue* sender, void*);
 
+	bool			 IsDangerousSound(LPCSTR fname) const;
 	void __stdcall	 RemoveSound(LPCSTR fname, EItemType type, bool& res);
 	void __stdcall	 RenameSound(LPCSTR p0, LPCSTR p1, EItemType type);
 
