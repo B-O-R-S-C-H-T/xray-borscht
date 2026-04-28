@@ -147,8 +147,12 @@ void IM_SoundEditor::InitItemsList() {
 
 	ListItemsVec items;
 
-	for (auto it = wav_map.begin(); it != wav_map.end(); ++it)
+	for (auto it = wav_map.begin(); it != wav_map.end(); ++it) {
+		if (!it->name.empty() && it->name.back() == '\\')
+			continue;
+
 		LHelper().CreateItem(items, it->name.c_str(), 0);
+	}
 
 	for (auto it = thm_map.begin(); it != thm_map.end(); ++it) {
 		xr_string	base = EFS.ChangeFileExt(it->name, "");
