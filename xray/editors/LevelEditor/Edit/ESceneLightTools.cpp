@@ -182,35 +182,34 @@ void ESceneLightTool::OnControlRenameRemoveClick(ButtonValue* V, bool& bDataModi
     ExecCommand(COMMAND_UPDATE_PROPERTIES);
     bDataModified = true;
 }
-//------------------------------------------------------------------------------
-void ESceneLightTool::FillProp(LPCSTR pref, PropItemVec& items)
-{
-    ButtonValue*	B 	= 0;
-    // hemisphere
-//.	PHelper().CreateRToken32(items, PrepareKey(pref,"Common\\Hemisphere\\Light Control"),	&m_HemiControl, 	&*lcontrols.begin(), lcontrols.size());
-    
-    // sun
-    PHelper().CreateFlag32	(items, PrepareKey(pref,"Common\\Sun Shadow\\Visible"),			&m_Flags,			flShowSun);
-    PHelper().CreateAngle	(items,	PrepareKey(pref,"Common\\Sun Shadow\\Altitude"),			&m_SunShadowDir.x,	-PI_DIV_2,0);
-    PHelper().CreateAngle	(items,	PrepareKey(pref,"Common\\Sun Shadow\\Longitude"),		&m_SunShadowDir.y,	0,PI_MUL_2);
-    // light controls
-    PHelper().CreateFlag32	(items, PrepareKey(pref,"Common\\Controls\\Draw Name"),			&m_Flags,			flShowControlName);
-    PHelper().CreateCaption	(items,PrepareKey(pref,"Common\\Controls\\Count"),				shared_str().sprintf("%d",lcontrols.size()));
-//	B=PHelper().CreateButton(items,PHelper().PrepareKey(pref,"Common\\Controls\\Edit"),	"Append",	ButtonValue::flFirstOnly);
-//	B->OnBtnClickEvent	= OnControlAppendClick;
-	RTokenVecIt		_I 	= lcontrols.begin();
-    RTokenVecIt		_E 	= lcontrols.end();
-    for (;_I!=_E; _I++){
-    	if (_I->equal(LCONTROL_HEMI)||_I->equal(LCONTROL_STATIC)||_I->equal(LCONTROL_SUN)){
-		    PHelper().CreateCaption(items,	PrepareKey(pref,"Common\\Controls\\System",*_I->name),"");
-        }else{
-		    B=PHelper().CreateButton(items,	PrepareKey(pref,"Common\\Controls\\User",*_I->name),"Rename,Remove",ButtonValue::flFirstOnly);
-            B->OnBtnClickEvent.bind		(this,&ESceneLightTool::OnControlRenameRemoveClick);
-        }
-    }                              
+
+void ESceneLightTool::FillLightToolProp(PropItemVec& items) {
+	ButtonValue* B = nullptr;
+
+//	PHelper().CreateRToken32(items, "Scene Lighting\\Hemisphere\\Light Control", &m_HemiControl, &*lcontrols.begin(), lcontrols.size());
+
+	PHelper().CreateFlag32	(items, "Scene Lighting\\Sun Shadow\\Visible",		 &m_Flags, flShowSun);
+	PHelper().CreateAngle	(items, "Scene Lighting\\Sun Shadow\\Altitude",		 &m_SunShadowDir.x, -PI_DIV_2, 0);
+	PHelper().CreateAngle	(items, "Scene Lighting\\Sun Shadow\\Longitude",	 &m_SunShadowDir.y, 0, PI_MUL_2);
+
+	PHelper().CreateFlag32	(items, "Scene Lighting\\Controls\\Draw Name",		 &m_Flags, flShowControlName);
+	PHelper().CreateCaption	(items, "Scene Lighting\\Controls\\Count",			 shared_str().sprintf("%d", lcontrols.size()));
+
+	RTokenVecIt _I = lcontrols.begin();
+	RTokenVecIt _E = lcontrols.end();
+	for (; _I != _E; ++_I) {
+		if (_I->equal(LCONTROL_HEMI) || _I->equal(LCONTROL_STATIC) || _I->equal(LCONTROL_SUN)) {
+			PHelper().CreateCaption(items, PrepareKey("Scene Lighting\\Controls\\System", *_I->name), "");
+		} else {
+			B = PHelper().CreateButton(items, PrepareKey("Scene Lighting\\Controls\\User", *_I->name), "Rename,Remove", ButtonValue::flFirstOnly);
+			B->OnBtnClickEvent.bind(this, &ESceneLightTool::OnControlRenameRemoveClick);
+		}
+	}
+}
+
+void ESceneLightTool::FillProp(LPCSTR pref, PropItemVec& items) {
 	inherited::FillProp(pref, items);
 }
-//------------------------------------------------------------------------------
 
 AnsiString ESceneLightTool::GenLightControlName()
 {

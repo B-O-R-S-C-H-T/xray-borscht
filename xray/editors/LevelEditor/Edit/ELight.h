@@ -91,7 +91,7 @@ public:
     void         	OnNeedUpdate	(PropValue* value);
 
     void         	OnPointDataChange(PropValue* value);
-    void            OnAttenuationDraw(CanvasValue* sender, void* canvas, const Irect& rect);
+	void			OnPlotDraw(PlotValue* sender, void* /*user_data*/);
     void         	OnPointDataTestEqual(CanvasValue* a, CanvasValue* b, bool& res);
 protected:
 //    virtual Fvector& GetPosition	()						{ return m_D3D.position; 	}

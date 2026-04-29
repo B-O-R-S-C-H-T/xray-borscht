@@ -8,8 +8,10 @@
 
 #include "../Edit/ELight.h"
 #include "../Edit/Scene.h"
+#include "../Edit/ESceneLightTools.h"
+#include "editors/ECore/Editor/UI_MainCommand.h"
 
-#pragma package(smart_init)
+IM_FrameLight::IM_FrameLight() : m_sceneProps('\\', false, false) {}
 
 void IM_FrameLight::UseInD3D(bool bAll, bool bFlag) {
 	ObjectIt _F = Scene->FirstObj(OBJCLASS_LIGHT);
@@ -28,20 +30,46 @@ void IM_FrameLight::UseInD3D(bool bAll, bool bFlag) {
 
 void IM_FrameLight::OnAdd() {
 	IM_Storage s(false, "level.ini", "IM_FrameLight");
-	m_show_useind3d = s.GetBool("show_useind3d_panel", true);
+	m_show_useind3d		  = s.GetBool("show_useind3d_panel", true);
+	m_show_scene_lighting = s.GetBool("show_scene_lighting_panel", true);
 }
 
 void IM_FrameLight::OnRemove() {
 	IM_Storage s(true, "level.ini", "IM_FrameLight");
 	s.PutBool("show_useind3d_panel", m_show_useind3d);
+	s.PutBool("show_scene_lighting_panel", m_show_scene_lighting);
+}
+
+void IM_FrameLight::UpdateSceneLightingProps() {
+	ESceneLightTool* lt = dynamic_cast<ESceneLightTool*>(Scene->GetTool(OBJCLASS_LIGHT));
+	if (!lt)
+		return;
+
+	m_sceneToolItems.clear();
+	lt->FillLightToolProp(m_sceneToolItems);
+
+	m_sceneProps.AssignItems(m_sceneToolItems, true, false);
 }
 
 void IM_FrameLight::Render() {
-	if (ImGui::CollapsingPanel("Affect in D3D", &m_show_useind3d)) {
+	ESceneLightTool* lt = dynamic_cast<ESceneLightTool*>(Scene->GetTool(OBJCLASS_LIGHT));
+	if (!lt)
+		return;
+
+	if (ImGui::CollapsingHeader("Scene Lighting", ImGuiTreeNodeFlags_DefaultOpen)) {
+		if (m_show_scene_lighting) {
+			UpdateSceneLightingProps();
+
+			m_sceneProps.Render();
+		}
+	}
+
+	if (ImGui::CollapsingHeader("Affect in D3D", ImGuiTreeNodeFlags_DefaultOpen)) {
 		ImGui::Columns(2, NULL, false);
 
 		if (ImGui::MenuItem("Enable Sel##light_enable_sel"))
 			UseInD3D(false, true);
+
 		if (ImGui::MenuItem("Disable Sel##light_disable_sel"))
 			UseInD3D(false, false);
 
@@ -49,6 +77,7 @@ void IM_FrameLight::Render() {
 
 		if (ImGui::MenuItem("Enable All##light_enable_all"))
 			UseInD3D(true, true);
+
 		if (ImGui::MenuItem("Disable All##light_disable_all"))
 			UseInD3D(true, false);
 

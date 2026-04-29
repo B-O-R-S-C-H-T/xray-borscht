@@ -1,4 +1,4 @@
-//----------------------------------------------------
+﻿//----------------------------------------------------
 // file: ELight.cpp
 //----------------------------------------------------
 #include "stdafx.h"
@@ -8,6 +8,7 @@
 #include "escenelighttools.h"
 #include <xrEngine/LightAnimLibrary.h>
 #include "../ECore/Editor/ui_main.h"
+#include <addons/implot/implot.h>
 
 //----------------------------------------------------
 void 	CLight::OnAutoClick(ButtonValue* value, bool& bModif, bool& bSafe)
@@ -67,54 +68,36 @@ void 	CLight::OnFuzzyDataChange(PropValue* value)
     	m_FuzzyData->Generate(*it);
 }
 
-#define X_GRID 14
-#define Y_GRID 6
+void CLight::OnPlotDraw(PlotValue* sender, void* /*user_data*/) {
+	if (ImPlot::BeginPlot("##AttenuationPlot", ImVec2(-1, 220), ImPlotFlags_CanvasOnly | ImPlotFlags_NoInputs | ImPlotFlags_NoFrame | ImPlotFlags_NoMenus)) {
+		ImPlot::SetupAxis(ImAxis_X1, "distance", ImPlotAxisFlags_NoLabel);
+		ImPlot::SetupAxis(ImAxis_Y1, "intensity", ImPlotAxisFlags_NoLabel);
 
-void  CLight::OnAttenuationDraw(CanvasValue* sender, void* _canvas, const Irect& _rect)
-{
-#ifndef NO_VCL
-	TCanvas* canvas 	= (TCanvas*)_canvas;
-    const TRect& rect	= *((TRect*)&_rect);
-//	canvas
-    int w = rect.Width();
-    int h = rect.Height();
-    int x0= rect.left;
-    int y0= rect.top;
+		ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, m_Range * 1.1f, ImPlotCond_Always);
+		ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1.1f, ImPlotCond_Always);
 
-    canvas->Brush->Color = clBlack;
-    canvas->FillRect(rect);
-    canvas->Pen->Color = TColor(0x00006600);
-    canvas->MoveTo(x0,y0);
-    for (int i=0; i<X_GRID+1; i++){
-        canvas->LineTo(x0+i*w/X_GRID,y0+h);
-        canvas->MoveTo(x0+(i+1)*w/X_GRID,y0+0);
-    }
-    canvas->MoveTo(x0+0,y0+0);
-    for (int j=0; j<Y_GRID+1; j++){
-        canvas->LineTo(x0+w,y0+j*h/Y_GRID);
-        canvas->MoveTo(x0+0,y0+(j+1)*h/Y_GRID);
-    }
-    canvas->Pen->Color = clYellow;
-    canvas->MoveTo(x0+0,y0+h/2);
-    canvas->LineTo(x0+w,y0+h/2);
+		const int			points = 300;
+		std::vector<double> x(points), y(points);
 
-    float d_cost = m_Range/w;
-    AnsiString temp;
-//    float v = m_D3D.range;
-//    temp.sprintf("Range = %.2f",v); lbRange->Caption = temp;
-    canvas->Pen->Color = clLime;
-    if (!(fis_zero(m_Attenuation0)&&fis_zero(m_Attenuation1)&&fis_zero(m_Attenuation2))){
-        for (int d=1; d<w; d++){
-            float R = d*d_cost;
-            float b = m_Brightness/(m_Attenuation0+m_Attenuation1*R+m_Attenuation2*R*R);
-			b	-=   m_Brightness*R/(m_Range*(m_Attenuation0+m_Attenuation1*m_Range+m_Attenuation2*m_Range*m_Range));
-            float bb = h-((h/(/*br_max*/3.f*2))*b + h/2);
-            int y = iFloor(y0+bb); clamp(y,int(rect.Top),int(rect.Bottom));
-            if (1==d)	canvas->MoveTo(x0+d,y);
-            else		canvas->LineTo(x0+d,y);
-        }
-    }
-#endif
+		float				d_cost = m_Range / (points - 1);
+
+		for (int i = 0; i < points; ++i) {
+			float R = i * d_cost;
+			float b = m_Brightness / (m_Attenuation0 + m_Attenuation1 * R + m_Attenuation2 * R * R);
+
+			if (!fis_zero(m_Range))
+				b -= m_Brightness * R / (m_Range * (m_Attenuation0 + m_Attenuation1 * m_Range + m_Attenuation2 * m_Range * m_Range));
+
+			b	 = std::clamp(b, 0.0f, 1.0f);
+
+			x[i] = R;
+			y[i] = b;
+		}
+
+		ImPlot::PlotLine("Attenuation", x.data(), y.data(), points, ImPlotSpec());
+
+		ImPlot::EndPlot();
+	}
 }
 
 void 	CLight::OnPointDataChange(PropValue* value)
@@ -133,25 +116,26 @@ void 	CLight::OnPointDataTestEqual(CanvasValue* a, CanvasValue* b, bool& res)
     		fsimilar(A->m_Brightness,B->m_Brightness));
 }
 
-void CLight::FillAttProp(LPCSTR pref, PropItemVec& items)
-{
+void CLight::FillAttProp(LPCSTR pref, PropItemVec& items) {
 	PropValue* V;
-    V=PHelper().CreateFloat	(items,	PrepareKey(pref, "Range"),					&m_Range,		0.1f,1000.f);
-    V->OnChangeEvent.bind	(this,&CLight::OnPointDataChange);
-    V=PHelper().CreateFloat	(items,	PrepareKey(pref, "Attenuation\\Constant"),	&m_Attenuation0,0.f,1.f,0.0001f,6);
-    V->OnChangeEvent.bind	(this,&CLight::OnPointDataChange);
-    V=PHelper().CreateFloat	(items,	PrepareKey(pref, "Attenuation\\Linear"),		&m_Attenuation1,0.f,1.f,0.0001f,6);
-    V->OnChangeEvent.bind	(this,&CLight::OnPointDataChange);
-    V=PHelper().CreateFloat	(items,	PrepareKey(pref, "Attenuation\\Quadratic"),	&m_Attenuation2,0.f,1.f,0.0001f,6);
-    V->OnChangeEvent.bind	(this,&CLight::OnPointDataChange);
-	ButtonValue* B=0;
-    B=PHelper().CreateButton(items,	PrepareKey(pref, "Attenuation\\Auto"),"Linear,Quadratic",0);
-    B->OnBtnClickEvent.bind	(this,&CLight::OnAutoClick);
-	CanvasValue* C=0;
-    C=PHelper().CreateCanvas	(items,	PrepareKey(pref, "Attenuation\\Graphic"),	"", 64);
-    C->SetTag               (this);
-    C->OnDrawCanvasEvent.bind(this,&CLight::OnAttenuationDraw);
-    C->OnTestEqual.bind		(this,&CLight::OnPointDataTestEqual);
+
+	V = PHelper().CreateFloat	(items, PrepareKey(pref, "Range"),					&m_Range,		 0.1f, 1000.f);
+	V->OnChangeEvent.bind		(this, &CLight::OnPointDataChange);
+
+	V = PHelper().CreateFloat	(items, PrepareKey(pref, "Attenuation\\Constant"),	&m_Attenuation0, 0.f, 1.f, 0.0001f, 6);
+	V->OnChangeEvent.bind		(this, &CLight::OnPointDataChange);
+
+	V = PHelper().CreateFloat	(items, PrepareKey(pref, "Attenuation\\Linear"),	&m_Attenuation1, 0.f, 1.f, 0.0001f, 6);
+	V->OnChangeEvent.bind		(this, &CLight::OnPointDataChange);
+
+	V = PHelper().CreateFloat	(items, PrepareKey(pref, "Attenuation\\Quadratic"),	&m_Attenuation2, 0.f, 1.f, 0.0001f, 6);
+	V->OnChangeEvent.bind		(this, &CLight::OnPointDataChange);
+
+	ButtonValue* B = nullptr;
+	B			   = PHelper().CreateButton (items, PrepareKey(pref, "Attenuation\\Auto Fit"), "Linear,Quadratic", 0);
+	B->OnBtnClickEvent.bind					(this, &CLight::OnAutoClick);
+
+	PlotValue* PV = PHelper().CreatePlot	(items, PrepareKey(pref, "Attenuation\\Graphic"), fastdelegate::MakeDelegate(this, &CLight::OnPlotDraw), "");
 }
 
 xr_token fuzzy_shape_types[]={
@@ -170,23 +154,23 @@ void CLight::FillPointProp(LPCSTR pref, PropItemVec& items)
 	FillAttProp			(pref,items);
     PropValue* 			P=0;
     ButtonValue* 		B=0;
-    P=PHelper().CreateFlag32(items,	PrepareKey(pref, "Fuzzy"),				&m_Flags,	ELight::flPointFuzzy);
+    P=PHelper().CreateFlag32(items,	PrepareKey(pref, "Fuzzy"),			&m_Flags,	ELight::flPointFuzzy);
     P->OnChangeEvent.bind	(this,&CLight::OnFuzzyFlagChange);
 	if (m_Flags.is(ELight::flPointFuzzy)){
         VERIFY				(m_FuzzyData);
-        P=PHelper().CreateS16		(items,	PrepareKey(pref, "Fuzzy\\Count"),			&m_FuzzyData->m_PointCount,1,100);
+        P=PHelper().CreateS16		(items,	PrepareKey(pref, "Fuzzy\\Points Count"),	&m_FuzzyData->m_PointCount,1,100);
         P->OnChangeEvent.bind		(this,&CLight::OnFuzzyDataChange);
-	    B=PHelper().CreateButton	(items,	PrepareKey(pref, "Fuzzy\\Generate"),"Random",0);
+	    B=PHelper().CreateButton	(items,	PrepareKey(pref, "Fuzzy\\Generate"),"Randomize",0);
     	B->OnBtnClickEvent.bind		(this,&CLight::OnFuzzyGenerateClick);
-        P=PHelper().CreateToken8	(items,	PrepareKey(pref, "Fuzzy\\Shape"),		(u8*)&m_FuzzyData->m_ShapeType,	fuzzy_shape_types);
+        P=PHelper().CreateToken8	(items,	PrepareKey(pref, "Fuzzy\\Shape"),			(u8*)&m_FuzzyData->m_ShapeType,	fuzzy_shape_types);
         P->OnChangeEvent.bind		(this,&CLight::OnFuzzyTypeChange);
         switch (m_FuzzyData->m_ShapeType){
         case CLight::SFuzzyData::fstSphere: 
-            P=PHelper().CreateFloat(items,	PrepareKey(pref, "Fuzzy\\Radius"),		&m_FuzzyData->m_SphereRadius,0.01f,100.f,0.01f,2);
+            P=PHelper().CreateFloat(items,	PrepareKey(pref, "Fuzzy\\Radius"),			&m_FuzzyData->m_SphereRadius,0.01f,100.f,0.01f,2);
             P->OnChangeEvent.bind	(this,&CLight::OnFuzzyDataChange);
         break;
         case CLight::SFuzzyData::fstBox: 
-            P=PHelper().CreateVector(items,	PrepareKey(pref, "Fuzzy\\Half Dimension"),&m_FuzzyData->m_BoxDimension,0.01f,100.f,0.01f,2);
+            P=PHelper().CreateVector(items,	PrepareKey(pref, "Fuzzy\\Half Size"),		&m_FuzzyData->m_BoxDimension,0.01f,100.f,0.01f,2);
             P->OnChangeEvent.bind	(this,&CLight::OnFuzzyDataChange);
         break;
         }
@@ -204,7 +188,7 @@ void CLight::FillSpotProp(LPCSTR pref, PropItemVec& items)
 
 	FillAttProp				(pref,items);
 	PHelper().CreateAngle  	(items,	PrepareKey(pref, "Spot R1\\Cone Angle"),	&m_Cone,	0.1f,deg2rad(120.f),0.01f,2);
-	PHelper().CreateChoose	(items,	PrepareKey(pref, "Spot R1\\Texture"),  	&m_FalloffTex, 	smTexture);
+	PHelper().CreateChoose	(items,	PrepareKey(pref, "Spot R1\\Falloff Texture"),  	&m_FalloffTex, 	smTexture);
 }
 //----------------------------------------------------
 
@@ -220,8 +204,8 @@ void CLight::FillProp(LPCSTR pref, PropItemVec& items)
 
     PropValue* V=0;
 
-    V=PHelper().CreateToken32	(items,	PrepareKey(pref,"Type"),		(u32*)&m_Type,token_light_type);
-    V->OnChangeEvent.bind	(this,&CLight::OnTypeChange);
+//    V=PHelper().CreateToken32	(items,	PrepareKey(pref,"Type"),		(u32*)&m_Type,token_light_type);
+//    V->OnChangeEvent.bind	(this,&CLight::OnTypeChange);
     V=PHelper().CreateFColor(items,	PrepareKey(pref,"Color"),			&m_Color);
 	V->OnChangeEvent.bind	(this,&CLight::OnNeedUpdate);
     V=PHelper().CreateFloat	(items,	PrepareKey(pref,"Brightness"),		&m_Brightness,-3.f,3.f,0.1f,2);

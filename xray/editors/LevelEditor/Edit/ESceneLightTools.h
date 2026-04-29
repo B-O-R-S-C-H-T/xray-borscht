@@ -73,8 +73,9 @@ public:
     virtual void		AfterRender				();
 
 	void 				SelectLightsForObject	(CCustomObject* obj);
-    
-	virtual void 		FillProp				(LPCSTR pref, PropItemVec& items);
+
+	void				FillLightToolProp		(PropItemVec& items);
+	virtual void		FillProp				(LPCSTR pref, PropItemVec& items);
 
     AnsiString			GenLightControlName		();
     xr_rtoken*   		FindLightControl		(int id);
