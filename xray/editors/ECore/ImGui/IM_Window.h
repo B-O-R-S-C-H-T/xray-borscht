@@ -7,6 +7,9 @@ class ECORE_API IM_Storage {
 
 	CInifile* ini;
 
+	static xr_map<xr_string, CInifile*> s_file_inis;
+	static xr_map<xr_string, int>		s_ref_counts;
+
 public:
 	IM_Storage(bool for_write, const xr_string& fn, const xr_string& sn);
 	IM_Storage(bool for_write, const xr_string& sn);

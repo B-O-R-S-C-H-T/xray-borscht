@@ -3,23 +3,67 @@
 
 #include "IM_Window.h"
 
+/*
+ *   [IM_Example]
+ *        |
+ *        |  OnRemove() / OnAdd()
+ *        v
+ *   IM_Storage storage(true/false, "level.ini", "IM_Example");
+ *        |
+ *        |  PutBool/PutFloat/Get*...
+ *        v
+ *   shared CInifile <-- refcount++
+ *        |
+ *        v
+ *   ~IM_Storage	 --> refcount--
+ *        |
+ *        +-- if refcount == 0
+ *              |
+ *              v
+ *        CInifile::Destroy() --> save_as("level.ini")
+ *              |
+ *              v
+ *          level.ini
+ */
+
+xr_map<xr_string, CInifile*> IM_Storage::s_file_inis;
+xr_map<xr_string, int>		 IM_Storage::s_ref_counts;
+
 IM_Storage::IM_Storage(bool for_write, const xr_string& fn, const xr_string& sn) : m_file_name(fn), m_sect_name(sn) {
 	// CInifile automatically converts section names to lowercase while writing
 	// but while reading it uses case sensitive comarison :-\
     // so convert section name to lowercase anyway
-	for (size_t i = 0; i < m_sect_name.size(); i++)
+	for (size_t i = 0; i < m_sect_name.size(); ++i)
 		m_sect_name[i] = tolower(m_sect_name[i]);
 
-	ini = CInifile::Create(m_file_name.c_str(), !for_write);
-	ini->set_override_names(for_write);
+	auto it = s_file_inis.find(m_file_name);
+	if (it != s_file_inis.end()) {
+		ini = it->second;
+		++s_ref_counts[m_file_name];
+	} else {
+		ini						  = CInifile::Create(m_file_name.c_str(), FALSE);
+		s_file_inis[m_file_name]  = ini;
+		s_ref_counts[m_file_name] = 1;
+	}
+
+	if (for_write)
+		ini->set_override_names(TRUE);
 }
 
-IM_Storage::IM_Storage(bool for_write, const xr_string& sn) {
-	IM_Storage(for_write, "imgui.ini", sn);
-}
+IM_Storage::IM_Storage(bool for_write, const xr_string& sn) : IM_Storage(for_write, xr_string("imgui.ini"), sn) {}
 
 IM_Storage::~IM_Storage() {
-	CInifile::Destroy(ini);
+	auto it = s_ref_counts.find(m_file_name);
+	if (it != s_ref_counts.end()) {
+		--it->second;
+		if (it->second == 0) {
+			CInifile::Destroy(ini);
+			s_file_inis.erase(m_file_name);
+			s_ref_counts.erase(it);
+		}
+	} else {
+		CInifile::Destroy(ini);
+	}
 }
 
 int IM_Storage::GetInt(LPCSTR name, int def) {
