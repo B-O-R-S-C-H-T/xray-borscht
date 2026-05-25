@@ -81,12 +81,13 @@ ImVec2 IM_Toolbar::ComputeDesiredSize(int icon_size) const {
 }
 
 void IM_Toolbar::OnAdd() {
-	m_storage			= xr_new<IM_Storage>(true, "im_level.ini", "IM_Toolbar");
-	m_vertical			= m_storage->GetBool("vertical", false);
-	m_icon_scale		= m_storage->GetFloat("icon_scale", 1.5f);
+	IM_Storage storage(true, "level.ini", "IM_Toolbar");
 
-	m_saved_width		= m_storage->GetFloat("width", 900.0f);
-	m_saved_height		= m_storage->GetFloat("height", 400.0f);
+	m_vertical			= storage.GetBool("vertical", false);
+	m_icon_scale		= storage.GetFloat("icon_scale", 1.5f);
+
+	m_saved_width		= storage.GetFloat("width", 900.0f);
+	m_saved_height		= storage.GetFloat("height", 400.0f);
 
 	m_last_width		= m_saved_width;
 	m_last_height		= m_saved_height;
@@ -96,15 +97,12 @@ void IM_Toolbar::OnAdd() {
 }
 
 void IM_Toolbar::OnRemove() {
-	if (m_storage) {
-		m_storage->PutBool("vertical", m_vertical);
-		m_storage->PutFloat("icon_scale", m_icon_scale);
-		m_storage->PutFloat("width", m_saved_width);
-		m_storage->PutFloat("height", m_saved_height);
+	IM_Storage storage(true, "level.ini", "IM_Toolbar");
 
-		xr_delete(m_storage);
-		m_storage = nullptr;
-	}
+	storage.PutBool("vertical", m_vertical);
+	storage.PutFloat("icon_scale", m_icon_scale);
+	storage.PutFloat("width", m_saved_width);
+	storage.PutFloat("height", m_saved_height);
 }
 
 void IM_Toolbar::Render() {

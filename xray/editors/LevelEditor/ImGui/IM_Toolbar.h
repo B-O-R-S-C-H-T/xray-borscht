@@ -11,7 +11,6 @@ public:
 	float m_icon_scale = 1.5f;
 
 private:
-	IM_Storage* m_storage			= nullptr;
 	int			m_icon_size			= 0;
 	float		m_font_global_scale = 0.0f;
 	bool		m_is_dragging_edge	= false;
