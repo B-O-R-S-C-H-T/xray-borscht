@@ -4,6 +4,19 @@
 // refs
 class IM_PropertiesWnd;
 
+struct ECORE_API SWindowPlacement {
+	WINDOWPLACEMENT wp;
+
+	SWindowPlacement();
+
+	void Save(HWND hWnd);
+	void Restore(HWND hWnd) const;
+	void ValidateAndFix();
+
+private:
+	void SetDefaultSafeState();
+};
+
 enum {
 	epoDrawPivot	   = (1 << 0),
 	epoDrawAnimPath	   = (1 << 1),
@@ -164,6 +177,8 @@ public:
 	shared_str		screen_font;
 
     float			ui_scale;
+
+    SWindowPlacement windowState;
 
 protected:
 	void 	        OnKeyboardCommonFileClick	(ButtonValue* value, bool& bModif, bool& bSafe);

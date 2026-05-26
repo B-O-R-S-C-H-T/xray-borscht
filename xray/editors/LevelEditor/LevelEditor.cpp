@@ -81,7 +81,13 @@ int APIENTRY WinMain(
     	TerminateProcess(GetCurrentProcess(),-1);
     }
 
-    ShowWindow(g_MainWnd, nCmdShow);
+	int showCmd = nCmdShow;
+	if (EPrefs) {
+		EPrefs->windowState.Restore(g_MainWnd);
+		showCmd = EPrefs->windowState.wp.showCmd;
+	}
+
+    ShowWindow(g_MainWnd, showCmd);
     UpdateWindow(g_MainWnd);
 
 	UI->AddIMWindow(&imMainMenu);
@@ -265,6 +271,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		} break;
 
 		case WM_CLOSE:
+			if (EPrefs) EPrefs->windowState.Save(hWnd);
 			g_idle = false;
 			ExecCommand(COMMAND_DESTROY);
 			DestroyWindow(g_MainWnd);

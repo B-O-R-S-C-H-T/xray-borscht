@@ -7,6 +7,70 @@
 #include "ui_main.h"
 #include "ui_toolscustom.h"
 
+SWindowPlacement::SWindowPlacement() {
+	SetDefaultSafeState();
+}
+
+void SWindowPlacement::SetDefaultSafeState() {
+	ZeroMemory(&wp, sizeof(wp));
+	wp.length				   = sizeof(WINDOWPLACEMENT);
+	wp.flags				   = 0;
+	wp.showCmd				   = SW_SHOWNORMAL;
+	wp.ptMinPosition.x		   = -1;
+	wp.ptMinPosition.y		   = -1;
+	wp.ptMaxPosition.x		   = -1;
+	wp.ptMaxPosition.y		   = -1;
+	wp.rcNormalPosition.left   = 100;
+	wp.rcNormalPosition.top	   = 100;
+	wp.rcNormalPosition.right  = 1280;
+	wp.rcNormalPosition.bottom = 720;
+}
+
+void SWindowPlacement::Save(HWND hWnd) {
+	if (!hWnd)
+		return;
+	wp.length = sizeof(WINDOWPLACEMENT);
+	GetWindowPlacement(hWnd, &wp);
+}
+
+void SWindowPlacement::Restore(HWND hWnd) const {
+	if (!hWnd)
+		return;
+	if (wp.length != sizeof(WINDOWPLACEMENT))
+		return;
+
+	WINDOWPLACEMENT temp = wp; // copy
+	SetWindowPlacement(hWnd, &temp);
+}
+
+void SWindowPlacement::ValidateAndFix() {
+	if (wp.length != sizeof(WINDOWPLACEMENT)) {
+		SetDefaultSafeState();
+		return;
+	}
+
+	const LONG minW = 640;
+	const LONG minH = 480;
+
+	RECT& rc = wp.rcNormalPosition;
+
+	if (rc.right  - rc.left < minW)     rc.right  = rc.left + minW;
+	if (rc.bottom - rc.top  < minH)     rc.bottom = rc.top  + minH;
+
+	if (MonitorFromRect(&rc, MONITOR_DEFAULTTONULL) == NULL) {
+		RECT workArea{};
+		SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
+
+		LONG w	  = rc.right - rc.left;
+		LONG h	  = rc.bottom - rc.top;
+
+		rc.left	  = workArea.left + (workArea.right - workArea.left - w) / 2;
+		rc.top	  = workArea.top + (workArea.bottom - workArea.top - h) / 2;
+		rc.right  = rc.left + w;
+		rc.bottom = rc.top + h;
+	}
+}
+
 CCustomPreferences* EPrefs=0;
 
 CCustomPreferences::CCustomPreferences()
@@ -253,8 +317,8 @@ void CCustomPreferences::Load(CInifile* I)
     tools_sens_scale	= R_FLOAT_SAFE	("editor_prefs","tools_sens_scale"	,tools_sens_scale	);
     
     bp_lim_depth		= R_BOOL_SAFE	("editor_prefs","bp_lim_depth"		,bp_lim_depth		);
-    bp_cull				= R_BOOL_SAFE	("editor_prefs","bp_lim_depth"		,bp_cull		  	);
-    bp_depth_tolerance	= R_FLOAT_SAFE	("editor_prefs","tools_sens_rot"	,bp_depth_tolerance	);
+    bp_cull				= R_BOOL_SAFE	("editor_prefs","bp_lim_depth"		,bp_cull		  	);  //.???
+    bp_depth_tolerance	= R_FLOAT_SAFE	("editor_prefs","tools_sens_rot"	,bp_depth_tolerance	);  //.???
 
     snap_angle			= R_FLOAT_SAFE	("editor_prefs","snap_angle"		,snap_angle			);
     snap_move			= R_FLOAT_SAFE	("editor_prefs","snap_move"			,snap_move			);
@@ -270,6 +334,20 @@ void CCustomPreferences::Load(CInifile* I)
     object_flags.flags	= R_U32_SAFE	("editor_prefs","object_flags"		,object_flags.flags );
 
     ui_scale			= R_FLOAT_SAFE  ("editor_prefs", "ui_scale"         , 1.0f);
+
+    windowState.wp.length				   = sizeof(WINDOWPLACEMENT);
+	windowState.wp.flags				   = R_U32_SAFE("editor_prefs", "wp_flags",     0);
+	windowState.wp.showCmd				   = R_U32_SAFE("editor_prefs", "wp_showCmd", SW_SHOWNORMAL);
+	windowState.wp.ptMinPosition.x		   = R_U32_SAFE("editor_prefs", "wp_ptMinX",   -1);
+	windowState.wp.ptMinPosition.y		   = R_U32_SAFE("editor_prefs", "wp_ptMinY",   -1);
+	windowState.wp.ptMaxPosition.x		   = R_U32_SAFE("editor_prefs", "wp_ptMaxX",   -1);
+	windowState.wp.ptMaxPosition.y		   = R_U32_SAFE("editor_prefs", "wp_ptMaxY",   -1);
+	windowState.wp.rcNormalPosition.left   = R_U32_SAFE("editor_prefs", "wp_left",    100);
+	windowState.wp.rcNormalPosition.top	   = R_U32_SAFE("editor_prefs", "wp_top",     100);
+	windowState.wp.rcNormalPosition.right  = R_U32_SAFE("editor_prefs", "wp_right",  1280);
+	windowState.wp.rcNormalPosition.bottom = R_U32_SAFE("editor_prefs", "wp_bottom",  720);
+
+	windowState.ValidateAndFix();
 
     // read recent list    
     for (u32 i=0; i<scene_recent_count; i++){
@@ -332,6 +410,17 @@ void CCustomPreferences::Save(CInifile* I)
     I->w_u32	("editor_prefs","object_flags",		object_flags.flags);
 
     I->w_float  ("editor_prefs", "ui_scale",        ui_scale);
+
+	I->w_u32    ("editor_prefs", "wp_flags",        windowState.wp.flags);
+	I->w_u32    ("editor_prefs", "wp_showCmd",      windowState.wp.showCmd);
+	I->w_u32    ("editor_prefs", "wp_ptMinX",       windowState.wp.ptMinPosition.x);
+	I->w_u32    ("editor_prefs", "wp_ptMinY",       windowState.wp.ptMinPosition.y);
+	I->w_u32    ("editor_prefs", "wp_ptMaxX",       windowState.wp.ptMaxPosition.x);
+	I->w_u32    ("editor_prefs", "wp_ptMaxY",       windowState.wp.ptMaxPosition.y);
+	I->w_u32    ("editor_prefs", "wp_left",         windowState.wp.rcNormalPosition.left);
+	I->w_u32    ("editor_prefs", "wp_top",          windowState.wp.rcNormalPosition.top);
+	I->w_u32    ("editor_prefs", "wp_right",        windowState.wp.rcNormalPosition.right);
+	I->w_u32    ("editor_prefs", "wp_bottom",       windowState.wp.rcNormalPosition.bottom);
 
     for (AStringIt it=scene_recent_list.begin(); it!=scene_recent_list.end(); it++){
         AnsiString L = "recent_files_" + std::to_string(it - scene_recent_list.begin());
