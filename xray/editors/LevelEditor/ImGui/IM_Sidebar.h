@@ -35,9 +35,10 @@ public:
 	bool			 m_select_snap_objs_mode;
 	bool			 m_show_snaplist;
 	bool			 m_detach_tool_frame;
+	float			 m_sidebar_width;
 
 public:
-	IM_Sidebar() : m_detach_tool_frame(false) {}
+	IM_Sidebar() : m_enable_snap_list(false), m_select_snap_objs_mode(false), m_show_snaplist(true), m_detach_tool_frame(false), m_sidebar_width(350.0f) {}
 
 	virtual void OnAdd();
 	virtual void OnRemove();
