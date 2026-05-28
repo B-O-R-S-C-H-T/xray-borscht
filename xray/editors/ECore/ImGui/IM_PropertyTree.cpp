@@ -6,6 +6,7 @@
 #include <imgui.h>
 
 #include "../Editor/UI_Main.h"
+#include "editors/xrEProps/ChoseForm.h"
 #include "IM_ChooseForm.h"
 #include "IM_TextEditor.h"
 #include "utf8.h"
@@ -561,6 +562,15 @@ void IM_PropertyTree::OpenChooseForm(PropItem* item) {
 	if (!V->OnChooseFillEvent.empty()) {
 		V->m_Items = &cd->items;
 		V->OnChooseFillEvent(V);
+	} else {
+		SChooseEvents* ev = TfrmChoseItem::GetEvents(EChooseMode(V->m_ChooseID));
+		if (ev && !ev->on_fill.empty()) {
+			cd->items.clear();
+			ev->on_fill(cd->items, V->m_FillParam);
+			V->m_Items = &cd->items;
+		} else {
+			V->m_Items = nullptr;
+		}
 	}
 
 	IM_ChooseForm* cf = xr_new<IM_ChooseForm>(EChooseMode(V->m_ChooseID), V->subitem, V->m_Items, TOnChooseFillItems(NULL), V->m_FillParam);

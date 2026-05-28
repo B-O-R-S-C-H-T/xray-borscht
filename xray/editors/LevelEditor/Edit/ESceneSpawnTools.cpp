@@ -14,6 +14,7 @@
 #ifndef NO_VCL
 #include "EditLibrary.h"
 #endif
+#include "editors/xrEProps/ChoseForm.h"
 
 static HMODULE hXRSE_FACTORY = 0;
 
@@ -152,9 +153,7 @@ void __stdcall  FillSpawnItems	(ChooseItemVec& lst, void* param)
 ESceneSpawnTool::ESceneSpawnTool():ESceneCustomOTool(OBJCLASS_SPAWNPOINT)
 {
 	m_Flags.zero();
-#ifndef NO_VCL
     TfrmChoseItem::AppendEvents	(smSpawnItem,		"Select Spawn Item",		FillSpawnItems,		0,0,0,0);
-#endif
 
     hXRSE_FACTORY	= LoadLibrary(xrse_factory_library);									R_ASSERT3(hXRSE_FACTORY,"Can't load library:",xrse_factory_library);
 

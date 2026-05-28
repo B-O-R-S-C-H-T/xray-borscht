@@ -30,9 +30,11 @@ IM_ChooseForm::IM_ChooseForm(EChooseMode mode, int max_select, ChooseItemVec* it
 		m_Items = *items;
 	} else if (!fill_items.empty()) {
 		fill_items(m_Items, fill_param);
-	} else {
-		VERIFY2(m_events && !m_events->on_fill.empty(), "no source");
+	} else if (m_events && !m_events->on_fill.empty()) {
 		m_events->on_fill(m_Items, fill_param);
+	} else {
+		ELog.Msg(mtError, "no source for items (mode=%d, fill_param=%p)", (int)mode, fill_param);
+		m_Items.clear();
 	}
 
 	ListItemsVec tree_items;
