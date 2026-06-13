@@ -61,7 +61,7 @@ void IM_SoundEditor::Render() {
 		InitItemsList();
 		m_items.SelectAll(false);
 
-		ELog.Msg(mtInformation, u8"Sound renamed: %s → %s", pending_rename_old, pending_rename_new);
+		ELog.Msg(mtInformation, "Sound renamed: %s → %s", pending_rename_old, pending_rename_new);
 	}
 
 	if (!pending_removes.empty()) {

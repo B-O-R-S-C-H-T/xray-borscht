@@ -130,13 +130,13 @@ void IM_ChooseForm::UpdateSelectionUI(float height) {
 			m_current_item = i;
 	}
 	ImGui::EndChild();
-	if (ImGui::Button(u8"↑##choose_up"))
+	if (ImGui::Button("↑##choose_up"))
 		if (m_current_item > 0 && m_current_item < m_selected.size()) {
 			std::swap(m_selected[m_current_item], m_selected[m_current_item - 1]);
 			m_current_item--;
 		}
 	ImGui::SameLine();
-	if (ImGui::Button(u8"↓##choose_down"))
+	if (ImGui::Button("↓##choose_down"))
 		if (m_selected.size() && m_current_item < m_selected.size() - 1) {
 			std::swap(m_selected[m_current_item], m_selected[m_current_item + 1]);
 			m_current_item++;

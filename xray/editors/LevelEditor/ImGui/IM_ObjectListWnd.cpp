@@ -29,7 +29,7 @@ void IM_ObjectListWnd::Render() {
 	 int  rangeSel_end	 = -1;
 
 	 ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
-	 if (ImGui::Begin(u8"Object List", &open, ImGuiWindowFlags_MenuBar)) {
+	 if (ImGui::Begin("Object List", &open, ImGuiWindowFlags_MenuBar)) {
 		 ImGui::PushItemWidth(-1);
 		 if (ImGui::InputTextWithHint("##filter", "Search...", m_filter, sizeof(m_filter) - 1))
 			 m_needRefresh = true;

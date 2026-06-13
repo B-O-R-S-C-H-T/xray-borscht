@@ -6,13 +6,14 @@
 #define SkeletonXH
 #pragma once
 
+#include "FVisual.h"
 #include "SkeletonCustom.h"
 #include "SkeletonXVertRender.h"
 #include "../../Include/cl_intersect.h"
 
 // refs
 class 	CKinematics;
-class Fvisual		;
+//class Fvisual		;
 
 //.#pragma pack(push,4)
 

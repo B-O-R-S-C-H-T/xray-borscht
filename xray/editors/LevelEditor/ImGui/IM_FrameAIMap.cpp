@@ -191,25 +191,25 @@ void IM_FrameAIMap::Render() {
 				if (ImGui::BeginTable("dpad", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoSavedSettings)) {
 					ImGui::TableNextRow();
 					ImGui::TableSetColumnIndex(1);
-					if (ImGui::Button(u8"↑##up", ImVec2(btn, btn)))
+					if (ImGui::Button("↑##up", ImVec2(btn, btn)))
 						MakeLink(1);
 
 					ImGui::TableNextRow();
 					ImGui::TableSetColumnIndex(0);
-					if (ImGui::Button(u8"←##left", ImVec2(btn, btn)))
+					if (ImGui::Button("←##left", ImVec2(btn, btn)))
 						MakeLink(0);
 
 					ImGui::TableSetColumnIndex(1);
-					if (ImGui::Button(u8"+##plus", ImVec2(btn, btn)))
+					if (ImGui::Button("+##plus", ImVec2(btn, btn)))
 						MakeLink(4);
 
 					ImGui::TableSetColumnIndex(2);
-					if (ImGui::Button(u8"→##right", ImVec2(btn, btn)))
+					if (ImGui::Button("→##right", ImVec2(btn, btn)))
 						MakeLink(2);
 
 					ImGui::TableNextRow();
 					ImGui::TableSetColumnIndex(1);
-					if (ImGui::Button(u8"↓##down", ImVec2(btn, btn)))
+					if (ImGui::Button("↓##down", ImVec2(btn, btn)))
 						MakeLink(3);
 
 					ImGui::EndTable();
