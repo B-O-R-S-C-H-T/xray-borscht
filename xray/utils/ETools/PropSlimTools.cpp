@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "PropSlimTools.h"
-#include "object.h"
-#include "object_sliding.h"
+#include "../../3rd_party/tom_forsyth/object.h"
+#include "../../3rd_party/tom_forsyth/object_sliding.h"
 
 #pragma warning(disable:4018)
 

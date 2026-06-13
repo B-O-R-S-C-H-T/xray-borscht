@@ -27,12 +27,6 @@
     <ClCompile Include="xrXRC.cpp">
       <Filter>Kernel</Filter>
     </ClCompile>
-    <ClCompile Include="object.cpp">
-      <Filter>VIPM</Filter>
-    </ClCompile>
-    <ClCompile Include="object_sliding.cpp">
-      <Filter>VIPM</Filter>
-    </ClCompile>
     <ClCompile Include="optimize_vertex_order.cpp">
       <Filter>VIPM</Filter>
     </ClCompile>
@@ -54,6 +48,12 @@
     <ClCompile Include="resample.cpp">
       <Filter>OGG encoder</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\tom_forsyth\object.cpp">
+      <Filter>VIPM</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\3rd_party\tom_forsyth\object_sliding.cpp">
+      <Filter>VIPM</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DX_Wrapper.h">
@@ -68,28 +68,10 @@
     <ClInclude Include="xrXRC.h">
       <Filter>Kernel</Filter>
     </ClInclude>
-    <ClInclude Include="ArbitraryList.h">
-      <Filter>VIPM</Filter>
-    </ClInclude>
     <ClInclude Include="BinaryHeap.h">
       <Filter>VIPM</Filter>
     </ClInclude>
-    <ClInclude Include="DLink.h">
-      <Filter>VIPM</Filter>
-    </ClInclude>
-    <ClInclude Include="mesh.h">
-      <Filter>VIPM</Filter>
-    </ClInclude>
-    <ClInclude Include="object.h">
-      <Filter>VIPM</Filter>
-    </ClInclude>
-    <ClInclude Include="object_sliding.h">
-      <Filter>VIPM</Filter>
-    </ClInclude>
     <ClInclude Include="PropSlimTools.h">
-      <Filter>VIPM</Filter>
-    </ClInclude>
-    <ClInclude Include="quad.h">
       <Filter>VIPM</Filter>
     </ClInclude>
     <ClInclude Include="audio.h">
@@ -103,6 +85,24 @@
     </ClInclude>
     <ClInclude Include="resample.h">
       <Filter>OGG encoder</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\tom_forsyth\ArbitraryList.h">
+      <Filter>VIPM</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\tom_forsyth\DLink.h">
+      <Filter>VIPM</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\tom_forsyth\mesh.h">
+      <Filter>VIPM</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\tom_forsyth\object.h">
+      <Filter>VIPM</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\tom_forsyth\object_sliding.h">
+      <Filter>VIPM</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\3rd_party\tom_forsyth\quad.h">
+      <Filter>VIPM</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

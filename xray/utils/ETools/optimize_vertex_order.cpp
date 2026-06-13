@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "ArbitraryList.h"
+#include "../../3rd_party/tom_forsyth/ArbitraryList.h"
 #include "BinaryHeap.h"
 
 // The table of what score increase you get for reducing a valence to a certain amount.

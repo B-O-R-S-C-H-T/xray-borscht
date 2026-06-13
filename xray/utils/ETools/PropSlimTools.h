@@ -7,7 +7,7 @@
 #define ETOOLS_API __declspec( dllimport )
 #endif
 
-#include "ArbitraryList.h"
+#include "../../3rd_party/tom_forsyth/ArbitraryList.h"
 
 #pragma pack(push,1)
 struct VIPM_SWR
