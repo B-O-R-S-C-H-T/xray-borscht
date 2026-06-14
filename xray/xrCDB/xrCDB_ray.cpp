@@ -5,6 +5,7 @@
 #pragma warning(pop)
 
 #include "xrCDB.h"
+#include "../xrCore/cpu_info.h"
 
 using namespace		CDB;
 using namespace		Opcode;
@@ -331,7 +332,7 @@ void	COLLIDER_Base::ray_query	(const MODEL_Base *m_def, const Fvector& r_start, 
 	const AABBNoLeafNode* N = T->GetNodes();
 	r_free					();
 	
-	if (CPU::ID.hasSSE())	{
+	if (get_cpu_info().m_features.has_sse()) {
 		// SSE
 		// Binary dispatcher
 		if (ray_mode&OPT_CULL)		{

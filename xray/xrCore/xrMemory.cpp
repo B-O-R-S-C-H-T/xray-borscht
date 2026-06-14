@@ -1,10 +1,10 @@
 #include "stdafx.h"
 
+#include <malloc.h>
 
-#include	"xrsharedmem.h"
-#include	"xrMemory_pure.h"
-
-#include	<malloc.h>
+#include "xrMemory_pure.h"
+#include "xrsharedmem.h"
+#include "cpu_info.h"
 
 xrMemory	Memory;
 BOOL		mem_initialized	= FALSE;
@@ -62,7 +62,8 @@ void	xrMemory::_initialize	(BOOL bDebug)
 	stat_calls				= 0;
 	stat_counter			= 0;
 
-	if (CPU::ID.hasMMX())
+	const auto& cpu	= get_cpu_info();
+	if (cpu.m_features.has_mmx())
 	{
 		mem_copy	= xrMemCopy_MMX;
 		mem_fill	= xrMemFill_x86;

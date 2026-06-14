@@ -16,6 +16,9 @@
 #include <intrin.h>
 #endif
 
+#include "cpu_info.h"
+#include "platform_info.h"
+
 // Initialized on startup
 XRCORE_API	Fmatrix			Fidentity;
 XRCORE_API	Dmatrix			Didentity;
@@ -140,8 +143,6 @@ namespace CPU
 	XRCORE_API u64				qpc_freq		= 0	;
 	XRCORE_API u64				qpc_overhead	= 0	;
 	XRCORE_API u32				qpc_counter		= 0	;
-	
-	XRCORE_API _processor_info	ID;
 
 	XRCORE_API u64				QPC	()			{
 		u64		_dest	;
@@ -164,7 +165,6 @@ namespace CPU
 		return __rdtsc();
 	}
 #endif
-
 
 	void Detect	()
 	{
@@ -215,6 +215,8 @@ namespace CPU
 		clk_to_milisec = float(double(a/b));
 		a = 1000000;b = double(clk_per_second);
 		clk_to_microsec = float(double(a/b));
+
+		cpu_info_initialize();
 	}
 };
 
@@ -223,34 +225,37 @@ bool g_initialize_cpu_called = false;
 //------------------------------------------------------------------------------------
 void _initialize_cpu	(void) 
 {
-	Msg("* Detected CPU: %s %s, F%d/M%d/S%d, %.2f mhz, %d-clk 'rdtsc'",
-		CPU::ID.vendor, CPU::ID.brand,
-		CPU::ID.family, CPU::ID.model, CPU::ID.stepping,
-		float(CPU::clk_per_second/u64(1000000)),
-		u32(CPU::clk_overhead)
-		);
+	if (strstr(Core.Params, "-x86")) {
+		const_cast<cpu_info&>(get_cpu_info()).clear_features();
+	}
 
-//	DUMP_PHASE;
+	const cpu_info& cpu = get_cpu_info();
 
-	if (strstr(Core.Params,"-x86"))
-		CPU::ID.clearFeatures();
+	Msg("* CPU: %s %s, F%d/M%d/S%d, ~%.0f MHz",
+		cpu.m_vendor,
+		cpu.m_brand,
+		cpu.m_family,
+		cpu.m_model,
+		cpu.m_stepping,
+		float(CPU::clk_per_second / static_cast<double>(u64(1000000))));
 
-	string256	features;
-	strcpy_s(features, sizeof(features), "RDTSC");
-	if (CPU::ID.hasMMX()) strcat(features, ", MMX");
-	if (CPU::ID.has3DNOW()) strcat(features, ", 3DNow!");
-	if (CPU::ID.hasSSE()) strcat(features, ", SSE");
-	if (CPU::ID.hasSSE2()) strcat(features, ", SSE2");
-	if (CPU::ID.hasSSE3()) strcat(features, ", SSE3");
-	if (CPU::ID.hasMWAIT()) strcat(features, ", MONITOR/MWAIT");
-	if (CPU::ID.hasSSSE3()) strcat(features, ", SSSE3");
-	if (CPU::ID.hasSSE41()) strcat(features, ", SSE4.1");
-	if (CPU::ID.hasSSE42()) strcat(features, ", SSE4.2");
-	if (CPU::ID.hasSSE4a()) strcat(features, ", SSE4a");
-	if (CPU::ID.hasAVX()) strcat(features, ", AVX");
-	if (CPU::ID.hasAVX2()) strcat(features, ", AVX2");
-	Msg("* CPU features: %s", features);
-	Msg("* CPU threads: %d\n", CPU::ID.threadCount);
+	Msg("* CPU cores: %d physical / %d logical%s",
+		cpu.m_physical_cores,
+		cpu.m_logical_cores,
+		(cpu.m_logical_cores > cpu.m_physical_cores) ? " (SMT enabled)" : "");
+
+	if (cpu.m_l3_cache_size > 0) {
+		Msg("* CPU cache: L1=%zu KB total, L2=%zu KB, L3=%zu KB",
+			cpu.m_l1_cache_size / 1024,
+			cpu.m_l2_cache_size / 1024,
+			cpu.m_l3_cache_size / 1024);
+	}
+
+	Msg("* CPU features (hardware):   %s", cpu.get_hardware_features_string().c_str());
+	Msg("* CPU features (OS enabled): %s", cpu.get_os_enabled_features_string().c_str());
+
+	g_platform_info.total_logical_cores = cpu.m_logical_cores;
+	log_platform_info();
 
 	Fidentity.identity		();	// Identity matrix
 	Didentity.identity		();	// Identity matrix
@@ -285,7 +290,7 @@ void _initialize_cpu_thread	()
 	// fpu & sse 
 	FPU::m24r	();
 #endif  // XRCORE_STATIC
-	if (CPU::ID.hasSSE())	{
+	if (get_cpu_info().m_features.has_sse()) {
 		//_mm_setcsr ( _mm_getcsr() | (_MM_FLUSH_ZERO_ON+_MM_DENORMALS_ZERO_ON) );
 		_MM_SET_FLUSH_ZERO_MODE			(_MM_FLUSH_ZERO_ON);
 		if (_denormals_are_zero_supported)	{

@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+//#include "../xrCore/cpu_info.h"
 
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
@@ -48,17 +49,19 @@ extern "C" {
 		T->memFill32 = nullptr;//T->memFill32= xrMemFill32_MMX;
 		
 		// SSE
-		if (CPU::ID.hasSSE()) {
+		//const auto& cpu = get_cpu_info();
+
+		//if (cpu.m_features.has_sse()) {
 			//T->memCopy	= xrMemCopy_MMXSSE3DNow;
 			//T->skin2W	= xrSkin2W_SSE;
-		}
+		//}
  
 		// 3dnow!
-		if (CPU::ID.has3DNOW()) {
+		//if (cpu.m_features.has_3dnow()) {
  			//T->skin1W	= xrSkin1W_3DNow;
 			// T->blerp	= xrBoneLerp_3DNow;
 			//T->memCopy	= xrMemCopy_MMXSSE3DNow;
 			//T->skin2W	= xrSkin2W_3DNow;
-		}
+		//}
 	}
 };

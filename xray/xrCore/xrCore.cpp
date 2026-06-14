@@ -1,11 +1,15 @@
 // xrCore.cpp : Defines the entry point for the DLL application.
 //
 #include "stdafx.h"
+
+#include "xrCore.h"
+
 #include <mmsystem.h>
 #include <objbase.h>
-#include "xrCore.h"
+
 #include "ELocatorAPI.h"
 #include "LocatorAPI.h"
+#include "platform_info.h"
 #ifdef DEBUG
 #	include	<malloc.h>
 #endif // DEBUG
@@ -18,14 +22,12 @@ XRCORE_API ILocatorAPI*	xr_FS	= NULL;
 
 namespace CPU
 {
-	extern	void			Detect	();
+	extern void Detect();
 };
 
 static u32	init_counter	= 0;
 
 extern char g_application_path[256];
-
-//. extern xr_vector<shared_str>*	LogFile;
 
 // computing build id
 static LPSTR month_id[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
@@ -62,9 +64,9 @@ void compute_build_id()
         build_id -= days_in_month[i];
 }
 
-void xrCore::_initialize	(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs, LPCSTR fs_fname, bool editor)
+void xrCore::_initialize(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs, LPCSTR fs_fname, bool editor)
 {
-	strcpy_s					(ApplicationName,_ApplicationName);
+	strcpy_s			(ApplicationName,_ApplicationName);
 	if (0==init_counter) {
 #ifdef XRCORE_STATIC	
 		_clear87	();
@@ -108,6 +110,8 @@ void xrCore::_initialize	(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs,
 
 		// Mathematics & PSI detection
 		CPU::Detect			();
+
+		g_platform_info.initialize();
 		
 		Memory._initialize	(strstr(Params,"-mem_debug") ? TRUE : FALSE);
 
@@ -184,36 +188,35 @@ void xrCore::_destroy		()
 
 #ifndef XRCORE_STATIC
 
-//. why ??? 
-#ifdef _EDITOR
-	BOOL WINAPI DllEntryPoint(HINSTANCE hinstDLL, DWORD ul_reason_for_call, LPVOID lpvReserved)
-#else
-	BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD ul_reason_for_call, LPVOID lpvReserved)
-#endif
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		{
+	{
 			_clear87		();
 			_control87		( _PC_53,   _MCW_PC );
 			_control87		( _RC_CHOP, _MCW_RC );
 			_control87		( _RC_NEAR, _MCW_RC );
 			_control87		( _MCW_EM,  _MCW_EM );
-		}
-//.		LogFile.reserve		(256);
-		break;
+			break;
+	}
+
 	case DLL_THREAD_ATTACH:
-		timeBeginPeriod	(1);
+		//timeBeginPeriod(1);	// наверное в этом уже нет смысла
 		break;
+
 	case DLL_THREAD_DETACH:
+		//timeEndPeriod(1);
 		break;
+
 	case DLL_PROCESS_DETACH:
 #ifdef USE_MEMORY_MONITOR
 		memory_monitor::flush_each_time	(true);
 #endif // USE_MEMORY_MONITOR
 		break;
 	}
-    return TRUE;
+	return TRUE;
 }
+
 #endif // XRCORE_STATIC

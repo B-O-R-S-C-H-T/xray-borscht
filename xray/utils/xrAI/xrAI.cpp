@@ -2,17 +2,20 @@
 //
 
 #include "stdafx.h"
-#include "../../xrcore/xr_ini.h"
-#include "process.h"
+
 #include "xrAI.h"
 
-#include "xr_graph_merge.h"
-#include "game_spawn_constructor.h"
-#include "xrCrossTable.h"
-//#include "path_test.h"
-#include "game_graph_builder.h"
 #include <mmsystem.h>
+
+#include "xr_graph_merge.h"
+
+#include "../../xrCore/cpu_info.h"
+#include "../../xrcore/xr_ini.h"
+#include "game_graph_builder.h"
+#include "game_spawn_constructor.h"
+#include "process.h"
 #include "spawn_patcher.h"
+#include "xrCrossTable.h"
 
 extern LPCSTR LEVEL_GRAPH_NAME;
 
@@ -102,7 +105,7 @@ void execute	(LPSTR cmd)
 		if (threadOption)
 			sscanf(threadOption + strlen("-thread"), "%lu", &numThread);
 		if (numThread == 0 || numThread > 256) {
-			numThread = CPU::ID.threadCount;
+			numThread = get_cpu_info().m_logical_cores;
 		}
 
 		xrCompiler(prjName, !!strstr(cmd,"-draft"), !!strstr(cmd,"-pure_covers"), output, numThread, !!strstr(cmd, "-use_tbb"));

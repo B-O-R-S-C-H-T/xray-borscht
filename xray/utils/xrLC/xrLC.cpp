@@ -6,6 +6,7 @@
 #include "../xrLC_Light/xrLC_GlobalData.h"
 #include "cl_log.h"
 #include "../xrLC_Light/xrDeflector.h"
+#include "../../xrCore/cpu_info.h"
 
 #define PROTECTED_BUILD
 
@@ -85,7 +86,7 @@ void Startup(LPSTR     lpCmdLine)
 	if (threadOption)
 		sscanf(threadOption + strlen("-thread"), "%lu", &numThread);
 	if (numThread == 0 || numThread > 256) {
-		numThread = CPU::ID.threadCount;
+		numThread = get_cpu_info().m_logical_cores;
 	}
 	lc_global_data()->setNumThread(numThread);
 	

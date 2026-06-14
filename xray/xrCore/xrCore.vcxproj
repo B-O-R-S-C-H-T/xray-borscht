@@ -367,6 +367,7 @@
       <BrowseInformation>
       </BrowseInformation>
       <WarningLevel>Level4</WarningLevel>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <MapFileName>
@@ -696,7 +697,7 @@
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
     </ClCompile>
     <ClCompile Include="clsid.cpp" />
-    <ClCompile Include="cpuid.cpp" />
+    <ClCompile Include="cpu_info.cpp" />
     <ClCompile Include="crc32.cpp" />
     <ClCompile Include="ELocatorAPI.cpp" />
     <ClCompile Include="FileDialog.cpp">
@@ -757,6 +758,7 @@
     </ClCompile>
     <ClCompile Include="NET_utils.cpp" />
     <ClCompile Include="os_clipboard.cpp" />
+    <ClCompile Include="platform_info.cpp" />
     <ClCompile Include="ppmd_compressor.cpp" />
     <ClCompile Include="rt_compressor.cpp" />
     <ClCompile Include="rt_compressor9.cpp" />
@@ -842,7 +844,7 @@
     <ClInclude Include="Coder.hpp" />
     <ClInclude Include="compression_ppmd_stream.h" />
     <ClInclude Include="compression_ppmd_stream_inline.h" />
-    <ClInclude Include="cpuid.h" />
+    <ClInclude Include="cpu_info.h" />
     <ClInclude Include="ELocatorAPI.h" />
     <ClInclude Include="fastdelegate.h" />
     <CustomBuild Include="FileSystem.h" />
@@ -875,6 +877,7 @@
     <ClInclude Include="memory_monitor.h" />
     <ClInclude Include="net_utils.h" />
     <ClInclude Include="os_clipboard.h" />
+    <ClInclude Include="platform_info.h" />
     <ClInclude Include="PPMd.h" />
     <ClInclude Include="PPMdType.h" />
     <ClInclude Include="ppmd_compressor.h" />

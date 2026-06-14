@@ -1,10 +1,12 @@
-// xrAI.cpp : Defines the entry point for the application.
+// xrDO_Light.cpp : Defines the entry point for the application.
 //
 
 #include "stdafx.h"
-#include "process.h"
-#include "global_calculation_data.h"
+
+#include "../../xrCore/cpu_info.h"
 #include "cl_log.h"
+#include "global_calculation_data.h"
+#include "process.h"
 
 extern void	xrCompiler			();
 extern void logThread			(void *dummy);
@@ -45,7 +47,7 @@ void Startup(LPSTR     lpCmdLine)
 	if (threadOption)
 		sscanf(threadOption + strlen("-thread"), "%lu", &numThread);
 	if (numThread == 0 || numThread > 256) {
-		numThread = CPU::ID.threadCount;
+		numThread = get_cpu_info().m_logical_cores;
 	}
 	gl_data.numThread = numThread;
 	const char* sampleOption = strstr(cmd, "-samples");
