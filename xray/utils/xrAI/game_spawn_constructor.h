@@ -11,10 +11,10 @@
 #include "alife_space.h"
 #include "xr_graph_merge.h"
 #include "xrthread.h"
-#include "graph_abstract.h"
+#include "../../xrGame/graph_abstract.h"
 #include "xrServer_Object_Base.h"
 #include "spawn_constructor_space.h"
-#include "server_entity_wrapper.h"
+#include "../../xrGame/server_entity_wrapper.h"
 #include "guid_generator.h"
 
 class CSE_Abstract;

@@ -81,7 +81,7 @@ IC	typename _associative_vector::reverse_iterator _associative_vector::rbegin			
 }
 
 TEMPLATE_SPECIALIZATION
-IC	typename _associative_vector::iterator _associative_vector::rend						()
+IC	typename _associative_vector::iterator _associative_vector::rend						()	//. почему не reverse_iterator?
 {
 	actualize			();
 	return				(inherited::rend());
@@ -232,7 +232,7 @@ IC	typename _associative_vector::insert_result _associative_vector::insert					(
 	actualize			();
 	bool				found = true;
 	iterator			I = lower_bound(value.first);
-	if (I == end() || operator()(value.first,(*I).first)) {
+	if (I == end() || value_compare::operator()(value.first, (*I).first)) {
 		I				= inherited::insert(I,value);
 		found			= false;
 	}
@@ -246,10 +246,10 @@ IC	typename _associative_vector::iterator _associative_vector::insert						(iter
 {
 	if	(
 			(where != end()) && 
-			(operator()(*where,value)) &&
+			(value_compare::operator()(*where, value)) &&
 			((where - begin()) == size()) &&
-			(!operator()(value,*(where + 1))) &&
-			(operator()(*(where + 1),value))
+			(!value_compare::operator()(value,*(where + 1))) &&
+			(value_compare::operator()(*(where + 1),value))
 		)
 			return		(inherited::insert(where,value));
 
@@ -279,7 +279,7 @@ IC	typename _associative_vector::iterator _associative_vector::find						(const 
 	if (I == end())
 		return			(end());
 
-	if (operator()(key,(*I).first))
+	if (value_compare::operator()(key, (*I).first))
 		return			(end());
 
 	return				(I);
@@ -293,7 +293,7 @@ IC	typename _associative_vector::const_iterator _associative_vector::find					(c
 	if (I == end())
 		return			(end());
 
-	if (operator()(key,(*I).first))
+	if (value_compare::operator()(key, (*I).first))
 		return			(end());
 
 	return				(I);
@@ -314,10 +314,10 @@ IC	typename _associative_vector::equal_range_result _associative_vector::equal_r
 	if (I == end())
 		return			(equal_range_result(end(),end()));
 
-	if (operator()(key,(*I).first))
+	if (value_compare::operator()(key, (*I).first))
 		return			(equal_range_result(I,I));
 
-	VERIFY				(!operator()(key,(*I).first));
+	VERIFY				(!value_compare::operator()(key,(*I).first));
 	return				(equal_range_result(I,I+1));
 }
 
@@ -329,10 +329,10 @@ IC	typename _associative_vector::const_equal_range_result _associative_vector::e
 	if (I == end())
 		return			(const_equal_range_result(end(),end()));
 
-	if (operator()(key,(*I).first))
+	if (value_compare::operator()(key, (*I).first))
 		return			(const_equal_range_result(I,I));
 
-	VERIFY				(!operator()(key,(*I).first));
+	VERIFY				(!value_compare::operator()(key,(*I).first));
 	return				(const_equal_range_result(I,I+1));
 }
 

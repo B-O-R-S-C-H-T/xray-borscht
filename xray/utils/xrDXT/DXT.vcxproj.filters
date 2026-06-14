@@ -27,13 +27,13 @@
     <ClInclude Include="NVI_Image.h">
       <Filter>NormalMap</Filter>
     </ClInclude>
-    <ClInclude Include="tga.h">
-      <Filter>NormalMap</Filter>
-    </ClInclude>
     <ClInclude Include="dds.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="dds\tPixel.h">
       <Filter>Convert</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Layers\xrRender\tga.h">
+      <Filter>NormalMap</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -55,10 +55,10 @@
     <ClCompile Include="NVI_Image.cpp">
       <Filter>NormalMap</Filter>
     </ClCompile>
-    <ClCompile Include="tga.cpp">
+    <ClCompile Include="StdAfx.cpp" />
+    <ClCompile Include="..\..\Layers\xrRender\tga.cpp">
       <Filter>NormalMap</Filter>
     </ClCompile>
-    <ClCompile Include="StdAfx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />

@@ -370,7 +370,7 @@ cleanup:
 
 void update_statistics_full(char *fn, long total, long done, double time)
 {
-	static char *spinner="|/-\\";
+	static const char *spinner="|/-\\";
 	static int spinpoint = 0;
 	double remain_time;
 	int minutes=0,seconds=0;
@@ -386,7 +386,7 @@ void update_statistics_full(char *fn, long total, long done, double time)
 
 void update_statistics_notime(char *fn, long total, long done, double time)
 {
-	static char *spinner="|/-\\";
+	static const char *spinner="|/-\\";
 	static int spinpoint =0;
 	
 	fprintf(stderr, "\r");
@@ -437,7 +437,7 @@ void update_statistics_null(char *fn, long total, long done, double time)
 	/* So is this */
 }
 
-void encode_error(char *errmsg)
+void encode_error(const char* errmsg)
 {
 	fprintf(stderr, "\n%s\n", errmsg);
 }

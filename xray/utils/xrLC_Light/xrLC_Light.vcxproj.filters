@@ -26,9 +26,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="_d3d_extensions.h">
-      <Filter>kernel</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>kernel</Filter>
     </ClInclude>
@@ -84,9 +81,6 @@
       <Filter>Light</Filter>
     </ClInclude>
     <ClInclude Include="tcf.h">
-      <Filter>Light</Filter>
-    </ClInclude>
-    <ClInclude Include="tga.h">
       <Filter>Light</Filter>
     </ClInclude>
     <ClInclude Include="uv_tri.h">
@@ -171,6 +165,12 @@
       <Filter>Light\models</Filter>
     </ClInclude>
     <ClInclude Include="..\Shader_xrLC.h" />
+    <ClInclude Include="..\..\Layers\xrRender\tga.h">
+      <Filter>Light</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xrEngine\_d3d_extensions.h">
+      <Filter>kernel</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -210,9 +210,6 @@
       <Filter>Light</Filter>
     </ClCompile>
     <ClCompile Include="tcf.cpp">
-      <Filter>Light</Filter>
-    </ClCompile>
-    <ClCompile Include="tga.cpp">
       <Filter>Light</Filter>
     </ClCompile>
     <ClCompile Include="uv_tri.cpp">
@@ -322,6 +319,9 @@
     </ClCompile>
     <ClCompile Include="xrMU_Model_Reference_Calc_Lighting.cpp">
       <Filter>Light\models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Layers\xrRender\tga.cpp">
+      <Filter>Light</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

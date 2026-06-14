@@ -135,17 +135,6 @@ inline _Type Modulo(const _Type &x, const _Type &hi)
 
     return f;
 }
-// does not allow x == size
-inline int iModulo(int x, int size)
-{
-    if (x < 0)
-    {
-        int n = x / size;
-        x += size * (n + 1);
-    }
-        
-    return x % size;
-}
 
 
 
@@ -986,12 +975,12 @@ public:
 
     }
 
-    _Type * pixelsXY_wrapped(int x, int y)
+    _Type* pixelsXY_wrapped(int x, int y)
     {
-        y = mod(y, m_height);
-        x = mod(x, m_width);
+    y = iModulo(y, m_height);
+    x = iModulo(x, m_width);
 
-        return &m_pixels[y * m_width + x];
+    return &m_pixels[y * m_width + x];
     }
 
 

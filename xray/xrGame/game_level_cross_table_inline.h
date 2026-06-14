@@ -39,7 +39,10 @@ IC CGameLevelCrossTable::CGameLevelCrossTable	(const void *buffer, const u32 &bu
 
 IC CGameLevelCrossTable::~CGameLevelCrossTable	()
 {
-};
+#ifdef AI_COMPILER
+	if (m_tpCrossTableVFS) FS.r_close(m_tpCrossTableVFS);
+#endif
+}
 
 IC const CGameLevelCrossTable::CCell &CGameLevelCrossTable::vertex(u32 level_vertex_id) const
 {

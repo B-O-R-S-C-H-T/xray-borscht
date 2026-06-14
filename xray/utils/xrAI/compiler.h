@@ -62,7 +62,7 @@ DEF_VECTOR(DWORDs,u32);
 //	float		cover[4];
 //};
 
-#include "level_graph.h"
+#include "../../xrGame/level_graph.h"
 
 void	Compress	(CLevelGraph::CVertex& Dest, vertex& Src);
 

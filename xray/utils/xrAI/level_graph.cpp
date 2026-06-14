@@ -7,8 +7,8 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "level_graph.h"
-#include "profiler.h"
+#include "../../xrGame/level_graph.h"
+#include "../../xrGame/profiler.h"
 
 LPCSTR LEVEL_GRAPH_NAME = "level.ai";
 

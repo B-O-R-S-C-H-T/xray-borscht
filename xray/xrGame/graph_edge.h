@@ -39,6 +39,7 @@ template <
 class CEdge : public CEdgeBase<_edge_weight_type,_vertex_type> {
 private:
 	typedef CEdgeBase<_edge_weight_type,_vertex_type>	inherited;
+	typedef typename inherited::_vertex_id_type			_vertex_id_type;
 
 private:
 	_edge_data_type					m_data;
@@ -61,8 +62,8 @@ private:
 
 public:
 	IC								CEdge		(const _edge_weight_type &weight, _vertex_type *vertex);
-	IC		bool					operator==	(const typename _vertex_type::_vertex_id_type &vertex_id) const;
-	IC		bool					operator==	(const CEdge &obj) const;
+	IC		bool					operator==(const typename inherited::_vertex_id_type &vertex_id) const;
+	IC		bool					operator==(const CEdge &obj) const;
 };
 
 #include "graph_edge_inline.h"

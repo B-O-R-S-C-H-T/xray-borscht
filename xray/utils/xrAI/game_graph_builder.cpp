@@ -7,16 +7,17 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
+
 #include "game_graph_builder.h"
-#include "level_graph.h"
-#include "graph_abstract.h"
+#include "../../xrGame/level_graph.h"
+#include "../../xrGame/graph_abstract.h"
 #include "xrMessages.h"
 #include "xrServer_Objects_ALife.h"
 #include "factory_api.h"
-#include "game_level_cross_table.h"
+#include "../../xrGame/game_level_cross_table.h"
 #include "xrCrossTable.h"
 #include "guid_generator.h"
-#include "graph_engine.h"
+#include "../../xrGame/graph_engine.h"
 
 CGameGraphBuilder::CGameGraphBuilder		()
 {
@@ -172,10 +173,10 @@ IC	bool sort_predicate_greater(const T &first, const T &second)
 	return					(first.first > second.first);
 }
 
-// Бросаем в воды аи-сетки камушки в каждом граф-поинте.
-// И смотрим до какой аи-ноды от какого граф-поинта быстрей дойдет волна.
-// Значит эта аи-нода относится к этому графпоинту, а время, за которое дошла волна, считаем за расстояние до граф-поинта.
-// Заодно засекаем, какая волна с какой встретилась и собираем информацию о соседних граф-поинтах.
+// Р‘СЂРѕСЃР°РµРј РІ РІРѕРґС‹ Р°Рё-СЃРµС‚РєРё РєР°РјСѓС€РєРё РІ РєР°Р¶РґРѕРј РіСЂР°С„-РїРѕРёРЅС‚Рµ.
+// Р СЃРјРѕС‚СЂРёРј РґРѕ РєР°РєРѕР№ Р°Рё-РЅРѕРґС‹ РѕС‚ РєР°РєРѕРіРѕ РіСЂР°С„-РїРѕРёРЅС‚Р° Р±С‹СЃС‚СЂРµР№ РґРѕР№РґРµС‚ РІРѕР»РЅР°.
+// Р—РЅР°С‡РёС‚ СЌС‚Р° Р°Рё-РЅРѕРґР° РѕС‚РЅРѕСЃРёС‚СЃСЏ Рє СЌС‚РѕРјСѓ РіСЂР°С„РїРѕРёРЅС‚Сѓ, Р° РІСЂРµРјСЏ, Р·Р° РєРѕС‚РѕСЂРѕРµ РґРѕС€Р»Р° РІРѕР»РЅР°, СЃС‡РёС‚Р°РµРј Р·Р° СЂР°СЃСЃС‚РѕСЏРЅРёРµ РґРѕ РіСЂР°С„-РїРѕРёРЅС‚Р°.
+// Р—Р°РѕРґРЅРѕ Р·Р°СЃРµРєР°РµРј, РєР°РєР°СЏ РІРѕР»РЅР° СЃ РєР°РєРѕР№ РІСЃС‚СЂРµС‚РёР»Р°СЃСЊ Рё СЃРѕР±РёСЂР°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ СЃРѕСЃРµРґРЅРёС… РіСЂР°С„-РїРѕРёРЅС‚Р°С….
 void CGameGraphBuilder::iterate_distances	(const float &start, const float &amount)
 {
 	Progress							(start);
@@ -185,9 +186,9 @@ void CGameGraphBuilder::iterate_distances	(const float &start, const float &amou
 	m_distances.resize(count);
 	m_neighbours.resize(graph().vertices().size());
 
-	xr_vector<u32> cur_fringe;// фронт волны
+	xr_vector<u32> cur_fringe;// С„СЂРѕРЅС‚ РІРѕР»РЅС‹
 
-	// бросаем камни в граф-поинтах и заполняем начальный фронт волны
+	// Р±СЂРѕСЃР°РµРј РєР°РјРЅРё РІ РіСЂР°С„-РїРѕРёРЅС‚Р°С… Рё Р·Р°РїРѕР»РЅСЏРµРј РЅР°С‡Р°Р»СЊРЅС‹Р№ С„СЂРѕРЅС‚ РІРѕР»РЅС‹
 	for (u32 i = 0, n = graph().vertices().size(); i != n; i++) {
 		u32 level_vertex_id = graph().vertex(i)->data().level_vertex_id();
 		cur_fringe.push_back(level_vertex_id);
@@ -199,7 +200,7 @@ void CGameGraphBuilder::iterate_distances	(const float &start, const float &amou
 	u32 processed = 0;
 	xr_vector<u32> next_fringe;
 	while (!cur_fringe.empty()) {
-		//обходим фронт волны и смотрим, в какие аи-ноды волна может пойти дальше
+		//РѕР±С…РѕРґРёРј С„СЂРѕРЅС‚ РІРѕР»РЅС‹ Рё СЃРјРѕС‚СЂРёРј, РІ РєР°РєРёРµ Р°Рё-РЅРѕРґС‹ РІРѕР»РЅР° РјРѕР¶РµС‚ РїРѕР№С‚Рё РґР°Р»СЊС€Рµ
 		for (auto lvid : cur_fringe) {
 			u32 dist = m_distances[lvid];
 			GameGraph::_GRAPH_ID parent = m_parents[lvid];
@@ -209,15 +210,15 @@ void CGameGraphBuilder::iterate_distances	(const float &start, const float &amou
 			for (; i != e; ++i) {
 				u32 next_lvid = node->link(i);
 
-				// тупик
+				// С‚СѓРїРёРє
 				if (!level_graph().valid_vertex_id(next_lvid))
 					continue;
 
-				// встретились две волны - добавляем соседа к граф-поинту
+				// РІСЃС‚СЂРµС‚РёР»РёСЃСЊ РґРІРµ РІРѕР»РЅС‹ - РґРѕР±Р°РІР»СЏРµРј СЃРѕСЃРµРґР° Рє РіСЂР°С„-РїРѕРёРЅС‚Сѓ
 				if (m_parents[next_lvid] != GameGraph::_GRAPH_ID(-1) && m_parents[next_lvid] != parent)
 					m_neighbours[parent].insert(m_parents[next_lvid]);
 
-				// оставляем только те аи-ноды, где волна еще не была
+				// РѕСЃС‚Р°РІР»СЏРµРј С‚РѕР»СЊРєРѕ С‚Рµ Р°Рё-РЅРѕРґС‹, РіРґРµ РІРѕР»РЅР° РµС‰Рµ РЅРµ Р±С‹Р»Р°
 				if (m_parents[next_lvid] != GameGraph::_GRAPH_ID(-1))
 					continue;
 
@@ -255,7 +256,7 @@ void CGameGraphBuilder::check_fill()
 		error_nodes.push_back({ level_graph().vertex_position(i), i });
 	}
 
-	// сохранить информацию об ошибочных нодах для LE
+	// СЃРѕС…СЂР°РЅРёС‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РѕС€РёР±РѕС‡РЅС‹С… РЅРѕРґР°С… РґР»СЏ LE
 	string_path error_nodes_filename, fn;
 	strconcat(sizeof(fn), fn, "ai_nodes_", m_short_level_name, ".err");
 	FS.update_path(error_nodes_filename, "$logs$", fn);

@@ -73,10 +73,10 @@ TEMPLATE_SPECIALIZATION
 IC	u8	CConditionStateAbstract::weight		(const CConditionState &condition) const
 {
 	u8						result = 0;
-	xr_vector<COperatorCondition>::const_iterator	I = conditions().begin();
-	xr_vector<COperatorCondition>::const_iterator	E = conditions().end();
-	xr_vector<COperatorCondition>::const_iterator	i = condition.conditions().begin();
-	xr_vector<COperatorCondition>::const_iterator	e = condition.conditions().end();
+	typename xr_vector<COperatorCondition>::const_iterator	I = conditions().begin();
+	typename xr_vector<COperatorCondition>::const_iterator	E = conditions().end();
+	typename xr_vector<COperatorCondition>::const_iterator	i = condition.conditions().begin();
+	typename xr_vector<COperatorCondition>::const_iterator	e = condition.conditions().end();
 	for ( ; (I != E) && (i != e); )
 		if ((*I).condition() < (*i).condition())
 			++I;

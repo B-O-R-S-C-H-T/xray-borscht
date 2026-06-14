@@ -1,6 +1,7 @@
 #include "stdafx.h"
+
 //#include "build.h"
-#include "tga.h"
+#include "../../Layers/xrRender/tga.h"
 
 #include "xrThread.h"
 #include "hash2D.h"

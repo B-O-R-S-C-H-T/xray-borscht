@@ -125,7 +125,7 @@ static int seek_forward(FILE *in, int length)
 }
 
 
-static int find_wav_chunk(FILE *in, char *type, unsigned int *len)
+static int find_wav_chunk(FILE *in, const char *type, unsigned int *len)
 {
 	unsigned char buf[8];
 
@@ -154,7 +154,7 @@ static int find_wav_chunk(FILE *in, char *type, unsigned int *len)
 	}
 }
 
-static int find_aiff_chunk(FILE *in, char *type, unsigned int *len)
+static int find_aiff_chunk(FILE *in, const char *type, unsigned int *len)
 {
 	unsigned char buf[8];
 

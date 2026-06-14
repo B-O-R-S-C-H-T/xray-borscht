@@ -18,7 +18,7 @@
 #endif // AI_COMPILER
 
 #ifndef XRGAME_EXPORTS
-#	include "bone.h"
+#	include "../utils/xrSE_Factory/bone.h"
 #	include "defines.h"
 	LPCSTR GAME_CONFIG = "game.ltx";
 #else // XRGAME_EXPORTS
