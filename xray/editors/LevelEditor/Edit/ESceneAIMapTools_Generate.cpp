@@ -14,13 +14,24 @@
 #include <utils/ETools/ETools.h>
 
 #include <intrin.h>   // __rdtsc
+#include <execution>
+#include <atomic>
+#include <mutex>
+#include <ranges>
 
-struct alignas(64) AIMapAtomicCounters {
-	std::atomic<u64> time_ray_test_pass1{0};
-	std::atomic<u64> create_node_ray_tests{0};
+static std::mutex s_gen_mutex;
+
+struct AIMapAtomicCounters {
+	std::atomic<u64> time_box_query         {0};
+	std::atomic<u64> time_ray_test_pass1    {0};
+	std::atomic<u64> time_ray_test_pass2    {0};
+	std::atomic<u64> time_build_node_lock   {0};
+	std::atomic<u64> time_allocation_in_lock{0};
+	std::atomic<u64> create_node_ray_tests  {0};
 };
 
-static AIMapAtomicCounters g_AIMapCounters;
+static AIMapAtomicCounters	   g_AIMapCounters;
+static bool					   g_bShowDetailedAIMapStats = false;
 
 static thread_local SPickQuery PQ;
 
@@ -90,8 +101,10 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 	Fbox	B2;				B2.set	(PointDown,PointDown);	B2.grow(m_Params.fPatchSize/2);	// box 2
 	BB.merge				(B2);
 
-    if (m_CFModel)
-    {
+	u64 t_box_start = 0;
+	if (g_bShowDetailedAIMapStats)	t_box_start = __rdtsc();
+	if (m_CFModel)
+	{
     	/*
         for(u32 i=0; i<m_CFModel->get_tris_count(); ++i)
         {
@@ -100,9 +113,13 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
             	ELog.Msg(mtInformation, "non-default material");
         }
         */
-    	Scene->BoxQuery(PQ,BB,CDB::OPT_FULL_TEST,m_CFModel);
-    }else
-    	Scene->BoxQuery(PQ,BB,CDB::OPT_FULL_TEST,GetSnapList());
+		Scene->BoxQuery(PQ,BB,CDB::OPT_FULL_TEST,m_CFModel);
+	} else {
+		Scene->BoxQuery(PQ,BB,CDB::OPT_FULL_TEST,GetSnapList());
+	}
+	if (g_bShowDetailedAIMapStats) {
+		g_AIMapCounters.time_box_query.fetch_add(__rdtsc() - t_box_start, std::memory_order_relaxed);
+	}
 
 	DWORD	dwCount 		= PQ.r_count();
 	if (dwCount==0){
@@ -115,11 +132,11 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 	static thread_local xr_vector<tri> tris;	tris.reserve(RCAST_MaxTris);	tris.clear();
 	for (DWORD i=0; i<dwCount; i++)
 	{
-    	SPickQuery::SResult* R = PQ.r_begin()+i;
+		SPickQuery::SResult* R = PQ.r_begin()+i;
 
-        if (R->e_obj&&R->e_mesh)
-        {
-            CSurface* surf		= R->e_mesh->GetSurfaceByFaceID(R->tag);
+		if (R->e_obj&&R->e_mesh)
+		{
+			CSurface* surf		= R->e_mesh->GetSurfaceByFaceID(R->tag);
 //.			SGameMtl* mtl 		= GMLib.GetMaterialByID(surf->_GameMtl());
 //.			if (mtl->Flags.is(SGameMtl::flPassable))continue;
 
@@ -155,7 +172,11 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 
 	float coeff 	= 0.5f*m_Params.fPatchSize/float(RCAST_Count);
 
-	u64 t_ray1_start = __rdtsc();
+	u64	t_ray1_start = 0;
+	if (g_bShowDetailedAIMapStats) {
+		t_ray1_start = __rdtsc();
+	}
+
 	for (int x=-RCAST_Count; x<=RCAST_Count; x++) 
 	{
 		P.x = vAt.x + coeff*float(x); 
@@ -181,14 +202,16 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 			}
 		}
 	}
-	g_AIMapCounters.time_ray_test_pass1.fetch_add(__rdtsc() - t_ray1_start, std::memory_order_relaxed);
-	g_AIMapCounters.create_node_ray_tests.fetch_add((u64)tris.size() * (2ULL * RCAST_Count + 1) * (2ULL * RCAST_Count + 1), std::memory_order_relaxed);
+	if (g_bShowDetailedAIMapStats) {
+		g_AIMapCounters.time_ray_test_pass1.fetch_add(__rdtsc() - t_ray1_start, std::memory_order_relaxed);
+		g_AIMapCounters.create_node_ray_tests.fetch_add((u64)tris.size() * (2ULL * RCAST_Count + 1) * (2ULL * RCAST_Count + 1), std::memory_order_relaxed);
+	}
 
 	if (points.size()<3) {
 //		ELog.Msg(mtInformation, "Failed to create node at [%f,%f,%f].",vAt.x,vAt.y,vAt.z);
 		return	FALSE;
 	}
-//.
+
 	float rc_lim = bIC?0.015f:0.7f;
 	if (float(points.size())/float(RCAST_Total) < rc_lim) {
 //		ELog.Msg(mtInformation, "Partial chasm at [%f,%f,%f].",vAt.x,vAt.y,vAt.z);
@@ -220,7 +243,6 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 	}
 	*/
 
- 
 	// *** Align plane
 	Fvector vOffs;
 	vOffs.set(0,-1000,0);
@@ -257,6 +279,12 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 	{
 		Fvector PLP; D.set(0,-1,0);
 		int num_successed_rays = 0;
+
+		u64	t_ray2_start = 0;
+		if (g_bShowDetailedAIMapStats) {
+			t_ray2_start = __rdtsc();
+		}
+
 		for (int x=-RCAST_Count; x<=RCAST_Count; x++) 
 		{
 			P.x = N.Pos.x + coeff*float(x);
@@ -282,6 +310,11 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 				}
 			}
 		}
+
+		if (g_bShowDetailedAIMapStats) {
+			g_AIMapCounters.time_ray_test_pass2.fetch_add(__rdtsc() - t_ray2_start, std::memory_order_relaxed);
+		}
+
 		float perc = float(num_successed_rays)/float(RCAST_Total);
 //.		if (!bIC&&(perc < 0.5f)){
 		float perc_lim = bIC?0.015f:0.5f;
@@ -397,38 +430,62 @@ BOOL ESceneAIMapTool::CanTravel(Fvector _from, Fvector _at)
 SAINode* ESceneAIMapTool::BuildNode(Fvector& vFrom, Fvector& vAt, bool bIC, bool bSuperIC)	// return node's index
 {
 	// *** Test if we can travel this path
-	SnapXZ			(vAt,m_Params.fPatchSize);
+	SnapXZ			(vAt, m_Params.fPatchSize);
 
 	if (!(bIC||CanTravel(vFrom, vAt)))	return 0;
 
 	// *** set up node
 	SAINode N;
 
-	BOOL bRes		= CreateNode(vAt,N,bIC);
-    if (!bRes&&bIC&&bSuperIC){
-    	Fvector D	= {0,1,0};
-		N.Plane.build(vAt,D);					// build plane
-		N.Plane.intersectRayPoint(vAt,D,N.Pos);	// "project" position
-        bRes		= TRUE;
-    }
+	BOOL bRes		= CreateNode(vAt, N, bIC);
+	if (!bRes && bIC && bSuperIC) {
+		Fvector D	= {0, 1, 0};
+		N.Plane.build(vAt, D);						// build plane
+		N.Plane.intersectRayPoint(vAt, D, N.Pos);	// "project" position
+		bRes		= TRUE;
+	}
+
 	if (bRes) {
+		std::lock_guard<std::mutex> lock(s_gen_mutex);
+
+		u64 t_lock_start = 0;
+		if (g_bShowDetailedAIMapStats) {
+			t_lock_start = __rdtsc();
+		}
+
 		//*** check if similar node exists
 		SAINode* old = FindNode(N.Pos);
-		if (!old){
-			// register xr_new<node
-            AINodeVec* V 		= HashMap(N.Pos);
-            if (V){ 
-	        	m_Nodes.push_back	(xr_new<SAINode>(N));
-                V->push_back		(m_Nodes.back());
-                return m_Nodes.back();
-            }else return 0;
-		}else{
+
+		if (!old) {
+			// register xr_new<node>
+			AINodeVec* V            = HashMap(N.Pos);
+			if (V) {
+				u64 t_alloc = 0;
+				if (g_bShowDetailedAIMapStats) {
+					t_alloc = __rdtsc();
+				}
+
+				m_Nodes.push_back	(xr_new<SAINode>(N));
+				V->push_back		(m_Nodes.back());
+
+				if (g_bShowDetailedAIMapStats) {
+					g_AIMapCounters.time_allocation_in_lock.fetch_add(__rdtsc() - t_alloc, std::memory_order_relaxed);
+					g_AIMapCounters.time_build_node_lock.fetch_add(__rdtsc() - t_lock_start, std::memory_order_relaxed);
+				}
+
+				return m_Nodes.back();
+			}
+			return 0;
+		} else {
+			if (g_bShowDetailedAIMapStats) {
+				g_AIMapCounters.time_build_node_lock.fetch_add(__rdtsc() - t_lock_start, std::memory_order_relaxed);
+			}
 			// where already was node - return it
 			return old;
 		}
-	}else{ 
-    	return 0;
-    }
+	}
+
+	return 0;
 }
 
 int ESceneAIMapTool::BuildNodes(const Fvector& pos, int sz, bool bIC)
@@ -513,70 +570,91 @@ int ESceneAIMapTool::BuildNodes(const Fvector& pos, int sz, bool bIC)
 
 void ESceneAIMapTool::BuildNodes(bool bFromSelectedOnly)
 {
-	BOOL bHideNodes			= m_Flags.is(flHideNodes);
-    if(m_Flags.is(flHideNodesWhileGenerating)) m_Flags.set(flHideNodes,TRUE);
+	BOOL bHideNodes = m_Flags.is(flHideNodes);
+    if (m_Flags.is(flHideNodesWhileGenerating)) m_Flags.set(flHideNodes, TRUE);
 
 	// begin
-	m_Nodes.reserve	(1024*1024);
+	m_Nodes.reserve(8 * 1024 * 1024);
 
 	// Initialize hash
 //	hash_Initialize ();
 
     R_ASSERT(!m_Nodes.empty());
     // Estimate nodes
-    Fvector	Pos,LevelSize;
+    Fvector LevelSize;
     m_AIBBox.getsize	(LevelSize);
-    float estimated_nodes	= (LevelSize.x/m_Params.fPatchSize)*(LevelSize.z/m_Params.fPatchSize);
+    float estimated_nodes = (LevelSize.x / m_Params.fPatchSize) * (LevelSize.z / m_Params.fPatchSize);
+	if (estimated_nodes < 1024)
+		estimated_nodes = 1024;
 
     SPBItem* pb = UI->ProgressStart(1, "Building nodes...");
-    // General cycle
-    for (int k=0; k<(int)m_Nodes.size(); k++){
-        SAINode* N 			= m_Nodes[k];
-    	if (bFromSelectedOnly && !N->flags.is(SAINode::flSelected)) continue;
-        // left 
-        if (0==N->n1){
-            Pos.set			(N->Pos);
-            Pos.x			-=	m_Params.fPatchSize;
-            N->n1			=	BuildNode(N->Pos,Pos,false);
-        }
-        // fwd
-        if (0==N->n2){
-            Pos.set			(N->Pos);
-            Pos.z			+=	m_Params.fPatchSize;
-            N->n2			=	BuildNode(N->Pos,Pos,false);
-        }
-        // right
-        if (0==N->n3){
-            Pos.set			(N->Pos);
-            Pos.x			+=	m_Params.fPatchSize;
-            N->n3			=	BuildNode(N->Pos,Pos,false);
-        }
-        // back
-        if (0==N->n4){
-            Pos.set			(N->Pos);
-            Pos.z			-=	m_Params.fPatchSize;
-            N->n4			=	BuildNode(N->Pos,Pos,false);
-        }
-    	if (bFromSelectedOnly){
-	        // select neighbour nodes
-            if (N->n1) SelectNode(N->n1, true);
-            if (N->n2) SelectNode(N->n2, true);
-            if (N->n3) SelectNode(N->n3, true);
-            if (N->n4) SelectNode(N->n4, true);
-        }
-        
-        if (k%512==0) {
-            float	p1	= float(k)/float(m_Nodes.size());
-            float	p2	= float(m_Nodes.size())/estimated_nodes;
-            float	p	= 0.1f*p1+0.9f*p2;
 
-            clamp	(p,0.f,1.f);
-            pb->Update(p);
-            // check need abort && redraw
-            if (k%32768==0) UI->RedrawScene(true);
-            if (UI->NeedAbort()) break;
-        }
+    size_t	 next_to_process = 0;
+
+    while (next_to_process < m_Nodes.size() && !UI->NeedAbort()) {
+        const size_t wave_start = next_to_process;
+        const size_t wave_end	= m_Nodes.size();
+
+        std::for_each(std::execution::par,
+                      std::views::iota(wave_start, wave_end).begin(),
+                      std::views::iota(wave_start, wave_end).end(),
+                      [&](size_t idx)
+                      {
+                          SAINode* N = m_Nodes[idx];
+
+                          if (bFromSelectedOnly && !N->flags.is(SAINode::flSelected))
+                              return;
+
+                          // left 
+                          if (0 == N->n1) {
+                              Fvector   p;
+                              p.set     (N->Pos);
+                              p.x       -= m_Params.fPatchSize;
+                              N->n1     = BuildNode(N->Pos, p, false);
+                          }
+                          // fwd
+                          if (0 == N->n2) {
+                              Fvector   p;
+                              p.set     (N->Pos);
+                              p.z       += m_Params.fPatchSize;
+                              N->n2     = BuildNode(N->Pos, p, false);
+                          }
+                          // right
+                          if (0 == N->n3) {
+                              Fvector p;
+                              p.set     (N->Pos);
+                              p.x       += m_Params.fPatchSize;
+                              N->n3     = BuildNode(N->Pos, p, false);
+                          }
+                          // back
+                          if (0 == N->n4) {
+                              Fvector   p;
+                              p.set     (N->Pos);
+                              p.z       -= m_Params.fPatchSize;
+                              N->n4     = BuildNode(N->Pos, p, false);
+                          }
+
+                          if (bFromSelectedOnly) {
+                          // select neighbour nodes
+                              if (N->n1) SelectNode(N->n1, true);
+                              if (N->n2) SelectNode(N->n2, true);
+                              if (N->n3) SelectNode(N->n3, true);
+                              if (N->n4) SelectNode(N->n4, true);
+                          }
+                      });
+
+        float done_ratio = float(wave_end) / estimated_nodes;
+        done_ratio		 = std::min(done_ratio, 0.98f);
+        pb->Update(done_ratio);
+
+        // check need abort && redraw
+        if ((wave_end % 32768) == 0)
+            UI->RedrawScene(true);
+
+        next_to_process = wave_end;
     }
+
+    pb->Update(1.0f);
     UI->ProgressEnd(pb);
 
     // restore original value
@@ -656,7 +734,7 @@ bool ESceneAIMapTool::GenerateMap(bool bFromSelectedOnly)
             u32 avg_face_cnt 		= 0;
             u32 avg_vert_cnt 		= 0;
             u32 mesh_cnt		 	= 0;
-            Fbox snap_bb;			
+            Fbox snap_bb;
             {
                 snap_bb.invalidate	();
                 for (ObjectIt o_it=m_SnapObjects.begin(); o_it!=m_SnapObjects.end(); o_it++){
@@ -724,17 +802,47 @@ bool ESceneAIMapTool::GenerateMap(bool bFromSelectedOnly)
     	}
 
 		// building
-        Scene->lock			();
+		Scene->lock();
+
+		if (g_bShowDetailedAIMapStats) {
+			g_AIMapCounters.time_box_query.store(0, std::memory_order_relaxed);
+			g_AIMapCounters.time_ray_test_pass1.store(0, std::memory_order_relaxed);
+			g_AIMapCounters.time_ray_test_pass2.store(0, std::memory_order_relaxed);
+			g_AIMapCounters.time_build_node_lock.store(0, std::memory_order_relaxed);
+			g_AIMapCounters.time_allocation_in_lock.store(0, std::memory_order_relaxed);
+			g_AIMapCounters.create_node_ray_tests.store(0, std::memory_order_relaxed);
+		}
+
 		CTimer tm;
 		tm.Start();
-        BuildNodes			(bFromSelectedOnly);
+		BuildNodes(bFromSelectedOnly);
+
+		if (g_bShowDetailedAIMapStats) {
+			ELog.Msg(mtInformation, " ");
+			ELog.Msg(mtInformation, "--- AI Map Generation Stats --");
+		
+			if (m_CFModel) {
+				ELog.Msg(
+                     mtInformation, "Collision tris:      %u", m_CFModel->get_tris_count());
+			}
+		
+			ELog.Msg(mtInformation, "BoxQuery:            %llu ticks", g_AIMapCounters.time_box_query.load          (std::memory_order_relaxed));
+			ELog.Msg(mtInformation, "Ray test pass 1:     %llu ticks", g_AIMapCounters.time_ray_test_pass1.load     (std::memory_order_relaxed));
+			ELog.Msg(mtInformation, "Ray test pass 2:     %llu ticks", g_AIMapCounters.time_ray_test_pass2.load     (std::memory_order_relaxed));
+			ELog.Msg(mtInformation, "BuildNode lock:      %llu ticks", g_AIMapCounters.time_build_node_lock.load    (std::memory_order_relaxed));
+			ELog.Msg(mtInformation, "Allocation in lock:  %llu ticks", g_AIMapCounters.time_allocation_in_lock.load (std::memory_order_relaxed));
+			ELog.Msg(mtInformation, "------------------------------------");
+		}
+
 		float sec		  = tm.GetElapsed_sec();
 		u32	  final_nodes = (u32)m_Nodes.size();
 		float rate		  = (sec > 0.0001f) ? (final_nodes / sec) : 0.0f;
-		Scene->unlock		();
-		Log("-test time: ", sec);
-		Log("-building time: ", sec);
-		ELog.Msg(mtInformation, "-Rate: %.2f nodes/sec (total nodes: %u)", rate, final_nodes);
+		ELog.Msg(mtInformation, "Nodes generated:     %u", final_nodes);
+		ELog.Msg(mtInformation, "Average rate:        %.0f nodes/sec", rate);
+		ELog.Msg(mtInformation, "Generation time:     %.3f sec", sec);
+		ELog.Msg(mtInformation, " ");
+
+		Scene->unlock();
 
         // unload CFModel
 		ETOOLS::destroy_model(m_CFModel);

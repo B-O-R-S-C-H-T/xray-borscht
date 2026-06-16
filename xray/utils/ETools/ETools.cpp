@@ -157,7 +157,7 @@ namespace ETOOLS{
 	//	CL->add_face(v0, v1, v2, { dummy }, u32(-1));
 	//}
 
-	Collider	COL;
+	thread_local Collider	COL;
 
 	ETOOLS_API Collider*		__stdcall get_collider	(){return &COL;}
 
@@ -217,4 +217,3 @@ namespace ETOOLS{
     	box_query(m_def,c,d);
 	}
 }
-

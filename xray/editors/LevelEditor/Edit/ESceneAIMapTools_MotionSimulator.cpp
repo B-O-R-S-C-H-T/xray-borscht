@@ -40,7 +40,7 @@ DEF_VECTOR(vecTris,cl_tri);
 static int		psCollideActDepth		= 8;
 static int		psCollideActStuckDepth	= 16;
 static float	cl_epsilon				= EPS_L;
-static vecTris	clContactedT;
+static thread_local vecTris clContactedT;
 
 // ----------------------------------------------------------------------
 // Name  : classifyPoint()
@@ -88,7 +88,7 @@ IC float intersectRayPlane(	const Fvector& rayOrigin,	const Fvector& rayDirectio
 IC void closestPointOnLine(Fvector& res, const Fvector& a, const Fvector& b, const Fvector& p) 
 {
 	
-	// Determine t (the length of the vector from ‘a’ to ‘p’)
+	// Determine t (the length of the vector from â€˜aâ€™ to â€˜pâ€™)
 	Fvector c; c.sub(p,a);
 	Fvector V; V.sub(b,a); 
 	
@@ -97,11 +97,11 @@ IC void closestPointOnLine(Fvector& res, const Fvector& a, const Fvector& b, con
 	V.div(d);  
 	float t = V.dotproduct(c);
 	
-	// Check to see if ‘t’ is beyond the extents of the line segment
+	// Check to see if â€˜tâ€™ is beyond the extents of the line segment
 	if (t <= 0.0f)	{ res.set(a); return; }
 	if (t >= d)		{ res.set(b); return; }
 	
-	// Return the point between ‘a’ and ‘b’
+	// Return the point between â€˜aâ€™ and â€˜bâ€™
 	// set length of V to t. V is normalized so this is easy
 	res.mad		(a,V,t);
 }
@@ -110,15 +110,15 @@ IC void closestPointOnEdge(Fvector& res,						// result
 						   const Fvector& ED, float elen,		// edge direction (b-a) and length
 						   const Fvector& P)					// query point
 {
-	// Determine t (the length of the vector from ‘a’ to ‘p’)
+	// Determine t (the length of the vector from â€˜aâ€™ to â€˜pâ€™)
 	Fvector c; c.sub(P,a);
 	float t = ED.dotproduct(c);
 	
-	// Check to see if ‘t’ is beyond the extents of the line segment
+	// Check to see if â€˜tâ€™ is beyond the extents of the line segment
 	if (t <= 0.0f)	{ res.set(a); return; }
 	if (t >= elen)	{ res.set(b); return; }
 	
-	// Return the point between ‘a’ and ‘b’
+	// Return the point between â€˜aâ€™ and â€˜bâ€™
 	res.mad(a,ED,t);
 }
 
@@ -469,7 +469,7 @@ void ESceneAIMapTool::MotionSimulate(Fvector& result, Fvector& start, Fvector& e
 	// Collision query
 	Fvector			bbC,bbD;
 	bb.get_CD		(bbC,bbD);
-    static SPickQuery PQ;
+	static thread_local SPickQuery PQ;
     if (m_CFModel)	Scene->BoxQuery(PQ,bb,CDB::OPT_FULL_TEST,m_CFModel);
     else			Scene->BoxQuery(PQ,bb,CDB::OPT_FULL_TEST,GetSnapList());
 	
