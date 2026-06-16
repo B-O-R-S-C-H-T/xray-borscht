@@ -234,6 +234,8 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName).pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level3</WarningLevel>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -349,6 +351,7 @@
       </BrowseInformation>
       <WarningLevel>Level4</WarningLevel>
       <CallingConvention>Cdecl</CallingConvention>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -507,6 +510,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\3rd_party\tom_forsyth\object.cpp" />
+    <ClCompile Include="..\..\..\3rd_party\tom_forsyth\object_sliding.cpp" />
     <ClCompile Include="audio.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Level4</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug-LLVM|Win32'">Level4</WarningLevel>
@@ -538,8 +543,6 @@
     </ClCompile>
     <ClCompile Include="ETools.cpp" />
     <ClCompile Include="ETools_cm.cpp" />
-    <ClCompile Include="object.cpp" />
-    <ClCompile Include="object_sliding.cpp" />
     <ClCompile Include="ogg_enc.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Level4</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug-LLVM|Win32'">Level4</WarningLevel>
@@ -599,19 +602,19 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ArbitraryList.h" />
+    <ClInclude Include="..\..\..\3rd_party\tom_forsyth\ArbitraryList.h" />
+    <ClInclude Include="..\..\..\3rd_party\tom_forsyth\DLink.h" />
+    <ClInclude Include="..\..\..\3rd_party\tom_forsyth\mesh.h" />
+    <ClInclude Include="..\..\..\3rd_party\tom_forsyth\object.h" />
+    <ClInclude Include="..\..\..\3rd_party\tom_forsyth\object_sliding.h" />
+    <ClInclude Include="..\..\..\3rd_party\tom_forsyth\quad.h" />
     <ClInclude Include="audio.h" />
     <ClInclude Include="BinaryHeap.h" />
     <ClInclude Include="D3DX_Wrapper.h" />
-    <ClInclude Include="DLink.h" />
     <ClInclude Include="encode.h" />
     <ClInclude Include="ETools.h" />
-    <ClInclude Include="mesh.h" />
-    <ClInclude Include="object.h" />
-    <ClInclude Include="object_sliding.h" />
     <ClInclude Include="platform.h" />
     <ClInclude Include="PropSlimTools.h" />
-    <ClInclude Include="quad.h" />
     <ClInclude Include="resample.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="xrXRC.h" />

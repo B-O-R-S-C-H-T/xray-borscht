@@ -17,7 +17,7 @@
 
 #include "../../xrCore/xrCore.h"
 //#include "cl_log.h"
-#include "_d3d_extensions.h"
+#include "../../xrEngine/_d3d_extensions.h"
 #include "../../editors/LevelEditor/Engine/communicate.h"
 //#include "Etextureparams.h"
 

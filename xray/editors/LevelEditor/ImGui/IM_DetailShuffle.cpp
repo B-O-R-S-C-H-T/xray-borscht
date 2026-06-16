@@ -379,30 +379,30 @@ void IM_DetailShuffle::Render() {
 	}
 
 	ImGui::SetNextWindowSize(ImVec2(1100, 650), ImGuiCond_FirstUseEver);
-	if (!ImGui::Begin(u8"Detail Objects###DetailShuffle", &m_open)) {
+	if (!ImGui::Begin("Detail Objects###DetailShuffle", &m_open)) {
 		ImGui::End();
 		return;
 	}
 
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
-	if (ImGui::Button(u8"Add Object...", ImVec2(140, 0))) {
+	if (ImGui::Button("Add Object...", ImVec2(140, 0))) {
 		IM_ChooseForm* cf = xr_new<IM_ChooseForm>(smObject, -1);
 		cf->OnOK.bind(this, &IM_DetailShuffle::OnAddObjects);
 		UI->AddIMWindow(cf);
 	}
 	ImGui::SameLine();
-	if (ImGui::Button(u8"Refresh List", ImVec2(120, 0))) {
+	if (ImGui::Button("Refresh List", ImVec2(120, 0))) {
 		FillData();
 	}
 	ImGui::SameLine();
-	if (ImGui::Button(u8"Add Color Group", ImVec2(160, 0))) {
+	if (ImGui::Button("Add Color Group", ImVec2(160, 0))) {
 		ColorGroup grp;
 		grp.color = GenerateUniqueColor();
 		m_color_groups.push_back(grp);
 		m_bColorIndModif = true;
 	}
 	ImGui::SameLine();
-	if (ImGui::Button(u8"Clear All", ImVec2(100, 0))) {
+	if (ImGui::Button("Clear All", ImVec2(100, 0))) {
 		if (ELog.DlgMsg(mtConfirmation, "Clear ALL detail objects and groups?\n\nThis action cannot be undone.") == mrYes) {
 			m_dm->ClearColorIndices();
 			m_dm->InvalidateSlots();
@@ -417,7 +417,7 @@ void IM_DetailShuffle::Render() {
 	ImGui::Dummy(ImVec2(remaining_width - 216.0f, 0.0f));
 	ImGui::SameLine();
 
-	if (ImGui::Button(u8"Save List", ImVec2(100, 0))) {
+	if (ImGui::Button("Save List", ImVec2(100, 0))) {
 		xr_string fileName;
 		if (EFS.GetSaveName(_detail_objects_, fileName)) {
 			ApplyChanges();
@@ -425,7 +425,7 @@ void IM_DetailShuffle::Render() {
 		}
 	}
 	ImGui::SameLine();
-	if (ImGui::Button(u8"Load List", ImVec2(100, 0))) {
+	if (ImGui::Button("Load List", ImVec2(100, 0))) {
 		xr_string fileName;
 		if (EFS.GetOpenName(_detail_objects_, fileName)) {
 			if (m_dm->ImportColorIndices(fileName.c_str())) {

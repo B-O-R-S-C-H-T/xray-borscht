@@ -22,7 +22,7 @@
 #include "defines.h"
 #include "cl_log.h"
 #include "../../xrcdb/xrCDB.h"
-#include "_d3d_extensions.h"
+#include "../../xrEngine/_d3d_extensions.h"
 
 #include <fcntl.h>
 #include <sys/types.h>

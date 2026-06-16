@@ -8,6 +8,11 @@
 
 #pragma once
 
+namespace hash_fixed_vertex_manager {
+	template <typename T>
+	IC u32 to_u32(const T& v);
+}
+
 #define TEMPLATE_SPECIALIZATION \
 	template <\
 		typename _path_id_type,\
@@ -149,7 +154,7 @@ IC	typename CHashFixedVertexManager::CGraphVertex &CHashFixedVertexManager::crea
 	index_vertex->m_vertex			= &vertex;
 	index_vertex->m_path_id			= current_path_id();
 	vertex.index()					= vertex_id;
-	
+
 	u32								index = hash_index(vertex_id);
 	CGraphIndexVertex				*_vertex = m_hash[index];
 	if (!_vertex || (_vertex->m_path_id != current_path_id()) || (_vertex->m_hash != index))

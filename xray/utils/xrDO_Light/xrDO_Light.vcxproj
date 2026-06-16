@@ -251,6 +251,7 @@
       <BrowseInformation>
       </BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -370,6 +371,7 @@
       <BrowseInformation>
       </BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -489,6 +491,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Layers\xrRender\tga.h" />
+    <ClInclude Include="..\..\xrEngine\_d3d_extensions.h" />
     <ClInclude Include="..\Shader_xrLC.h" />
     <ClInclude Include="base_lighting.h" />
     <ClInclude Include="build_texture.h" />
@@ -507,15 +511,14 @@
     <ClInclude Include="R_light.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="std_classes.h" />
-    <ClInclude Include="tga.h" />
     <ClInclude Include="xrHemisphere.h" />
     <ClInclude Include="xrLevel.h" />
     <ClInclude Include="xrShaderTypes.h" />
     <ClInclude Include="xrSyncronize.h" />
     <ClInclude Include="xrThread.h" />
-    <ClInclude Include="_d3d_extensions.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Layers\xrRender\tga.cpp" />
     <ClCompile Include="..\..\xrEngine\xrLoadSurface.cpp" />
     <ClCompile Include="base_lighting.cpp" />
     <ClCompile Include="cl_log.cpp" />
@@ -534,7 +537,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="tga.cpp" />
     <ClCompile Include="xrDO_Light.cpp" />
     <ClCompile Include="xrThread.cpp" />
   </ItemGroup>

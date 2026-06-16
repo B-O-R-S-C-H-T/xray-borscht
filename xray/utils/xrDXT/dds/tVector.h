@@ -1,7 +1,15 @@
 #pragma once
 #include <assert.h>
 
+// does not allow x == size
+inline int iModulo(int x, int size) {
+	if (x < 0) {
+		int n = x / size;
+		x += size * (n + 1);
+	}
 
+	return x % size;
+}
 
 
 template <class _Type>

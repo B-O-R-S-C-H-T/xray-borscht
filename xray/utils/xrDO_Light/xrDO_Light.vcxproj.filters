@@ -18,16 +18,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="_d3d_extensions.h">
-      <Filter>Kernel</Filter>
-    </ClInclude>
     <ClInclude Include="defines.h">
       <Filter>Kernel</Filter>
     </ClInclude>
     <ClInclude Include="StdAfx.h">
-      <Filter>Kernel</Filter>
-    </ClInclude>
-    <ClInclude Include="tga.h">
       <Filter>Kernel</Filter>
     </ClInclude>
     <ClInclude Include="xrSyncronize.h">
@@ -63,12 +57,15 @@
     <ClInclude Include="xrHemisphere.h" />
     <ClInclude Include="xrLevel.h" />
     <ClInclude Include="xrShaderTypes.h" />
+    <ClInclude Include="..\..\Layers\xrRender\tga.h">
+      <Filter>Kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xrEngine\_d3d_extensions.h">
+      <Filter>Kernel</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StdAfx.cpp">
-      <Filter>Kernel</Filter>
-    </ClCompile>
-    <ClCompile Include="tga.cpp">
       <Filter>Kernel</Filter>
     </ClCompile>
     <ClCompile Include="xrThread.cpp">
@@ -85,6 +82,9 @@
     <ClCompile Include="recalculation.cpp" />
     <ClCompile Include="xrDO_Light.cpp" />
     <ClCompile Include="..\..\xrEngine\xrLoadSurface.cpp" />
+    <ClCompile Include="..\..\Layers\xrRender\tga.cpp">
+      <Filter>Kernel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc">

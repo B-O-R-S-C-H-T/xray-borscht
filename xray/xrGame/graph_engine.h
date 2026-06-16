@@ -19,11 +19,11 @@
 #include "graph_engine_space.h"
 #include "profiler.h"
 
-#ifndef AI_COMPILER
+//#ifndef AI_COMPILER
 #	include "operator_condition.h"
 #	include "condition_state.h"
 #	include "operator_abstract.h"
-#endif // AI_COMPILER
+//#endif // AI_COMPILER
 
 namespace hash_fixed_vertex_manager {
 	

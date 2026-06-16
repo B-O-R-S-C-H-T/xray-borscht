@@ -238,6 +238,7 @@
       <BrowseInformation>
       </BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -347,6 +348,7 @@
       <BrowseInformation>
       </BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -501,6 +503,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Layers\xrRender\tga.h" />
     <ClInclude Include="dds.h" />
     <ClInclude Include="dds\tPixel.h" />
     <ClInclude Include="ETextureParams.h" />
@@ -509,9 +512,9 @@
     <ClInclude Include="NVI_Image.h" />
     <ClInclude Include="NV_Common.h" />
     <ClInclude Include="StdAfx.h" />
-    <ClInclude Include="tga.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Layers\xrRender\tga.cpp" />
     <ClCompile Include="DXT.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Mixed|Win32'">TurnOffAllWarnings</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">TurnOffAllWarnings</WarningLevel>
@@ -533,7 +536,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="tga.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />

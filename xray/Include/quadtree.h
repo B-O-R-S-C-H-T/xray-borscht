@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "profiler.h"
+#include "../xrGame/profiler.h"
 #include <memory>
 
 template <typename _object_type>

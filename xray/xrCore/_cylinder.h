@@ -25,6 +25,7 @@ public:
         _vector3<T>::generate_orthonormal_basis(kW,kU,kV);
         _vector3<T> kD; kD.set(kU.dotproduct(dir),kV.dotproduct(dir),kW.dotproduct(dir));
 #ifdef DEBUG
+		void XRCORE_API Msg(LPCSTR format, ...); // fixme: этого требует стандарт C++20
 		if(kD.square_magnitude() <= std::numeric_limits<T>::min())
 		{
 			Msg("dir :%f,%f,%f",dir.x,dir.y,dir.z);

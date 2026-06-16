@@ -98,7 +98,7 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 						rename	 = true;
 						renaming = nullptr;
 					} else {
-						ELog.Msg(mtError, u8"Element '%s' already exists", newname);
+						ELog.Msg(mtError, "Element '%s' already exists", newname);
 						renaming = nullptr;
 					}
 				}

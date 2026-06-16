@@ -72,7 +72,7 @@ IC	void CSingleLinkedList::decrease_opened		(CGraphVertex &vertex, const _dist_t
 	if (!sorted)
 		return;
 
-	for (CGraphVertex *i = m_list_head; ; i = i->next())
+	for (CGraphVertex *i = this->m_list_head; ; i = i->next())
 		if (&vertex == i->next()) {
 			if (i->f() <= vertex.f())
 				return;
@@ -80,17 +80,17 @@ IC	void CSingleLinkedList::decrease_opened		(CGraphVertex &vertex, const _dist_t
 			break;
 		}
 
-	if (vertex.f() <= m_list_head->next()->f()) {
-		vertex.next()			= m_list_head->next();
-		m_list_head->next()		= &vertex;
-	}
-	else
-		for ( i = m_list_head; ; i = i->next())
+	if (vertex.f() <= this->m_list_head->next()->f()) {
+		vertex.next()			  = this->m_list_head->next();
+		this->m_list_head->next() = &vertex;
+	} else {
+		for (CGraphVertex *i = this->m_list_head; ; i = i->next())
 			if (i->next()->f() >= vertex.f()) {
 				vertex.next() = i->next();
 				i->next() = &vertex;
 				break;
-			}
+		}
+	}
 }
 
 TEMPLATE_SPECIALIZATION
@@ -113,23 +113,26 @@ IC	typename CSingleLinkedList::CGraphVertex &CSingleLinkedList::get_best		() con
 	VERIFY					(!is_opened_empty());
 
 	if (sorted)
-		return				(*m_list_head->next());
+		return				(*this->m_list_head->next());
 
-	_dist_type				fmin = m_max_distance;
-	for (CGraphVertex *i = m_list_head, *best_prev = 0; i->next() != m_list_tail; i = i->next())
+	_dist_type				fmin = this->m_max_distance;
+
+	CGraphVertex *best_prev = 0;
+	for (CGraphVertex *i = this->m_list_head; i->next() != this->m_list_tail; i = i->next())
 		if (i->next()->f() < fmin) {
 			fmin			= i->next()->f();
 			best_prev		= i;
 		}
 
-	VERIFY					(best_prev);
-	if (best_prev != m_list_head) {
-		CGraphVertex		*best = best_prev->next();
-		best_prev->next()	= best->next();
-		best->next()		= m_list_head->next();
-		m_list_head->next()	= best;
+	VERIFY						  (best_prev);
+
+	if (best_prev != this->m_list_head) {
+		CGraphVertex			  *best = best_prev->next();
+		best_prev->next()		  = best->next();
+		best->next()			  = this->m_list_head->next();
+		this->m_list_head->next() = best;
 	}
-	return					(*m_list_head->next());
+	return					(*this->m_list_head->next());
 }
 
 #undef TEMPLATE_SPECIALIZATION

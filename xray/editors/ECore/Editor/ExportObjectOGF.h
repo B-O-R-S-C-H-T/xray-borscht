@@ -3,7 +3,7 @@
 #ifndef ExportObjectOGFH
 #define ExportObjectOGFH
 
-#include "PropSlimTools.h"
+#include "../../xray/utils/ETools/PropSlimTools.h"
 //---------------------------------------------------------------------------
 const int clpOGFMX = 48, clpOGFMY=16, clpOGFMZ=48;
 //---------------------------------------------------------------------------

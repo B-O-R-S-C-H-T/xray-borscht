@@ -273,6 +273,7 @@
       </BrowseInformation>
       <WarningLevel>Level4</WarningLevel>
       <ShowIncludes>false</ShowIncludes>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -404,6 +405,7 @@
       <BrowseInformation>
       </BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -532,7 +534,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Layers\xrRender\tga.cpp" />
     <ClCompile Include="..\..\xrEngine\xrLoadSurface.cpp" />
+    <ClCompile Include="..\..\xrGame\level_graph_vertex.cpp" />
+    <ClCompile Include="..\..\xrGame\patrol_path.cpp" />
+    <ClCompile Include="..\..\xrGame\patrol_path_storage.cpp" />
+    <ClCompile Include="..\..\xrGame\patrol_point.cpp" />
+    <ClCompile Include="..\..\xrGame\random32.cpp" />
+    <ClCompile Include="..\..\xrGame\server_entity_wrapper.cpp" />
     <ClCompile Include="..\..\xrServerEntities\alife_human_brain.cpp" />
     <ClCompile Include="..\..\xrServerEntities\alife_monster_brain.cpp" />
     <ClCompile Include="..\..\xrServerEntities\alife_space.cpp" />
@@ -544,7 +553,7 @@
     <ClCompile Include="..\..\xrServerEntities\xrServer_Objects_ALife_Items.cpp" />
     <ClCompile Include="..\..\xrServerEntities\xrServer_Objects_ALife_Monsters.cpp" />
     <ClCompile Include="..\..\xrServerEntities\xrServer_Object_Base.cpp" />
-    <ClCompile Include="alife_artefact_order.cpp" />
+    <ClCompile Include="..\xrSE_Factory\alife_artefact_order.cpp" />
     <ClCompile Include="buffer_vector.cpp" />
     <ClCompile Include="cl_collector.cpp" />
     <ClCompile Include="cl_log.cpp" />
@@ -615,14 +624,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="level_graph.cpp" />
-    <ClCompile Include="level_graph_vertex.cpp" />
     <ClCompile Include="level_spawn_constructor.cpp" />
     <ClCompile Include="motion_simulator.cpp" />
-    <ClCompile Include="patrol_path.cpp" />
-    <ClCompile Include="patrol_path_storage.cpp" />
-    <ClCompile Include="patrol_point.cpp" />
-    <ClCompile Include="random32.cpp" />
-    <ClCompile Include="server_entity_wrapper.cpp" />
     <ClCompile Include="space_restrictor_wrapper.cpp" />
     <ClCompile Include="spawn_patcher.cpp" />
     <ClCompile Include="StdAfx.cpp">
@@ -635,7 +638,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="tga.cpp" />
     <ClCompile Include="verify_level_graph.cpp" />
     <ClCompile Include="xrAI.cpp" />
     <ClCompile Include="xrCrossTable.cpp" />
@@ -653,6 +655,80 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Layers\xrRender\tga.h" />
+    <ClInclude Include="..\..\xrEngine\_d3d_extensions.h" />
+    <ClInclude Include="..\..\xrGame\a_star.h" />
+    <ClInclude Include="..\..\xrGame\a_star_inline.h" />
+    <CustomBuild Include="..\..\xrGame\graph_abstract_inline.h" />
+    <CustomBuild Include="..\..\xrGame\graph_abstract.h" />
+    <ClInclude Include="..\..\xrGame\builder_allocator_constructor.h" />
+    <ClInclude Include="..\..\xrGame\builder_allocator_constructor_inline.h" />
+    <ClInclude Include="..\..\xrGame\data_storage_binary_heap.h" />
+    <ClInclude Include="..\..\xrGame\data_storage_binary_heap_inline.h" />
+    <ClInclude Include="..\..\xrGame\data_storage_bucket_list.h" />
+    <ClInclude Include="..\..\xrGame\data_storage_bucket_list_inline.h" />
+    <ClInclude Include="..\..\xrGame\data_storage_constructor.h" />
+    <ClInclude Include="..\..\xrGame\data_storage_double_linked_list.h" />
+    <ClInclude Include="..\..\xrGame\data_storage_double_linked_list_inline.h" />
+    <ClInclude Include="..\..\xrGame\data_storage_single_linked_list.h" />
+    <ClInclude Include="..\..\xrGame\data_storage_single_linked_list_inline.h" />
+    <ClInclude Include="..\..\xrGame\dijkstra.h" />
+    <ClInclude Include="..\..\xrGame\dijkstra_inline.h" />
+    <ClInclude Include="..\..\xrGame\game_graph.h" />
+    <ClInclude Include="..\..\xrGame\game_graph_inline.h" />
+    <ClInclude Include="..\..\xrGame\game_level_cross_table.h" />
+    <ClInclude Include="..\..\xrGame\game_level_cross_table_inline.h" />
+    <ClInclude Include="..\..\xrGame\graph_edge.h" />
+    <ClInclude Include="..\..\xrGame\graph_edge_inline.h" />
+    <ClInclude Include="..\..\xrGame\graph_engine.h" />
+    <ClInclude Include="..\..\xrGame\graph_engine_inline.h" />
+    <ClInclude Include="..\..\xrGame\graph_engine_space.h" />
+    <ClInclude Include="..\..\xrGame\graph_vertex.h" />
+    <ClInclude Include="..\..\xrGame\graph_vertex_inline.h" />
+    <ClInclude Include="..\..\xrGame\level_graph.h" />
+    <ClInclude Include="..\..\xrGame\level_graph_inline.h" />
+    <ClInclude Include="..\..\xrGame\level_graph_vertex_inline.h" />
+    <ClInclude Include="..\..\xrGame\manager_builder_allocator_constructor.h" />
+    <ClInclude Include="..\..\xrGame\manager_builder_allocator_constructor_inline.h" />
+    <ClInclude Include="..\..\xrGame\path_manager.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_game.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_game_inline.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_game_level.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_game_level_inline.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_game_vertex_type.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_game_vertex_type_inline.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_generic.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_generic_inline.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_level.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_level_evaluator.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_level_evaluator_inline.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_level_flooder.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_level_flooder_inline.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_level_inline.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_level_straight_line.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_level_straight_line_inline.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_params.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_params_flooder.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_params_game_level.h" />
+    <ClInclude Include="..\..\xrGame\path_manager_params_straight_line.h" />
+    <ClInclude Include="..\..\xrGame\patrol_path.h" />
+    <ClInclude Include="..\..\xrGame\patrol_path_inline.h" />
+    <ClInclude Include="..\..\xrGame\patrol_path_storage.h" />
+    <ClInclude Include="..\..\xrGame\patrol_path_storage_inline.h" />
+    <ClInclude Include="..\..\xrGame\patrol_point.h" />
+    <ClInclude Include="..\..\xrGame\patrol_point_inline.h" />
+    <ClInclude Include="..\..\xrGame\profiler.h" />
+    <ClInclude Include="..\..\xrGame\random32.h" />
+    <ClInclude Include="..\..\xrGame\server_entity_wrapper.h" />
+    <ClInclude Include="..\..\xrGame\server_entity_wrapper_inline.h" />
+    <ClInclude Include="..\..\xrGame\vertex_allocator_fixed.h" />
+    <ClInclude Include="..\..\xrGame\vertex_allocator_fixed_inline.h" />
+    <ClInclude Include="..\..\xrGame\vertex_manager_fixed.h" />
+    <ClInclude Include="..\..\xrGame\vertex_manager_fixed_inline.h" />
+    <ClInclude Include="..\..\xrGame\vertex_manager_hash_fixed.h" />
+    <ClInclude Include="..\..\xrGame\vertex_manager_hash_fixed_inline.h" />
+    <ClInclude Include="..\..\xrGame\vertex_path.h" />
+    <ClInclude Include="..\..\xrGame\vertex_path_inline.h" />
     <ClInclude Include="..\..\xrServerEntities\alife_human_brain.h" />
     <ClInclude Include="..\..\xrServerEntities\alife_human_brain_inline.h" />
     <ClInclude Include="..\..\xrServerEntities\alife_monster_brain.h" />
@@ -700,13 +776,9 @@
     <ClInclude Include="..\..\xrServerEntities\xrServer_Object_Base.h" />
     <ClInclude Include="..\..\xrServerEntities\xrServer_Space.h" />
     <ClInclude Include="..\..\xr_3da\xrLevel.h" />
+    <ClInclude Include="..\xrSE_Factory\alife_artefact_order.h" />
+    <ClInclude Include="..\xrSE_Factory\bone.h" />
     <ClInclude Include="AIMapExport.h" />
-    <ClInclude Include="alife_artefact_order.h" />
-    <ClInclude Include="a_star.h" />
-    <ClInclude Include="a_star_inline.h" />
-    <ClInclude Include="bone.h" />
-    <ClInclude Include="builder_allocator_constructor.h" />
-    <ClInclude Include="builder_allocator_constructor_inline.h" />
     <ClInclude Include="ChooseTypes.h" />
     <ClInclude Include="client_id.h" />
     <ClInclude Include="cl_collector.h" />
@@ -717,91 +789,31 @@
     <ClInclude Include="compiler_cover_tools.h" />
     <ClInclude Include="cover_point.h" />
     <ClInclude Include="cover_point_inline.h" />
-    <ClInclude Include="data_storage_binary_heap.h" />
-    <ClInclude Include="data_storage_binary_heap_inline.h" />
-    <ClInclude Include="data_storage_bucket_list.h" />
-    <ClInclude Include="data_storage_bucket_list_inline.h" />
-    <ClInclude Include="data_storage_constructor.h" />
-    <ClInclude Include="data_storage_double_linked_list.h" />
-    <ClInclude Include="data_storage_double_linked_list_inline.h" />
-    <ClInclude Include="data_storage_single_linked_list.h" />
-    <ClInclude Include="data_storage_single_linked_list_inline.h" />
     <ClInclude Include="defines.h" />
-    <ClInclude Include="dijkstra.h" />
-    <ClInclude Include="dijkstra_inline.h" />
     <ClInclude Include="edge_path.h" />
     <ClInclude Include="edge_path_inline.h" />
     <ClInclude Include="ETextureParams.h" />
     <ClInclude Include="factory_api.h" />
     <ClInclude Include="FTimer.h" />
-    <ClInclude Include="game_graph.h" />
     <ClInclude Include="game_graph_builder.h" />
     <ClInclude Include="game_graph_builder_inline.h" />
-    <ClInclude Include="game_graph_inline.h" />
-    <ClInclude Include="game_level_cross_table.h" />
-    <ClInclude Include="game_level_cross_table_inline.h" />
     <ClInclude Include="game_spawn_constructor.h" />
     <ClInclude Include="game_spawn_constructor_inline.h" />
-    <ClInclude Include="graph_abstract.h" />
-    <ClInclude Include="graph_abstract_inline.h" />
-    <ClInclude Include="graph_edge.h" />
-    <ClInclude Include="graph_edge_inline.h" />
-    <ClInclude Include="graph_engine.h" />
-    <ClInclude Include="graph_engine_inline.h" />
-    <ClInclude Include="graph_engine_space.h" />
-    <ClInclude Include="graph_vertex.h" />
-    <ClInclude Include="graph_vertex_inline.h" />
     <ClInclude Include="guid_generator.h" />
     <ClInclude Include="intrusive_ptr.h" />
     <ClInclude Include="intrusive_ptr_inline.h" />
     <ClInclude Include="LevelGameDef.h" />
-    <ClInclude Include="level_graph.h" />
-    <ClInclude Include="level_graph_inline.h" />
     <ClInclude Include="level_graph_space.h" />
-    <ClInclude Include="level_graph_vertex_inline.h" />
     <ClInclude Include="level_spawn_constructor.h" />
     <ClInclude Include="level_spawn_constructor_inline.h" />
     <ClInclude Include="light.h" />
-    <ClInclude Include="manager_builder_allocator_constructor.h" />
-    <ClInclude Include="manager_builder_allocator_constructor_inline.h" />
     <ClInclude Include="motion_simulator.h" />
     <ClInclude Include="NET_Compressor.h" />
     <ClInclude Include="NET_utils.h" />
-    <ClInclude Include="path_manager.h" />
-    <ClInclude Include="path_manager_game.h" />
-    <ClInclude Include="path_manager_game_inline.h" />
-    <ClInclude Include="path_manager_game_level.h" />
-    <ClInclude Include="path_manager_game_level_inline.h" />
-    <ClInclude Include="path_manager_game_vertex_type.h" />
-    <ClInclude Include="path_manager_game_vertex_type_inline.h" />
-    <ClInclude Include="path_manager_generic.h" />
-    <ClInclude Include="path_manager_generic_inline.h" />
-    <ClInclude Include="path_manager_level.h" />
-    <ClInclude Include="path_manager_level_evaluator.h" />
-    <ClInclude Include="path_manager_level_evaluator_inline.h" />
-    <ClInclude Include="path_manager_level_flooder.h" />
-    <ClInclude Include="path_manager_level_flooder_inline.h" />
-    <ClInclude Include="path_manager_level_inline.h" />
-    <ClInclude Include="path_manager_level_straight_line.h" />
-    <ClInclude Include="path_manager_level_straight_line_inline.h" />
-    <ClInclude Include="path_manager_params.h" />
-    <ClInclude Include="path_manager_params_flooder.h" />
-    <ClInclude Include="path_manager_params_game_level.h" />
-    <ClInclude Include="path_manager_params_straight_line.h" />
-    <ClInclude Include="patrol_path.h" />
-    <ClInclude Include="patrol_path_inline.h" />
-    <ClInclude Include="patrol_path_storage.h" />
-    <ClInclude Include="patrol_path_storage_inline.h" />
-    <ClInclude Include="patrol_point.h" />
-    <ClInclude Include="patrol_point_inline.h" />
-    <ClInclude Include="profiler.h" />
     <ClInclude Include="PropertiesListHelper.h" />
     <ClInclude Include="quadtree.h" />
     <ClInclude Include="quadtree_inline.h" />
-    <ClInclude Include="random32.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="server_entity_wrapper.h" />
-    <ClInclude Include="server_entity_wrapper_inline.h" />
     <ClInclude Include="Shader_xrLC.h" />
     <ClInclude Include="Sound.h" />
     <ClInclude Include="space_restrictor_wrapper.h" />
@@ -810,21 +822,11 @@
     <ClInclude Include="spawn_patcher.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="std_classes.h" />
-    <ClInclude Include="tga.h" />
-    <ClInclude Include="vertex_allocator_fixed.h" />
-    <ClInclude Include="vertex_allocator_fixed_inline.h" />
-    <ClInclude Include="vertex_manager_fixed.h" />
-    <ClInclude Include="vertex_manager_fixed_inline.h" />
-    <ClInclude Include="vertex_manager_hash_fixed.h" />
-    <ClInclude Include="vertex_manager_hash_fixed_inline.h" />
-    <ClInclude Include="vertex_path.h" />
-    <ClInclude Include="vertex_path_inline.h" />
     <ClInclude Include="xrAI.h" />
     <ClInclude Include="xrCrossTable.h" />
     <ClInclude Include="xrShaderTypes.h" />
     <ClInclude Include="xrThread.h" />
     <ClInclude Include="xr_graph_merge.h" />
-    <ClInclude Include="_d3d_extensions.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

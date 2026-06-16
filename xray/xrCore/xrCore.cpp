@@ -30,7 +30,7 @@ static u32	init_counter	= 0;
 extern char g_application_path[256];
 
 // computing build id
-static LPSTR month_id[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+static LPCSTR month_id[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 static int days_in_month[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 static int start_day = 31; // 31
 static int start_month = 1; // January

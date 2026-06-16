@@ -1,3 +1,5 @@
+#pragma once
+
 #ifdef DEBUG_MEMORY_NAME
 template <typename T, typename... Args> T* xr_new(Args&&... args)
 {

@@ -224,15 +224,15 @@ BOOL __stdcall RealAssert  ( DWORD  dwOverrideOpts  ,
     }
 
     // Make sure the message got translated into something.
-    LPSTR szRealLastErr ;
-    if ( NULL != szFmtMsg )
-    {
-        szRealLastErr = szFmtMsg ;
-    }
-    else
-    {
-        szRealLastErr = "**Last error code does not exist!!!!" ;
-    }
+    //LPCSTR szRealLastErr ;  // мёртвый код
+    //if ( NULL != szFmtMsg )
+    //{
+    //    szRealLastErr = szFmtMsg ;
+    //}
+    //else
+    //{
+    //    szRealLastErr = "**Last error code does not exist!!!!" ;
+    //}
 
     // Get the module name.
     if ( 0 == GetModuleFileNameA ( NULL , szModName , MAX_PATH ) )

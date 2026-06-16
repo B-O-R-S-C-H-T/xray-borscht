@@ -94,6 +94,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>.;../..;$(SolutionDir)3rd_party\WildMagic;$(SolutionDir)3rd_party/libtheora-1.1.1/include;$(SolutionDir)3rd_party/libogg-1.3.3/include;$(SolutionDir)3rd_party/imgui;$(SolutionDir)3rd_party/unordered_dense/include;$(SolutionDir)3rd_party/thorvg/</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -164,6 +165,8 @@
       </ExceptionHandling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ShowIncludes>false</ShowIncludes>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

@@ -13,9 +13,9 @@ namespace lc_net{
 	public:
 		tnet_execution	( u32 id ): tnet_execution_base< etype >(id){}
 	private:
-		net_execution_impl					execution_impl;
+		typename tnet_execution_base<etype>::net_execution_impl				execution_impl;
 
-		virtual		net_execution_impl	&implementation	( ) 
+		virtual	 typename tnet_execution_base<etype>::net_execution_impl	&implementation	( ) 
 		{
 			return execution_impl;
 		};

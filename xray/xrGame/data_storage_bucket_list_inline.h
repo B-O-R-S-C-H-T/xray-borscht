@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////
-//	Module 		: data_storage_bucket_list_רעהרעף.h
+//	Module 		: data_storage_bucket_list_inline.h
 //	Created 	: 21.03.2002
 //  Modified 	: 26.02.2004
 //	Author		: Dmitriy Iassenev
@@ -48,7 +48,7 @@ IC	void CBucketList::init				()
 TEMPLATE_SPECIALIZATION
 IC	void CBucketList::add_best_closed	()
 {
-	VERIFY					(!is_opened_empty());
+	VERIFY					(!this->is_opened_empty());
 	inherited_base::add_closed	(*m_buckets[m_min_bucket_id]);
 }
 
@@ -59,7 +59,7 @@ IC	bool CBucketList::is_opened_empty	()
 		return				(true);
 	if (!m_buckets[m_min_bucket_id]) {
 		if (!clear_buckets)
-			for (++m_min_bucket_id; (m_min_bucket_id < bucket_count) && (!m_buckets[m_min_bucket_id] || (m_buckets[m_min_bucket_id]->m_path_id != current_path_id()) || (m_buckets[m_min_bucket_id]->m_bucket_id != m_min_bucket_id)); ++m_min_bucket_id);
+			for (++m_min_bucket_id; (m_min_bucket_id < bucket_count) && (!m_buckets[m_min_bucket_id] || (m_buckets[m_min_bucket_id]->m_path_id != this->current_path_id()) || (m_buckets[m_min_bucket_id]->m_bucket_id != m_min_bucket_id)); ++m_min_bucket_id);
 		else
 			for (++m_min_bucket_id; (m_min_bucket_id < bucket_count) && !m_buckets[m_min_bucket_id]; ++m_min_bucket_id);
 		return				(m_min_bucket_id >= bucket_count);
@@ -112,9 +112,9 @@ IC	void CBucketList::add_to_bucket		(CGraphVertex &vertex, u32 m_bucket_id)
 		m_min_bucket_id		= m_bucket_id;
 
 	CGraphVertex				*i = m_buckets[m_bucket_id];
-	if (!i || (!clear_buckets && ((i->m_path_id != current_path_id()) || (i->m_bucket_id != m_bucket_id)))) {
+	if (!i || (!clear_buckets && ((i->m_path_id != this->current_path_id()) || (i->m_bucket_id != m_bucket_id)))) {
 		vertex.m_bucket_id		= m_bucket_id;
-		vertex.m_path_id		= current_path_id();
+		vertex.m_path_id		= this->current_path_id();
 		m_buckets[m_bucket_id]	= &vertex;
 		vertex.next()				= vertex.prev() = 0;
 		verify_buckets			();
@@ -122,7 +122,7 @@ IC	void CBucketList::add_to_bucket		(CGraphVertex &vertex, u32 m_bucket_id)
 	}
 
 	vertex.m_bucket_id			= m_bucket_id;
-	vertex.m_path_id			= current_path_id();
+	vertex.m_path_id			= this->current_path_id();
 
 	if (i->f() >= vertex.f()) {
 		m_buckets[m_bucket_id]	= &vertex;
@@ -183,7 +183,7 @@ IC	void CBucketList::add_opened		(CGraphVertex &vertex)
 TEMPLATE_SPECIALIZATION
 IC	void CBucketList::decrease_opened	(CGraphVertex &vertex, const _dist_type value)
 {
-	VERIFY					(!is_opened_empty());
+	VERIFY					(!this->is_opened_empty());
 	u32						node_bucket_id = compute_bucket_id(vertex);
 	if (vertex.prev())
 		vertex.prev()->next()	= vertex.next();
@@ -202,9 +202,9 @@ IC	void CBucketList::decrease_opened	(CGraphVertex &vertex, const _dist_type val
 TEMPLATE_SPECIALIZATION
 IC	void CBucketList::remove_best_opened()
 {
-	VERIFY					(!is_opened_empty());
+	VERIFY					(!this->is_opened_empty());
 	verify_buckets			();
-	VERIFY					(m_buckets[m_min_bucket_id] && is_visited(m_buckets[m_min_bucket_id]->index()));
+	VERIFY					(m_buckets[m_min_bucket_id] && this->is_visited(m_buckets[m_min_bucket_id]->index()));
 	m_buckets[m_min_bucket_id]	= m_buckets[m_min_bucket_id]->next();
 	if (m_buckets[m_min_bucket_id])
 		m_buckets[m_min_bucket_id]->prev() = 0;
@@ -214,7 +214,7 @@ IC	void CBucketList::remove_best_opened()
 TEMPLATE_SPECIALIZATION
 IC	typename CBucketList::CGraphVertex &CBucketList::get_best	()
 {
-	VERIFY					(!is_opened_empty());
+	VERIFY					(!this->is_opened_empty());
 	return					(*m_buckets[m_min_bucket_id]);
 }
 

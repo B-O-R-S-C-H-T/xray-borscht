@@ -9,15 +9,17 @@
 #pragma once
 
 #include "../../xrEngine/xrLevel.h"
+#include "../../xrGame/graph_abstract.h"
 #include "alife_space.h"
 
 class CLevelGraph;
 class CGameLevelCrossTable;
 
 template <
-	typename _data_type,
-	typename _edge_weight_type,
-	typename _vertex_id_type
+	typename _data_vertex,
+	typename _data_edge,
+	typename _vertex_id_type,
+	typename _edge_id_type
 >
 class CGraphAbstract;
 
@@ -32,12 +34,12 @@ class CGraphEngine;
 
 class CGameGraphBuilder {
 private:
-	typedef GameGraph::CVertex						vertex_type;
-	typedef CGraphAbstract<vertex_type,float,u32>	graph_type;
-	typedef xr_vector<xr_vector<u32> >				DISTANCES;
-	typedef std::pair<u32,u32>						PAIR;
-	typedef std::pair<float,PAIR>					TRIPPLE;
-	typedef xr_vector<TRIPPLE>						TRIPPLES;
+	typedef GameGraph::CVertex								vertex_type;
+	typedef CGraphAbstract<vertex_type, float, u32, u32>	graph_type;
+	typedef xr_vector<xr_vector<u32> >						DISTANCES;
+	typedef std::pair<u32,u32>								PAIR;
+	typedef std::pair<float,PAIR>							TRIPPLE;
+	typedef xr_vector<TRIPPLE>								TRIPPLES;
 
 private:
 	LPCSTR					m_graph_name;
@@ -52,9 +54,9 @@ private:
 	graph_type				*m_graph;
 	xrGUID					m_graph_guid;
 	// cross table generation stuff
-	xr_vector<GameGraph::_GRAPH_ID> m_parents;//к каким граф-поинтам относится аи-нода
-	xr_vector<u32> m_distances;// расстояние до ближайшего граф-понта
-	xr_vector<xr_set<GameGraph::_GRAPH_ID>> m_neighbours;// соседи граф-поинта
+	xr_vector<GameGraph::_GRAPH_ID> m_parents;//Рє РєР°РєРёРј РіСЂР°С„-РїРѕРёРЅС‚Р°Рј РѕС‚РЅРѕСЃРёС‚СЃСЏ Р°Рё-РЅРѕРґР°
+	xr_vector<u32> m_distances;// СЂР°СЃСЃС‚РѕСЏРЅРёРµ РґРѕ Р±Р»РёР¶Р°Р№С€РµРіРѕ РіСЂР°С„-РїРѕРЅС‚Р°
+	xr_vector<xr_set<GameGraph::_GRAPH_ID>> m_neighbours;// СЃРѕСЃРµРґРё РіСЂР°С„-РїРѕРёРЅС‚Р°
 
 	// cross table itself
 	CGameLevelCrossTable	*m_cross_table;

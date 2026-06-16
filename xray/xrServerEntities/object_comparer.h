@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <functional>
+
 template <typename P>
 struct CComparer {
 	IC	static bool compare(LPCSTR _1, LPCSTR _2, const P &p)
