@@ -71,8 +71,8 @@ struct SAINode					// definition of "patch" or "node"
 
 DEFINE_VECTOR(SAINode*,AINodeVec,AINodeIt);
 
-const int				HDIM_X	= 128;
-const int				HDIM_Z	= 128;
+const int				HDIM_X	= 2048;
+const int				HDIM_Z	= 2048;
 
 class ESceneAIMapTool: public ESceneToolBase
 {
