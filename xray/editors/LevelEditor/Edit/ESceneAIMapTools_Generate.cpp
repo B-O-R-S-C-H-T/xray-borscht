@@ -11,19 +11,26 @@
 #include "sceneobject.h"
 #include "../ECore/Editor/EditObject.h"
 #include "../ECore/Editor/EditMesh.h"
-#ifndef NO_VCL
-#include "leftbar.h"
-#endif
 #include <utils/ETools/ETools.h>
 
-static SPickQuery	PQ;
+#include <intrin.h>   // __rdtsc
+
+struct alignas(64) AIMapAtomicCounters {
+	std::atomic<u64> time_ray_test_pass1{0};
+	std::atomic<u64> create_node_ray_tests{0};
+};
+
+static AIMapAtomicCounters g_AIMapCounters;
+
+static thread_local SPickQuery PQ;
 
 IC void SnapXZ	(Fvector&	V, float ps)
 {
-	V.x = snapto(V.x,ps);
-	V.z = snapto(V.z,ps);
+	V.x = snapto(V.x, ps);
+	V.z = snapto(V.z, ps);
 }
-struct tri	{
+
+struct tri {
 	Fvector* v[3];
 	Fvector	N;
 };
@@ -33,6 +40,45 @@ const int	RCAST_Count		= 4;
 const int	RCAST_Total		= (2*RCAST_Count+1)*(2*RCAST_Count+1);
 const float	RCAST_Depth		= 1.f;
 const float RCAST_VALID 	= 0.55f;
+
+// Оптимизированный Мёллер-Трумбор без куллинга
+ICF bool TestRayTri_Local(const Fvector& C,
+						  const Fvector& D,
+						  const Fvector* __restrict p0,
+						  const Fvector* __restrict p1,
+						  const Fvector* __restrict p2,
+						  float& u,
+						  float& v,
+						  float& range) {
+	Fvector edge1{}, edge2{}, tvec{}, pvec{}, qvec{};
+	float   det, inv_det;
+
+	edge1.sub(*p1, *p0);
+	edge2.sub(*p2, *p0);
+
+	pvec.crossproduct(D, edge2);
+	det = edge1.dotproduct(pvec);
+
+	if (det > -EPS && det < EPS)
+		return false;
+
+	inv_det = 1.0f / det;
+
+	tvec.sub(C, *p0);
+	u = tvec.dotproduct(pvec) * inv_det;
+
+	if (u < 0.0f || u > 1.0f)
+		return false;
+
+	qvec.crossproduct(tvec, edge1);
+	v = D.dotproduct(qvec) * inv_det;
+
+	if (v < 0.0f || u + v > 1.0f)
+		return false;
+
+	range = edge2.dotproduct(qvec) * inv_det;
+	return true;
+}
 
 BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 {
@@ -66,7 +112,7 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 
 	// *** Transfer triangles and compute sector
 //	R_ASSERT(dwCount<RCAST_MaxTris);
-	static xr_vector<tri> tris;	tris.reserve(RCAST_MaxTris);	tris.clear();
+	static thread_local xr_vector<tri> tris;	tris.reserve(RCAST_MaxTris);	tris.clear();
 	for (DWORD i=0; i<dwCount; i++)
 	{
     	SPickQuery::SResult* R = PQ.r_begin()+i;
@@ -103,12 +149,13 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 		return FALSE;			// chasm?
 	}
 
-	static xr_vector<Fvector>	points;		points.reserve(RCAST_Total); points.clear();
-	static xr_vector<Fvector>	normals;	normals.reserve(RCAST_Total);normals.clear();
+	static thread_local xr_vector<Fvector>	points;		points.reserve(RCAST_Total); points.clear();
+	static thread_local xr_vector<Fvector>	normals;	normals.reserve(RCAST_Total);normals.clear();
 	Fvector P,D; D.set(0,-1,0);
 
 	float coeff 	= 0.5f*m_Params.fPatchSize/float(RCAST_Count);
 
+	u64 t_ray1_start = __rdtsc();
 	for (int x=-RCAST_Count; x<=RCAST_Count; x++) 
 	{
 		P.x = vAt.x + coeff*float(x); 
@@ -120,7 +167,7 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 			int		tri_selected	= -1;
 			float	range,u,v;
 			for (size_t i = 0; i < tris.size(); i++){
-				if (ETOOLS::TestRayTriA(P,D,tris[i].v,u,v,range,false)){
+				if (TestRayTri_Local(P, D, tris[i].v[0], tris[i].v[1], tris[i].v[2], u, v, range)){
 					if (range<tri_min_range){
 						tri_min_range	= range;
 						tri_selected	= i;
@@ -134,6 +181,9 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 			}
 		}
 	}
+	g_AIMapCounters.time_ray_test_pass1.fetch_add(__rdtsc() - t_ray1_start, std::memory_order_relaxed);
+	g_AIMapCounters.create_node_ray_tests.fetch_add((u64)tris.size() * (2ULL * RCAST_Count + 1) * (2ULL * RCAST_Count + 1), std::memory_order_relaxed);
+
 	if (points.size()<3) {
 //		ELog.Msg(mtInformation, "Failed to create node at [%f,%f,%f].",vAt.x,vAt.y,vAt.z);
 		return	FALSE;
@@ -220,7 +270,7 @@ BOOL ESceneAIMapTool::CreateNode(Fvector& vAt, SAINode& N, bool bIC)
 				int		tri_selected	= -1;
 				float	range,u,v;
 				for (size_t i = 0; i < tris.size(); i++){
-					if (ETOOLS::TestRayTriA(P,D,tris[i].v,u,v,range,false)){
+					if (TestRayTri_Local(P, D, tris[i].v[0], tris[i].v[1], tris[i].v[2], u, v, range)){
 						if (range<tri_min_range){
 							tri_min_range	= range;
 							tri_selected	= i;
@@ -678,11 +728,13 @@ bool ESceneAIMapTool::GenerateMap(bool bFromSelectedOnly)
 		CTimer tm;
 		tm.Start();
         BuildNodes			(bFromSelectedOnly);
-tm.GetElapsed_sec();
-        Scene->unlock		();
-        Log("-test time: ",	tm.GetElapsed_sec());
-		Log("-building time: ",tm.GetElapsed_sec());
-        ELog.Msg(mtInformation, "-Rate: %.2f",(tm.GetElapsed_sec()/tm.GetElapsed_sec())*100.f);
+		float sec		  = tm.GetElapsed_sec();
+		u32	  final_nodes = (u32)m_Nodes.size();
+		float rate		  = (sec > 0.0001f) ? (final_nodes / sec) : 0.0f;
+		Scene->unlock		();
+		Log("-test time: ", sec);
+		Log("-building time: ", sec);
+		ELog.Msg(mtInformation, "-Rate: %.2f nodes/sec (total nodes: %u)", rate, final_nodes);
 
         // unload CFModel
 		ETOOLS::destroy_model(m_CFModel);
@@ -1051,4 +1103,3 @@ void ESceneAIMapTool::SmoothNodes()
     
 	if (sm_nodes) 		Scene->UndoSave();
 }
-
