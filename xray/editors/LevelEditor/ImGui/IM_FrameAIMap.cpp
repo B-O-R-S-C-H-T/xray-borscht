@@ -104,19 +104,19 @@ void IM_FrameAIMap::Render() {
 			PostCommand(COMMAND_GENERATE_AI_MAP, false);
 		if (ImGui::MenuItem("Generate Selected"))
 			PostCommand(COMMAND_GENERATE_AI_MAP, true);
-		if (ImGui::MenuItem("Reset Selected"))
-			m_parent_tool->ResetNodes();
-
-		ImGui::NextColumn();
-
-		if (ImGui::MenuItem("Smooth Selected"))
-			m_parent_tool->SmoothNodes();
 		if (ImGui::MenuItem("Clear AI Map")) {
 			if (ELog.DlgMsg(mtConfirmation, TMsgDlgButtons() << mbYes << mbNo, "Are you sure to clear AI Map?") == mrYes) {
 				m_parent_tool->Clear();
 				Scene->UndoSave();
 			}
 		}
+
+		ImGui::NextColumn();
+
+		if (ImGui::MenuItem("Smooth Selected"))
+			m_parent_tool->SmoothNodes();
+		if (ImGui::MenuItem("Reset Orientation"))
+			m_parent_tool->ResetNodes();
 
 		ImGui::Columns(1);
 	}

@@ -668,14 +668,15 @@ SAINode* ESceneAIMapTool::GetNode(Fvector vAt, bool bIC)	// return node's index
 	SnapXZ			(vAt,m_Params.fPatchSize);
 
 	// *** set up xr_new<node
-	SAINode* N 		= xr_new<SAINode>();
-    SAINode* R		= 0;
-	if (CreateNode(vAt, *N, bIC)){
-		R 			= FindNode(N->Pos);
-    	xr_delete	(N);
-    }
-//	xr_delete(N);   //.???
-    return R;
+	SAINode* N		= xr_new<SAINode>();
+	SAINode* R		= nullptr;
+
+	if (CreateNode(vAt, *N, bIC)) {
+		R = FindNode(N->Pos);
+	}
+
+	xr_delete(N);
+	return R;
 }
 
 void ESceneAIMapTool::UpdateLinks(SAINode* N, bool bIC)
@@ -1016,15 +1017,15 @@ void ESceneAIMapTool::MakeLinks(u8 side_flag, EMode mode, bool bIgnoreConstraint
 
 void ESceneAIMapTool::ResetNodes()
 {
-    SPBItem* pb = UI->ProgressStart(m_Nodes.size(), "Smoothing nodes...");
+    SPBItem* pb = UI->ProgressStart(m_Nodes.size(), "Resetting nodes...");
 
     int	n_cnt	= 0;
     
-	for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++){
+	for (AINodeIt it = m_Nodes.begin(); it != m_Nodes.end(); it++) {
 		SAINode& 	N 		= **it;
-		if (N.flags.is(SAINode::flSelected)){
+		if (N.flags.is(SAINode::flSelected)) {
         	n_cnt++;
-            N.Plane.build(N.Pos,Fvector().set(0,1,0));
+            N.Plane.build(N.Pos, Fvector().set(0, 1, 0));
         }
     }
     UI->ProgressEnd(pb);
@@ -1038,20 +1039,23 @@ void ESceneAIMapTool::SmoothNodes()
 
     SPBItem* pb = UI->ProgressStart(m_Nodes.size(), "Smoothing nodes...");
 
-	AINodeVec	smoothed;	smoothed.reserve(m_Nodes.size());
-	U8Vec		mark;		mark.assign		(m_Nodes.size(),0);
+	AINodeVec				smoothed;
+	xr_vector<SAINode*>		nodes_to_reselect;  // ноды, оставшиеся после пересборки
 
-    int	sm_nodes=0;
-    
-    EnumerateNodes			();
-	for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++){
-		SAINode& 	N 		= **it;
-        Fvector		P1,P2,P3,P4,P,REF;
-        int			c;
+	smoothed.reserve(m_Nodes.size());
 
-		if (N.flags.is(SAINode::flSelected)){
-        	sm_nodes++;
-        
+	int sm_nodes = 0;
+
+	EnumerateNodes();
+
+	for (AINodeIt it = m_Nodes.begin(); it != m_Nodes.end(); ++it) {
+		SAINode& N = **it;
+		Fvector  P1, P2, P3, P4, P, REF;
+		int      c;
+
+		if (N.flags.is(SAINode::flSelected)) {
+			sm_nodes++;
+
             // smooth point LF
             {
                 bool	bCorner	= false;
@@ -1177,8 +1181,8 @@ void ESceneAIMapTool::SmoothNodes()
             }
 
             // align plane
-            Fvector data[4]; data[0]=P1; data[1]=P2; data[2]=P3; data[3]=P4;
-            Fvector vOffs,vNorm,D;
+            Fvector data[4] = {P1, P2, P3, P4};
+			Fvector vOffs{}, vNorm{}, D{};
             vNorm.set(N.Plane.n);
             vOffs.set(N.Pos);
             Mgc::OrthogonalPlaneFit(
@@ -1186,38 +1190,51 @@ void ESceneAIMapTool::SmoothNodes()
                 *((Mgc::Vector3*)&vOffs),
                 *((Mgc::Vector3*)&vNorm)
             );
-            if (vNorm.y<0) vNorm.invert();
-            // create _new node
-            SAINode* NEW 	= xr_new<SAINode>(N);
-            NEW->n1 		= (SAINode*)(N.n1?N.n1->idx:InvalidNode);
-            NEW->n2 		= (SAINode*)(N.n2?N.n2->idx:InvalidNode);
-            NEW->n3 		= (SAINode*)(N.n3?N.n3->idx:InvalidNode);
-            NEW->n4 		= (SAINode*)(N.n4?N.n4->idx:InvalidNode);
-            NEW->Plane.build(vOffs,vNorm);
-            D.set			(0,1,0);
-            N.Plane.intersectRayPoint(N.Pos,D,NEW->Pos);	// "project" position
-            smoothed.push_back	(NEW);
-        }else{
-            // create _new node
-            SAINode* NEW 	= xr_new<SAINode>(N);
-            NEW->n1 		= (SAINode*)(N.n1?N.n1->idx:InvalidNode);
-            NEW->n2 		= (SAINode*)(N.n2?N.n2->idx:InvalidNode);
-            NEW->n3 		= (SAINode*)(N.n3?N.n3->idx:InvalidNode);
-            NEW->n4 		= (SAINode*)(N.n4?N.n4->idx:InvalidNode);
-            smoothed.push_back	(NEW);
+            if (vNorm.y < 0) vNorm.invert();
+
+            // Создаём новую ноду _без_ флага flSelected
+            SAINode* NEW = xr_new<SAINode>(N);
+            NEW->flags.set(SAINode::flSelected, FALSE);
+            NEW->n1 = (SAINode*)(N.n1 ? N.n1->idx : InvalidNode);
+            NEW->n2 = (SAINode*)(N.n2 ? N.n2->idx : InvalidNode);
+            NEW->n3 = (SAINode*)(N.n3 ? N.n3->idx : InvalidNode);
+            NEW->n4 = (SAINode*)(N.n4 ? N.n4->idx : InvalidNode);
+            NEW->Plane.build(vOffs, vNorm);
+            D.set(0, 1, 0);
+            N.Plane.intersectRayPoint(N.Pos, D, NEW->Pos);	// "project" position
+
+            smoothed.push_back(NEW);
+            nodes_to_reselect.push_back(NEW);   // запоминаем для последующего выделения
+        } else {
+            SAINode* NEW = xr_new<SAINode>(N);
+            NEW->n1 = (SAINode*)(N.n1 ? N.n1->idx : InvalidNode);
+            NEW->n2 = (SAINode*)(N.n2 ? N.n2->idx : InvalidNode);
+            NEW->n3 = (SAINode*)(N.n3 ? N.n3->idx : InvalidNode);
+            NEW->n4 = (SAINode*)(N.n4 ? N.n4->idx : InvalidNode);
+            smoothed.push_back(NEW);
         }
 
-        int k = it-m_Nodes.begin();
-        if (k%128==0) {
+        int k = it - m_Nodes.begin();
+        if (k % 128 == 0) {
             pb->Update(k);
             if (UI->NeedAbort()) break;
         }
     }
+
     UI->ProgressEnd(pb);
-    Clear				(true);
-    m_Nodes 			= smoothed;
-	DenumerateNodes		();
-    hash_FillFromNodes	();
-    
+
+	// Очистка старого состояния
+	Clear               (true);
+	m_Nodes             = smoothed;
+	DenumerateNodes     ();
+	hash_FillFromNodes  ();
+
+	// Восстановление выделения
+	if (!nodes_to_reselect.empty()) {
+		for (SAINode* node : nodes_to_reselect) {
+			SelectNode(node, true);
+		}
+	}
+
 	if (sm_nodes) 		Scene->UndoSave();
 }
