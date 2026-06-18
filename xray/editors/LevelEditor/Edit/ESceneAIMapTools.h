@@ -1,6 +1,3 @@
-//----------------------------------------------------
-// file: rpoint.h
-//----------------------------------------------------
 #ifndef ESceneAIMapToolsH
 #define ESceneAIMapToolsH
 
@@ -30,8 +27,8 @@ struct SAINode					// definition of "patch" or "node"
 		};
 		SAINode*		n[4];
 	};
-	Fplane		Plane;			// plane of patch										
-	Fvector		Pos;			// position of patch center								
+	Fplane		Plane;			// plane of patch
+	Fvector		Pos;			// position of patch center
 
     enum{
     	flSelected 	= (1<<0),
@@ -78,7 +75,6 @@ const int				HDIM_Z	= 2048;
 class ESceneAIMapTool: public ESceneToolBase
 {
 	friend struct SAINode;
-	friend struct delete_sel_node_pred;
 	typedef ESceneToolBase inherited;
     ObjectList			m_SnapObjects;
 
@@ -244,9 +240,6 @@ public:
 			m_SelectionCount += (-1 + (int)select*2);
 
 			if(node->flags.is(SAINode::flSelected)) {
-				//if(m_SelNodesCache.size() > 1024)
-				//	m_SelNodesCache.pop_front();
-				//m_SelNodesCache.push_back(node);
 				if(m_SelNodesCache.size() < 1024)
 					m_SelNodesCache.push_front(node);
             } else {

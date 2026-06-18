@@ -88,36 +88,7 @@ void SAINode::LoadLTX(CInifile& ini, LPCSTR sect_name, ESceneAIMapTool* tools)
 
 void SAINode::SaveLTX(CInifile& ini, LPCSTR sect_name, ESceneAIMapTool* tools)
 {
-	R_ASSERT2		(0, "dont use it !!!");
-	u32 			id;
-    u16 			pl;
-	NodePosition 	np;
-
-    id 				= n1?(u32)n1->idx:InvalidNode;
-    ini.w_u32		(sect_name,"n1", id);
-
-    id 				= n2?(u32)n2->idx:InvalidNode;
-    ini.w_u32		(sect_name,"n2", id);
-
-    id 				= n3?(u32)n3->idx:InvalidNode;
-    ini.w_u32		(sect_name,"n3", id);
-
-    id 				= n4?(u32)n4->idx:InvalidNode;
-    ini.w_u32		(sect_name,"n4", id);
-
-    pl 				= pvCompress (Plane.n);
-    ini.w_u16		(sect_name, "plane", pl);
-
-	tools->PackPosition(np,Pos,tools->m_AIBBox,tools->m_Params);
-    string256		buff;
-
-	s16				x;
-	u16				y;
-	s16				z;
-
-    sprintf			(buff,"%i,%u,%i",np.x,np.y,np.z);
-    ini.w_string	(sect_name, "np", buff);
-    ini.w_u8		(sect_name, "flag", flags.get());
+	R_ASSERT2(0, "is not supported");
 }
 
 void SAINode::LoadStream(IReader& F, ESceneAIMapTool* tools, u16 version)
@@ -239,74 +210,35 @@ void ESceneAIMapTool::EnumerateNodes()
 void ESceneAIMapTool::DenumerateNodes()
 {
 	u32 cnt=m_Nodes.size();
-	for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++){
-    	if	(!((((u32)(*it)->n1<cnt)||((u32)(*it)->n1==InvalidNode))&&
-        			 (((u32)(*it)->n2<cnt)||((u32)(*it)->n2==InvalidNode))&&
-                     (((u32)(*it)->n3<cnt)||((u32)(*it)->n3==InvalidNode))&&
-                     (((u32)(*it)->n4<cnt)||((u32)(*it)->n4==InvalidNode)))){
+	for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++) {
+    	if	(!((((u32)(*it)->n1<cnt)||((u32)(*it)->n1==InvalidNode)) &&
+        	  (((u32)(*it)->n2<cnt)||((u32)(*it)->n2==InvalidNode))  &&
+              (((u32)(*it)->n3<cnt)||((u32)(*it)->n3==InvalidNode))  &&
+              (((u32)(*it)->n4<cnt)||((u32)(*it)->n4==InvalidNode)))) {
                      ELog.Msg(mtError,"Node: has wrong link [%3.2f, %3.2f, %3.2f], {%d,%d,%d,%d}",VPUSH((*it)->Pos),(*it)->n1,(*it)->n2,(*it)->n3,(*it)->n4);
                      (*it)->n1 = 0;
                      (*it)->n2 = 0;
                      (*it)->n3 = 0;
                      (*it)->n4 = 0;
-                     continue;
-                     }
-//                     ,"AINode: Wrong link found.");
+					 continue;
+        }
+
     	(*it)->n1	= ((u32)(*it)->n1==InvalidNode)?0:m_Nodes[(u32)(*it)->n1];
     	(*it)->n2	= ((u32)(*it)->n2==InvalidNode)?0:m_Nodes[(u32)(*it)->n2];
     	(*it)->n3	= ((u32)(*it)->n3==InvalidNode)?0:m_Nodes[(u32)(*it)->n3];
     	(*it)->n4	= ((u32)(*it)->n4==InvalidNode)?0:m_Nodes[(u32)(*it)->n4];
-/*
-    	if (((u32)(*it)->n1<cnt)||((u32)(*it)->n1==InvalidNode)) (*it)->n1	= ((u32)(*it)->n1==InvalidNode)?0:m_Nodes[(u32)(*it)->n1];
-        else (*it)->n1=0;
-    	if (((u32)(*it)->n2<cnt)||((u32)(*it)->n2==InvalidNode)) (*it)->n2	= ((u32)(*it)->n2==InvalidNode)?0:m_Nodes[(u32)(*it)->n2];
-        else (*it)->n2=0;
-    	if (((u32)(*it)->n3<cnt)||((u32)(*it)->n3==InvalidNode)) (*it)->n3	= ((u32)(*it)->n3==InvalidNode)?0:m_Nodes[(u32)(*it)->n3];
-        else (*it)->n3=0;
-    	if (((u32)(*it)->n4<cnt)||((u32)(*it)->n4==InvalidNode)) (*it)->n4	= ((u32)(*it)->n4==InvalidNode)?0:m_Nodes[(u32)(*it)->n4];
-        else (*it)->n4=0;
-*/
     }
 }
+
 bool ESceneAIMapTool::LoadLTX(CInifile& ini)
 {
 	R_ASSERT(0);
-	return true;
+	return false;
 }
 
 void ESceneAIMapTool::SaveLTX(CInifile& ini)
 {
-	inherited::SaveLTX	(ini);
-
-	ini.w_u32			("main", "version", AIMAP_VERSION);
-	ini.w_u32			("main", "flags", m_Flags.get());
-
-    ini.w_fvector3		("main", "bbox_min", m_AIBBox.min);
-    ini.w_fvector3		("main", "bbox_max", m_AIBBox.max);
-
-    ini.w_float			("params", "patch_size", m_Params.fPatchSize);
-    ini.w_float			("params", "test_height", m_Params.fTestHeight);
-    ini.w_float			("params", "can_up", m_Params.fCanUP);
-    ini.w_float			("params", "can_down", m_Params.fCanDOWN);
-
-    EnumerateNodes		();
-    ini.w_u32			("main", "nodes_count", m_Nodes.size());
-
-    u32 i 				= 0;
-    string128			buff;
-	for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); ++it, ++i)
-    {
-    	sprintf			(buff,"n_%d", i);
-    	(*it)->SaveLTX	(ini, buff, this);
-    }
-
-    ini.w_float			("main", "vis_radius", m_VisRadius);
-    ini.w_u32			("main", "brush_size", m_BrushSize);
-
-    ini.w_float			("main", "smooth_height", m_SmoothHeight);
-
-    for (ObjectIt o_it=m_SnapObjects.begin(); o_it!=m_SnapObjects.end(); ++o_it)
-    	ini.w_string	("snap_objects", (*o_it)->GetName(), NULL);
+	R_ASSERT2(0, "is not supported");
 }
 
 bool ESceneAIMapTool::LoadStream(IReader& F)
@@ -535,55 +467,6 @@ void ESceneAIMapTool::SelectObjects(bool flag)
 
 	UI->RedrawScene		();
 }
-struct delete_sel_node_pred
-{
-	ESceneAIMapTool* tools;
-	SPBItem* pb;
-
-	delete_sel_node_pred(ESceneAIMapTool* _tools, SPBItem* _pb)
-		: pb(_pb),
-		  tools(_tools)
-	{
-    }
-
-	bool operator()(SAINode*& x)
-	{
-		// breaking links
-		for (int k=0; k<4; k++)
-			if (x->n[k]&&x->n[k]->flags.is(SAINode::flSelected))
-				x->n[k]=0;
-
-		// updating hash and freeing memory
-		if(x->flags.is(SAINode::flSelected)) {
-			AINodeVec* cell = tools->HashMap(x->Pos);
-			if(cell) {
-				AINodeIt del_it = std::remove(cell->begin(), cell->end(), x);
-				cell->erase(del_it);
-			}
-			xr_delete(x);
-
-			pb->Inc();
-			return true;
-		}
-
-		return false;
-	}
-};
-
-struct delete_sel_node_pred_huge
-{
-	bool operator()(SAINode*& x)
-    {
-    	// breaking links
-        for (int k=0; k<4; k++)
-            if (x->n[k]&&x->n[k]->flags.is(SAINode::flSelected))
-                x->n[k]=0;
-		// free memory                
-    	bool res	= x->flags.is(SAINode::flSelected); 
-        if (res) 	xr_delete(x); 
-        return 		res; 
-    }
-};
 
 void ESceneAIMapTool::RemoveSelection()
 {
@@ -648,13 +531,6 @@ void ESceneAIMapTool::InvertSelection()
 
 int ESceneAIMapTool::SelectionCount(bool testflag)
 {
-/*
-	int count = 0;
-	for (AINodeIt it=m_Nodes.begin(); it!=m_Nodes.end(); it++)
-		if ((*it)->flags.is(SAINode::flSelected)==testflag)
-			count++;
-	return count;
-*/
 	if(testflag == true)
 		return m_SelectionCount;
     else
