@@ -32,6 +32,9 @@ SAINode* ESceneAIMapTool::PickNode(const Fvector& start, const Fvector& dir, flo
 					AINodeIt end = m_HASH[x][z].end();
 					for( ; it != end; it++) {
 						SAINode& N 	= **it;
+
+						if (N.flags.is(SAINode::flDeleted)) continue;
+
 						u32 mask 	= 0xffff;
 						Fbox bb; bb.set(N.Pos,N.Pos); bb.min.sub(m_Params.fPatchSize*0.35f); bb.max.add(m_Params.fPatchSize*0.35f);
 						if (frustum.testSAABB(N.Pos,m_Params.fPatchSize,bb.data(),mask)){
@@ -54,6 +57,7 @@ SAINode* ESceneAIMapTool::PickNode(const Fvector& start, const Fvector& dir, flo
 
     return R;
 }
+
 bool ESceneAIMapTool::PickObjects(Fvector& dest, const Fvector& start, const Fvector& dir, float dist)
 {         	         
 	SPickQuery	PQ;
@@ -105,6 +109,9 @@ int ESceneAIMapTool::FrustumSelect(int flag, const CFrustum& frustum)
 					AINodeIt end = m_HASH[x][z].end();
 					for( ; it != end; it++) {
 						SAINode& N 	= **it;
+
+						if (N.flags.is(SAINode::flDeleted)) continue;
+
 						u32 mask 	= 0xffff;
 						Fbox bb; bb.set(N.Pos,N.Pos); bb.min.sub(m_Params.fPatchSize*0.35f); bb.max.add(m_Params.fPatchSize*0.35f);
 						if (frustum.testSAABB(N.Pos,m_Params.fPatchSize,bb.data(),mask)){

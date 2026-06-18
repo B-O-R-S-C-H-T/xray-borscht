@@ -34,6 +34,8 @@ extern const b_params& GetBuildsParams();
 
 bool ESceneAIMapTool::Export(LPCSTR path)
 {
+	PurgeDeletedNodes();
+
     auto ver = GetBuildsParams().build_aimap_version;
 
 //.?	if (!RealUpdateSnapList()) return false;

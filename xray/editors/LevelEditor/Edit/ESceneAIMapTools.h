@@ -37,6 +37,7 @@ struct SAINode					// definition of "patch" or "node"
     	flSelected 	= (1<<0),
     	flHLSelected= (1<<1),
 //    	flHide		= (1<<2), 	// obsolette
+		flDeleted	= (1<<3),
 
     	flN1		= (1<<4),
     	flN2		= (1<<5),
@@ -46,13 +47,13 @@ struct SAINode					// definition of "patch" or "node"
 	Flags8		flags;
     u32			idx;
 
-	SAINode				() 	{n1=n2=n3=n4=0;idx=0;flags.zero();}
-	SAINode*	nLeft	()	{return n1;}
-	SAINode*	nForward()	{return n2;}
-	SAINode*	nRight	()	{return n3;}
-	SAINode*	nBack	()	{return n4;}
-	
-    int			Links	()	const {int cnt=0; for (int k=0; k<4; k++) if(n[k]) cnt++; return cnt;}
+	SAINode				() 	{ n1 = n2 = n3 = n4 =0; idx=0; flags.zero(); }
+	SAINode*	nLeft	()	{ return (n1 && !n1->flags.is(flDeleted)) ? n1 : 0; }
+	SAINode*	nForward()	{ return (n2 && !n2->flags.is(flDeleted)) ? n2 : 0; }
+	SAINode*	nRight	()	{ return (n3 && !n3->flags.is(flDeleted)) ? n3 : 0; }
+	SAINode*	nBack	()	{ return (n4 && !n4->flags.is(flDeleted)) ? n4 : 0; }
+
+	int			Links	()	const {int cnt=0; for (int k=0; k<4; k++) if(n[k] && !n[k]->flags.is(flDeleted)) cnt++; return cnt;}
 	void		PointLF	(Fvector& D, float patch_size);
 	void		PointFR	(Fvector& D, float patch_size);
 	void		PointRB	(Fvector& D, float patch_size);
@@ -80,6 +81,7 @@ class ESceneAIMapTool: public ESceneToolBase
 	friend struct delete_sel_node_pred;
 	typedef ESceneToolBase inherited;
     ObjectList			m_SnapObjects;
+
 	// hash
 	AINodeVec			m_HASH[HDIM_X+1][HDIM_Z+1];
     AINodeVec			m_Nodes;
@@ -90,6 +92,7 @@ class ESceneAIMapTool: public ESceneToolBase
 	ref_geom			m_RGeom;
     ref_shader			m_Shader;
     ETOOLS::Model*	    m_CFModel;
+
 protected:
     void 				hash_FillFromNodes		();
     void 				hash_Initialize			();
@@ -125,6 +128,7 @@ protected:
     // controls
     virtual void 		CreateControls			();
 	virtual void 		RemoveControls			();
+
 public:
 	enum EMode{
     	mdAppend,
@@ -150,6 +154,7 @@ public:
 	xr_list<SAINode*>   m_SelNodesCache;
 
     bool				PickObjects				(Fvector& dest, const Fvector& start, const Fvector& dir, float dist);
+
 public:
 						ESceneAIMapTool 	   	();
 	virtual        	 	~ESceneAIMapTool 		();
@@ -168,6 +173,7 @@ public:
 	virtual void   		SelectObjects           (bool flag);
 	virtual void   		InvertSelection         ();
 	virtual void		RemoveSelection         ();
+	void				PurgeDeletedNodes       ();
 	virtual int    		SelectionCount          (bool testflag);
 	virtual void		ShowObjects				(bool flag, bool bAllowSelectionFlag=false, bool bSelFlag=true){}
 
@@ -250,4 +256,3 @@ public:
 	}
 };
 #endif // ESceneAIMapToolsH
-

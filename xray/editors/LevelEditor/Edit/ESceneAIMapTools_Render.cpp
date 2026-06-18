@@ -85,6 +85,8 @@ void ESceneAIMapTool::OnRender(int priority, bool strictB2F)
                             for (AINodeIt it=nodes->begin(); it!=nodes->end(); it++){
                                 SAINode& N 	= **it;
 
+								if (N.flags.is(SAINode::flDeleted)) continue;
+
 								Fvector v;	v.set(N.Pos.x-st,N.Pos.y,N.Pos.z-st);
 								float p_denom 	= N.Plane.n.dotproduct(DUP);
 								float b			= (_abs(p_denom)<EPS_S)?m_Params.fPatchSize:_abs(N.Plane.classify(v) / p_denom);
@@ -92,10 +94,10 @@ void ESceneAIMapTool::OnRender(int priority, bool strictB2F)
 								if (Render->ViewBase.testSphere_dirty(N.Pos,_max(b,st))){
 									u32 clr = 0xff606060;
 									int k = 0;
-									if (N.n1) { k |= 1<<0; if(N.n1->flags.get()&SAINode::flSelected) clr = 0xff909090; }
-									if (N.n2) { k |= 1<<1; if(N.n2->flags.get()&SAINode::flSelected) clr = 0xff909090; }
-									if (N.n3) { k |= 1<<2; if(N.n3->flags.get()&SAINode::flSelected) clr = 0xff909090; }
-									if (N.n4) { k |= 1<<3; if(N.n4->flags.get()&SAINode::flSelected) clr = 0xff909090; }
+									if (N.n1 && !N.n1->flags.is(SAINode::flDeleted)) { k |= 1<<0; if(N.n1->flags.get()&SAINode::flSelected) clr = 0xff909090; }
+									if (N.n2 && !N.n2->flags.is(SAINode::flDeleted)) { k |= 1<<1; if(N.n2->flags.get()&SAINode::flSelected) clr = 0xff909090; }
+									if (N.n3 && !N.n3->flags.is(SAINode::flDeleted)) { k |= 1<<2; if(N.n3->flags.get()&SAINode::flSelected) clr = 0xff909090; }
+									if (N.n4 && !N.n4->flags.is(SAINode::flDeleted)) { k |= 1<<3; if(N.n4->flags.get()&SAINode::flSelected) clr = 0xff909090; }
 									if (N.flags.get()&SAINode::flSelected) clr = 0xffffffff;
                                     Fvector		v;
                                     FVF::LIT	v1,v2,v3,v4;

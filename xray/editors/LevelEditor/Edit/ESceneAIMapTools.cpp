@@ -8,7 +8,6 @@
 #include "ui_leveltools.h"
 #include "ESceneAIMapControls.h"
 #include <xrCore/xrPool.h>
-//#include "FrameAIMap.h"
 
 // chunks
 #define AIMAP_VERSION  				0x0003
@@ -396,6 +395,8 @@ void ESceneAIMapTool::OnSynchronize()
 
 void ESceneAIMapTool::SaveStream(IWriter& F)
 {
+	PurgeDeletedNodes();
+
 	inherited::SaveStream	(F);
 
 	F.open_chunk	(AIMAP_CHUNK_VERSION);
@@ -586,37 +587,54 @@ struct delete_sel_node_pred_huge
 
 void ESceneAIMapTool::RemoveSelection()
 {
-	u32 sel_cnt = (u32)SelectionCount(true);
+	if (m_SelectionCount == 0) return;
 
-	if (m_Nodes.size()==sel_cnt){
-		Clear	(true);
-	}else if(sel_cnt < 16384){
-		// a bit faster way for low amount of nodes
-		// but it's much slower for huge amount
-		SPBItem* pb = UI->ProgressStart(sel_cnt,"Removing nodes...");
-		delete_sel_node_pred pred(this,pb);
+	for (AINodeIt it = m_Nodes.begin(); it != m_Nodes.end(); ++it)
+	{
+		SAINode* node = *it;
+		if (node->flags.is(SAINode::flSelected))
+		{
+			node->flags.set(SAINode::flDeleted, TRUE);
+			node->flags.set(SAINode::flSelected, FALSE);
+		}
+	}
 
-		AINodeIt result	= std::remove_if(m_Nodes.begin(), m_Nodes.end(), pred);
-		m_Nodes.erase(result,m_Nodes.end());
-
-		UI->ProgressEnd(pb);
-	}else{
-		SPBItem* pb = UI->ProgressStart(3,"Removing nodes...");
-		// remove link to sel nodes
-		pb->Inc("erasing nodes");
-		// remove sel nodes
-		AINodeIt result		= std::remove_if(m_Nodes.begin(), m_Nodes.end(), delete_sel_node_pred_huge());
-		m_Nodes.erase		(result,m_Nodes.end());
-		pb->Inc("updating hash");
-		hash_Clear		   	();
-		hash_FillFromNodes 	();
-		pb->Inc("end");
-		UI->ProgressEnd(pb);
-    }
-
-	m_SelectionCount    = 0;
+	m_SelectionCount = 0;
 	m_SelNodesCache.clear();
-	UI->RedrawScene		();
+	UI->RedrawScene();
+}
+
+void ESceneAIMapTool::PurgeDeletedNodes() {
+	if (m_Nodes.empty())
+		return;
+
+	// Чистим входящие связи для удалённых нод
+	for (AINodeIt it = m_Nodes.begin(); it != m_Nodes.end(); ++it) {
+		SAINode* node = *it;
+		for (int k = 0; k < 4; k++) {
+			if (node->n[k] && node->n[k]->flags.is(SAINode::flDeleted))
+				node->n[k] = 0;
+		}
+	}
+
+	// Удаляем ноды и чистим пул
+	AINodeIt new_end = std::remove_if(m_Nodes.begin(),
+									  m_Nodes.end(),
+									  [this](SAINode* node) -> bool
+									  {
+										  if (node->flags.is(SAINode::flDeleted)) {
+											  AINodeVec* cell = HashMap(node->Pos);
+											  if (cell) {
+												  auto cell_end = std::remove(cell->begin(), cell->end(), node);
+												  cell->erase(cell_end, cell->end());
+											  }
+											  xr_delete(node); // g_ainode_pool.destroy
+											  return true;
+										  }
+										  return false;
+									  });
+
+	m_Nodes.erase(new_end, m_Nodes.end());
 }
 
 void ESceneAIMapTool::InvertSelection()

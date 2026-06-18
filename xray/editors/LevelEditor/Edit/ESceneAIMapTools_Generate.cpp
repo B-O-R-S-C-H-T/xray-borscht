@@ -52,7 +52,7 @@ const int	RCAST_Total		= (2*RCAST_Count+1)*(2*RCAST_Count+1);
 const float	RCAST_Depth		= 1.f;
 const float RCAST_VALID 	= 0.55f;
 
-// Îïòèìèçèðîâàííûé Ì¸ëëåð-Òðóìáîð áåç êóëëèíãà
+// ÐžÐ¿Ñ‚Ð¸Ð¼Ð¸Ð·Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð½Ñ‹Ð¹ ÐœÑ‘Ð»Ð»ÐµÑ€-Ð¢Ñ€ÑƒÐ¼Ð±Ð¾Ñ€ Ð±ÐµÐ· ÐºÑƒÐ»Ð»Ð¸Ð½Ð³Ð°
 ICF bool TestRayTri_Local(const Fvector& C,
 						  const Fvector& D,
 						  const Fvector* __restrict p0,
@@ -401,6 +401,7 @@ SAINode* ESceneAIMapTool::FindNode(Fvector& vAt, float eps)
 
 	for (AINodeIt I=V->begin(); I!=V->end(); I++){
 		SAINode* N = *I;
+		if (N->flags.is(SAINode::flDeleted)) continue;
 		if (vAt.similar(N->Pos,eps)) return N;
 	}
 	return 0;
@@ -669,11 +670,11 @@ SAINode* ESceneAIMapTool::GetNode(Fvector vAt, bool bIC)	// return node's index
 	// *** set up xr_new<node
 	SAINode* N 		= xr_new<SAINode>();
     SAINode* R		= 0;
-	if (CreateNode(vAt,*N,bIC)){
+	if (CreateNode(vAt, *N, bIC)){
 		R 			= FindNode(N->Pos);
     	xr_delete	(N);
     }
-	xr_delete(N);
+//	xr_delete(N);   //.???
     return R;
 }
 
@@ -717,6 +718,8 @@ void ESceneAIMapTool::UpdateLinks(SAINode* N, bool bIC)
 
 bool ESceneAIMapTool::GenerateMap(bool bFromSelectedOnly)
 {
+	PurgeDeletedNodes();
+
 	bool bRes = false;
 	if (!GetSnapList()->empty()){
 	    if (!RealUpdateSnapList()) return false;
@@ -941,24 +944,29 @@ SAINode* ESceneAIMapTool::FindNeighbor(SAINode* N, int side, bool bIgnoreConstra
     if (nodes)
 		if (bIgnoreConstraints){
 		    float dy= flt_max;
-            for (AINodeIt I=nodes->begin(); I!=nodes->end(); I++)
-                if (fsimilar((*I)->Pos.x,Pos.x,EPS_L)&&fsimilar((*I)->Pos.z,Pos.z,EPS_L)){ 
-                    float _dy = _abs((*I)->Pos.y-Pos.y);
-                    if (_dy<dy){dy=_dy; R=*I;}
+            for (AINodeIt I=nodes->begin(); I!=nodes->end(); I++){
+                SAINode* candidate = *I;
+                if (candidate->flags.is(SAINode::flDeleted)) continue;
+                if (fsimilar(candidate->Pos.x,Pos.x,EPS_L)&&fsimilar(candidate->Pos.z,Pos.z,EPS_L)){ 
+                    float _dy = _abs(candidate->Pos.y-Pos.y);
+                    if (_dy<dy){dy=_dy; R=candidate;}
                 }
+            }
         }else{
 		    SAINode* R_up	= 0;
 		    SAINode* R_down	= 0;
 		    float dy_up 	= flt_max;
 		    float dy_down 	= flt_max;
             for (AINodeIt I=nodes->begin(); I!=nodes->end(); I++){
-                if (fsimilar((*I)->Pos.x,Pos.x,EPS_L)&&fsimilar((*I)->Pos.z,Pos.z,EPS_L)){ 
-                    float _dy = (*I)->Pos.y-Pos.y;
+                SAINode* candidate = *I;
+                if (candidate->flags.is(SAINode::flDeleted)) continue;
+                if (fsimilar(candidate->Pos.x,Pos.x,EPS_L)&&fsimilar(candidate->Pos.z,Pos.z,EPS_L)){ 
+                    float _dy = candidate->Pos.y-Pos.y;
                     float _ady= _abs(_dy);
                     if (_dy>=0.f){
-                    	if ((_ady<m_Params.fCanUP)&&(_ady<dy_up))		{dy_up=_ady; R_up=*I;}
+                    	if ((_ady<m_Params.fCanUP)&&(_ady<dy_up))		{dy_up=_ady; R_up=candidate;}
                     }else{
-                    	if ((_ady<m_Params.fCanDOWN)&&(_ady<dy_down))	{dy_down=_ady; R_down=*I;}
+                    	if ((_ady<m_Params.fCanDOWN)&&(_ady<dy_down))	{dy_down=_ady; R_down=candidate;}
                     }
                 }
             }
@@ -1026,6 +1034,8 @@ void ESceneAIMapTool::ResetNodes()
 #define		merge(pt)	if (fsimilar(P.y,REF.y,m_SmoothHeight)) { c++; pt.add(P); }
 void ESceneAIMapTool::SmoothNodes()
 {
+	PurgeDeletedNodes();
+
     SPBItem* pb = UI->ProgressStart(m_Nodes.size(), "Smoothing nodes...");
 
 	AINodeVec	smoothed;	smoothed.reserve(m_Nodes.size());
