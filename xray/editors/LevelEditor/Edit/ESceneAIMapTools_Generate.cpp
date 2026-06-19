@@ -571,16 +571,19 @@ int ESceneAIMapTool::BuildNodes(const Fvector& pos, int sz, bool bIC)
 
 void ESceneAIMapTool::BuildNodes(bool bFromSelectedOnly)
 {
-	BOOL bHideNodes = m_Flags.is(flHideNodes);
-    if (m_Flags.is(flHideNodesWhileGenerating)) m_Flags.set(flHideNodes, TRUE);
+	BOOL bHideNodes					= m_Flags.is(flHideNodes);
+	bool bVisualizeDuringGeneration = !m_Flags.is(flHideNodesWhileGenerating);
+
+	if (!bVisualizeDuringGeneration) {
+		m_Flags.set(flHideNodes, TRUE);
+		UI->RedrawScene(true);
+	}
 
 	// begin
 	m_Nodes.reserve(8 * 1024 * 1024);
 
-	// Initialize hash
-//	hash_Initialize ();
-
     R_ASSERT(!m_Nodes.empty());
+
     // Estimate nodes
     Fvector LevelSize;
     m_AIBBox.getsize	(LevelSize);
@@ -588,9 +591,10 @@ void ESceneAIMapTool::BuildNodes(bool bFromSelectedOnly)
 	if (estimated_nodes < 1024)
 		estimated_nodes = 1024;
 
-    SPBItem* pb = UI->ProgressStart(1, "Building nodes...");
+    SPBItem* pb					= UI->ProgressStart(1, "Building nodes...");
 
-    size_t	 next_to_process = 0;
+    size_t	 next_to_process	= 0;
+    size_t	 last_visual_redraw = m_Nodes.size(); // для визуализации в реальном времени
 
     while (next_to_process < m_Nodes.size() && !UI->NeedAbort()) {
         const size_t wave_start = next_to_process;
@@ -644,13 +648,22 @@ void ESceneAIMapTool::BuildNodes(bool bFromSelectedOnly)
                           }
                       });
 
+		if (bVisualizeDuringGeneration) {
+			if (m_Nodes.size() > last_visual_redraw + 8192) {
+				UI->RedrawScene(true);
+				last_visual_redraw = m_Nodes.size();
+			}
+		} else {
+			if ((wave_end % 32768) == 0)
+				UI->RedrawScene(true);
+		}
+
         float done_ratio = float(wave_end) / estimated_nodes;
         done_ratio		 = std::min(done_ratio, 0.98f);
         pb->Update(done_ratio);
 
-        // check need abort && redraw
-        if ((wave_end % 32768) == 0)
-            UI->RedrawScene(true);
+		if (UI->NeedAbort())
+			break;
 
         next_to_process = wave_end;
     }
