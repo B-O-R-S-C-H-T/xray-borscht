@@ -757,52 +757,66 @@ void IM_PropertyTree::RenderFlag(PropItem* item) {
 	Flag32Value* f32 = dynamic_cast<Flag32Value*>(V);
 	VERIFY(f8 || f16 || f32);
 
-	bool value, have_caption;
+	bool			 have_caption  = false;
+	bool			 have_inverted = false;
+	bool			 logical_value = false;
+
+	FlagValueCustom* customV	   = dynamic_cast<FlagValueCustom*>(V);
+	if (customV) {
+		have_inverted = customV->m_Flags.is(FlagValueCustom::flInvertedDraw);
+	}
+
 	if (f8) {
 		Flags8 f = f8->GetValue();
 		item->BeforeEdit<Flag8Value, Flags8>(f);
-		value		 = f.is(f8->mask);
-		have_caption = f8->HaveCaption();
+		logical_value = f.is(f8->mask);
+		have_caption  = f8->HaveCaption();
 	} else if (f16) {
 		Flags16 f = f16->GetValue();
 		item->BeforeEdit<Flag16Value, Flags16>(f);
-		value		 = f.is(f16->mask);
-		have_caption = f16->HaveCaption();
+		logical_value = f.is(f16->mask);
+		have_caption  = f16->HaveCaption();
 	} else if (f32) {
 		Flags32 f = f32->GetValue();
 		item->BeforeEdit<Flag32Value, Flags32>(f);
-		value		 = f.is(f32->mask);
-		have_caption = f32->HaveCaption();
+		logical_value = f.is(f32->mask);
+		have_caption  = f32->HaveCaption();
 	}
 
-	bool modified = false;
+	bool display_value = have_inverted ? !logical_value : logical_value;
+
+	bool modified	   = false;
 	ImGui::PushID(item->Key());
 	if (have_caption) {
 		if (ImGui::Selectable(item->GetDrawText().c_str(), false)) {
-			value	 = !value;
-			modified = true;
+			logical_value = !logical_value;
+			modified	  = true;
 		}
-	} else
-		modified = ImGui::Checkbox(" ", &value);
+	} else {
+		if (ImGui::Checkbox(" ", &display_value)) {
+			logical_value = have_inverted ? !display_value : display_value;
+			modified	  = true;
+		}
+	}
 
 	bool disabled = item->m_Flags.is(PropItem::flDisabled);
 
 	if (modified && !disabled) {
 		if (f8) {
 			Flags8 f;
-			f.set(f8->mask, value);
+			f.set(f8->mask, logical_value);
 			if (item->AfterEdit<Flag8Value, Flags8>(f))
 				if (item->ApplyValue<Flag8Value, Flags8>(f))
 					Modified();
 		} else if (f16) {
 			Flags16 f;
-			f.set(f16->mask, value);
+			f.set(f16->mask, logical_value);
 			if (item->AfterEdit<Flag16Value, Flags16>(f))
 				if (item->ApplyValue<Flag16Value, Flags16>(f))
 					Modified();
 		} else if (f32) {
 			Flags32 f;
-			f.set(f32->mask, value);
+			f.set(f32->mask, logical_value);
 			if (item->AfterEdit<Flag32Value, Flags32>(f))
 				if (item->ApplyValue<Flag32Value, Flags32>(f))
 					Modified();
