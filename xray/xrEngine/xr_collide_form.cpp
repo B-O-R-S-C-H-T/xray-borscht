@@ -88,6 +88,8 @@ IC bool RAYvsSPHERE(const Fsphere& s_sphere, const Fvector &S, const Fvector &D,
 }
 IC bool RAYvsCYLINDER(const Fcylinder& c_cylinder, const Fvector &S, const Fvector &D, float &R, BOOL bCull)
 {
+	VERIFY2(!fis_zero(D.square_magnitude()), "RAYvsCYLINDER: ray direction vector is 0");
+
 	// Actual test
 	Fcylinder::ERP_Result rp_res = c_cylinder.intersect(S,D,R);
 	VERIFY				(R>=0.f);
