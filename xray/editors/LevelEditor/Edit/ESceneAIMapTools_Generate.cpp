@@ -469,7 +469,7 @@ SAINode* ESceneAIMapTool::BuildNode(Fvector& vFrom, Fvector& vAt, bool bIC, bool
 					t_alloc = __rdtsc();
 				}
 
-				m_Nodes.push_back	(xr_new<SAINode>(N));
+				m_Nodes.push_back	(CreateSAINode(N));;
 				V->push_back		(m_Nodes.back());
 
 				if (g_bShowDetailedAIMapStats) {
@@ -684,14 +684,14 @@ SAINode* ESceneAIMapTool::GetNode(Fvector vAt, bool bIC)	// return node's index
 	SnapXZ			(vAt,m_Params.fPatchSize);
 
 	// *** set up xr_new<node
-	SAINode* N		= xr_new<SAINode>();
+	SAINode* N		= CreateSAINode();
 	SAINode* R		= nullptr;
 
 	if (CreateNode(vAt, *N, bIC)) {
 		R = FindNode(N->Pos);
 	}
 
-	xr_delete(N);
+	DestroySAINode(N);
 	return R;
 }
 
@@ -1279,7 +1279,7 @@ void ESceneAIMapTool::SmoothNodes()
             if (vNorm.y < 0) vNorm.invert();
 
             // Создаём новую ноду _без_ флага flSelected
-            SAINode* NEW = xr_new<SAINode>(N);
+			SAINode* NEW = CreateSAINode(N);
             NEW->flags.set(SAINode::flSelected, FALSE);
             NEW->n1 = (SAINode*)(N.n1 ? N.n1->idx : InvalidNode);
             NEW->n2 = (SAINode*)(N.n2 ? N.n2->idx : InvalidNode);
@@ -1292,7 +1292,7 @@ void ESceneAIMapTool::SmoothNodes()
             smoothed.push_back(NEW);
             nodes_to_reselect.push_back(NEW);   // запоминаем для последующего выделения
         } else {
-            SAINode* NEW = xr_new<SAINode>(N);
+			SAINode* NEW = CreateSAINode(N);
             NEW->n1 = (SAINode*)(N.n1 ? N.n1->idx : InvalidNode);
             NEW->n2 = (SAINode*)(N.n2 ? N.n2->idx : InvalidNode);
             NEW->n3 = (SAINode*)(N.n3 ? N.n3->idx : InvalidNode);

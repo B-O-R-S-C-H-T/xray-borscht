@@ -4,6 +4,8 @@
 #include "ESceneCustomMTools.H"
 #include <xrEngine/xrLevel.h>
 #include "ESceneAIMapTools_Export.H"
+#include <memory_resource>
+#include <memory>			// std::construct_at, std::destroy_at
 
 // refs
 class ESceneAIMapTool;
@@ -45,7 +47,7 @@ struct SAINode					// definition of "patch" or "node"
 	Flags8		flags;
     u32			idx;
 
-	SAINode				() 	{ n1 = n2 = n3 = n4 =0; idx=0; flags.zero(); }
+	SAINode				() 	{ n1 = n2 = n3 = n4 = 0; idx = 0; flags.zero(); }
 	SAINode*	nLeft	()	{ return (n1 && !n1->flags.is(flDeleted)) ? n1 : 0; }
 	SAINode*	nForward()	{ return (n2 && !n2->flags.is(flDeleted)) ? n2 : 0; }
 	SAINode*	nRight	()	{ return (n3 && !n3->flags.is(flDeleted)) ? n3 : 0; }
@@ -61,10 +63,6 @@ struct SAINode					// definition of "patch" or "node"
     void   		SaveStream			(IWriter&, ESceneAIMapTool*);
     void   		LoadLTX				(CInifile& ini, LPCSTR sect_name, ESceneAIMapTool*);
     void   		SaveLTX				(CInifile& ini, LPCSTR sect_name, ESceneAIMapTool*);
-
-	void*		operator 	new		(std::size_t size);
-	void*		operator 	new		(std::size_t size, SAINode*);
-	void 		operator 	delete	(void*);
 };
 #pragma pack(pop)
 
@@ -250,7 +248,30 @@ public:
 	}
 
 private:
-	void				CollectGeometry			(ETOOLS::Collector* master);
+	std::pmr::monotonic_buffer_resource			m_NodeMemoryResource; // upstream = get_default_resource()
+	std::pmr::polymorphic_allocator<SAINode>	m_NodeAllocator{&m_NodeMemoryResource};
+
+	template <typename... Args>
+	[[nodiscard]]
+	SAINode* CreateSAINode(Args&&... args) {
+		SAINode* p = m_NodeAllocator.allocate(1);
+		try {
+			m_NodeAllocator.construct(p, std::forward<Args>(args)...);
+		} catch (...) {
+			m_NodeAllocator.deallocate(p, 1);
+			throw;
+		}
+		return p;
+	}
+
+	void DestroySAINode(SAINode* node) {
+		if (!node)
+			return;
+		m_NodeAllocator.destroy(node);
+		m_NodeAllocator.deallocate(node, 1);
+	}
+
+	void CollectGeometry(ETOOLS::Collector* master);
 };
 
 #endif // ESceneAIMapToolsH
