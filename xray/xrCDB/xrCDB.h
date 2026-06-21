@@ -280,7 +280,10 @@ namespace CDB
 	{
 	public:
 		Fvector*		getV() { return verts.data(); }
+		const Fvector*	getV() const { return verts.data(); }
+
 		size_t			getVS() { return verts.size(); }
+		size_t			getVS() const { return verts.size(); }
 		void			clear() { verts.clear(); }
 		void			reserve(size_t count) { verts.reserve(count); }
 
@@ -298,8 +301,11 @@ namespace CDB
 	public:
 		using Face = TRI_Generic<Payload>;
 
-		Face*			getT() { return faces.data(); }
-		size_t			getTS() { return faces.size(); }
+		Face*		getT() { return faces.data(); }
+		const Face* getT() const { return faces.data(); }
+		size_t		getTS() { return faces.size(); }
+		size_t		getTS() const { return faces.size(); }
+
 		void			clear() { VertexCollector::clear(); faces.clear(); }
 		void			reserve(size_t vertCount, size_t faceCount) { VertexCollector::reserve(vertCount); faces.reserve(faceCount); }
 
@@ -310,6 +316,23 @@ namespace CDB
 		void			add_face_packed(const Fvector& v0, const Fvector& v1, const Fvector& v2, Payload&& payload, float eps = EPS)
 		{
 			faces.emplace_back(addVertPacked(v0, eps), addVertPacked(v1, eps), addVertPacked(v2, eps), payload);
+		}
+
+		void append(const Collector_Generic& other) {
+			const Face*	   src_faces = other.getT();
+			const size_t   src_count = other.getTS();
+			const Fvector* src_verts = other.getV();
+
+			for (size_t i = 0; i < src_count; ++i) {
+				const Face&	   f  = src_faces[i];
+
+				const Fvector& v0 = src_verts[f.verts[0]];
+				const Fvector& v1 = src_verts[f.verts[1]];
+				const Fvector& v2 = src_verts[f.verts[2]];
+
+				Payload		   p  = static_cast<const Payload&>(f);
+				this->add_face(v0, v1, v2, std::move(p));
+			}
 		}
 
 #pragma pack(push,1)

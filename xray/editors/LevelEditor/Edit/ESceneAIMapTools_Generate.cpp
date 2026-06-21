@@ -22,12 +22,15 @@
 static std::mutex s_gen_mutex;
 
 struct AIMapAtomicCounters {
-	std::atomic<u64> time_box_query         {0};
-	std::atomic<u64> time_ray_test_pass1    {0};
-	std::atomic<u64> time_ray_test_pass2    {0};
-	std::atomic<u64> time_build_node_lock   {0};
-	std::atomic<u64> time_allocation_in_lock{0};
-	std::atomic<u64> create_node_ray_tests  {0};
+	std::atomic<u64> time_box_query             {0};
+	std::atomic<u64> time_ray_test_pass1        {0};
+	std::atomic<u64> time_ray_test_pass2        {0};
+	std::atomic<u64> time_build_node_lock       {0};
+	std::atomic<u64> time_allocation_in_lock    {0};
+	std::atomic<u64> create_node_ray_tests      {0};
+	std::atomic<u64> time_geometry_collection   {0};
+	std::atomic<u64> time_geometry_merge        {0};
+	std::atomic<u64> time_create_model_cl       {0};
 };
 
 static AIMapAtomicCounters	   g_AIMapCounters;
@@ -735,18 +738,31 @@ bool ESceneAIMapTool::GenerateMap(bool bFromSelectedOnly)
 	PurgeDeletedNodes();
 
 	bool bRes = false;
-	if (!GetSnapList()->empty()){
-	    if (!RealUpdateSnapList()) return false;
-	    if (m_Nodes.empty()){
-			ELog.DlgMsg(mtError,"Append at least one node.");
-            return false;
-        }
+	if (!GetSnapList()->empty()) {
+		if (!RealUpdateSnapList()) return false;
+		if (m_Nodes.empty()) {
+			ELog.DlgMsg(mtError, "Append at least one node.");
+			return false;
+		}
 
-        if (!m_Flags.is(flSlowCalculate)){
+		if (g_bShowDetailedAIMapStats) {
+			g_AIMapCounters.time_box_query.store(0, std::memory_order_relaxed);
+			g_AIMapCounters.time_ray_test_pass1.store(0, std::memory_order_relaxed);
+			g_AIMapCounters.time_ray_test_pass2.store(0, std::memory_order_relaxed);
+			g_AIMapCounters.time_build_node_lock.store(0, std::memory_order_relaxed);
+			g_AIMapCounters.time_allocation_in_lock.store(0, std::memory_order_relaxed);
+			g_AIMapCounters.create_node_ray_tests.store(0, std::memory_order_relaxed);
+
+			g_AIMapCounters.time_geometry_collection.store(0, std::memory_order_relaxed);
+			g_AIMapCounters.time_geometry_merge.store(0, std::memory_order_relaxed);
+			g_AIMapCounters.time_create_model_cl.store(0, std::memory_order_relaxed);
+		}
+
+        if (!m_Flags.is(flSlowCalculate)) {
             // evict resources
             ExecCommand				(COMMAND_EVICT_OBJECTS);
             ExecCommand				(COMMAND_EVICT_TEXTURES);
-        
+
             // prepare collision model
             u32 avg_face_cnt 		= 0;
             u32 avg_vert_cnt 		= 0;
@@ -765,99 +781,66 @@ bool ESceneAIMapTool::GenerateMap(bool bFromSelectedOnly)
                 }
             }
 
-            SPBItem* pb = UI->ProgressStart(mesh_cnt,"Prepare collision model...");
+            SPBItem* pb = UI->ProgressStart(mesh_cnt, "Prepare collision model...");
 
             ETOOLS::Collector* CL		= ETOOLS::create_collector();
-            Fvector verts[3];
-            for (ObjectIt o_it=m_SnapObjects.begin(); o_it!=m_SnapObjects.end(); o_it++)
-            {
-                CSceneObject* 		S = dynamic_cast<CSceneObject*>(*o_it); VERIFY(S);
-                CEditableObject*    E = S->GetReference(); VERIFY(E);
-                EditMeshVec& 		_meshes = E->Meshes();
-                for (EditMeshIt m_it=_meshes.begin(); m_it!=_meshes.end(); m_it++)
-                {
-                    string256 temp;
-                    sprintf(temp, "%s [%s]",S->GetName(),(*m_it)->Name().c_str());
-                    pb->Inc(temp);
-                    const SurfFaces&	_sfaces = (*m_it)->GetSurfFaces();
-                    for (SurfFaces::const_iterator sp_it=_sfaces.begin(); sp_it!=_sfaces.end(); sp_it++)
-                    {
-                        CSurface* surf		= sp_it->first;
-                        // test passable
-    //.			        SGameMtl* mtl 		= GMLib.GetMaterialByID(surf->_GameMtl());
-    //.					if (mtl->Flags.is(SGameMtl::flPassable))continue;
 
-						xr_vector<u16>::iterator start = m_ignored_materials.begin();
-						xr_vector<u16>::iterator end = m_ignored_materials.end();
-						if(std::find(start, end, surf->_GameMtl()) != end)
-							continue;
-
-						Shader_xrLC* c_sh	= Device.ShaderXRLC.Get(surf->_ShaderXRLCName());
-						if (!c_sh->flags.bCollision && !c_sh->flags.bAIObstacle){
-							continue;
-						}
-                        // collect tris
-                        const IntVec& face_lst 	= sp_it->second;
-                        for (IntVec::const_iterator it=face_lst.begin(); it!=face_lst.end(); it++)
-                        {
-                            E->GetFaceWorld	(S->_Transform(),*m_it,*it,verts);
-
-                            ETOOLS::collector_add_face_d(CL,verts[0],verts[1],verts[2], surf->_GameMtl() /* *it */);
-                            if (surf->m_Flags.is(CSurface::sf2Sided))
-                                ETOOLS::collector_add_face_d(CL,verts[2],verts[1],verts[0], surf->_GameMtl() /* *it */);
-                        }
-                    }
-                }
-            }
+            CollectGeometry(CL);
 
             UI->ProgressEnd(pb);
 
             UI->SetStatus		("Building collision model...");
+
+			u64 model_build_start = 0;
+			if (g_bShowDetailedAIMapStats) {
+				model_build_start = __rdtsc();
+			}
+
             // create CFModel
             m_CFModel 			= ETOOLS::create_model_cl(CL);
             ETOOLS::destroy_collector(CL);
-    	}
+
+			if (g_bShowDetailedAIMapStats) {
+				g_AIMapCounters.time_create_model_cl.fetch_add(__rdtsc() - model_build_start, std::memory_order_relaxed);
+			}
+		}
 
 		// building
 		Scene->lock();
-
-		if (g_bShowDetailedAIMapStats) {
-			g_AIMapCounters.time_box_query.store(0, std::memory_order_relaxed);
-			g_AIMapCounters.time_ray_test_pass1.store(0, std::memory_order_relaxed);
-			g_AIMapCounters.time_ray_test_pass2.store(0, std::memory_order_relaxed);
-			g_AIMapCounters.time_build_node_lock.store(0, std::memory_order_relaxed);
-			g_AIMapCounters.time_allocation_in_lock.store(0, std::memory_order_relaxed);
-			g_AIMapCounters.create_node_ray_tests.store(0, std::memory_order_relaxed);
-		}
 
 		CTimer tm;
 		tm.Start();
 		BuildNodes(bFromSelectedOnly);
 
-		if (g_bShowDetailedAIMapStats) {
-			ELog.Msg(mtInformation, " ");
-			ELog.Msg(mtInformation, "--- AI Map Generation Stats --");
-		
-			if (m_CFModel) {
-				ELog.Msg(
-                     mtInformation, "Collision tris:      %u", m_CFModel->get_tris_count());
-			}
-		
-			ELog.Msg(mtInformation, "BoxQuery:            %llu ticks", g_AIMapCounters.time_box_query.load          (std::memory_order_relaxed));
-			ELog.Msg(mtInformation, "Ray test pass 1:     %llu ticks", g_AIMapCounters.time_ray_test_pass1.load     (std::memory_order_relaxed));
-			ELog.Msg(mtInformation, "Ray test pass 2:     %llu ticks", g_AIMapCounters.time_ray_test_pass2.load     (std::memory_order_relaxed));
-			ELog.Msg(mtInformation, "BuildNode lock:      %llu ticks", g_AIMapCounters.time_build_node_lock.load    (std::memory_order_relaxed));
-			ELog.Msg(mtInformation, "Allocation in lock:  %llu ticks", g_AIMapCounters.time_allocation_in_lock.load (std::memory_order_relaxed));
-			ELog.Msg(mtInformation, "------------------------------------");
-		}
-
 		float sec		  = tm.GetElapsed_sec();
 		u32	  final_nodes = (u32)m_Nodes.size();
 		float rate		  = (sec > 0.0001f) ? (final_nodes / sec) : 0.0f;
+
+		ELog.Msg(mtInformation, "=== AI Map Generation Stats ===");
+
+		if (g_bShowDetailedAIMapStats) {
+			if (m_CFModel) {
+				ELog.Msg(
+                     mtInformation, "Collision tris:        %u", m_CFModel->get_tris_count());
+			}
+
+			ELog.Msg(mtInformation, "--- Geometry Collection ---");
+			ELog.Msg(mtInformation, "Geometry collection:   %llu ticks", g_AIMapCounters.time_geometry_collection.load(std::memory_order_relaxed));
+			ELog.Msg(mtInformation, "Merge under lock:      %llu ticks", g_AIMapCounters.time_geometry_merge.load(std::memory_order_relaxed));
+			ELog.Msg(mtInformation, "Opcode tree build:     %llu ticks", g_AIMapCounters.time_create_model_cl.load(std::memory_order_relaxed));
+
+			ELog.Msg(mtInformation, "--- Node Creation ---");
+			ELog.Msg(mtInformation, "BoxQuery:              %llu ticks", g_AIMapCounters.time_box_query.load(std::memory_order_relaxed));
+			ELog.Msg(mtInformation, "Ray test pass 1:       %llu ticks", g_AIMapCounters.time_ray_test_pass1.load(std::memory_order_relaxed));
+			ELog.Msg(mtInformation, "Ray test pass 2:       %llu ticks", g_AIMapCounters.time_ray_test_pass2.load(std::memory_order_relaxed));
+			ELog.Msg(mtInformation, "BuildNode lock:        %llu ticks", g_AIMapCounters.time_build_node_lock.load(std::memory_order_relaxed));
+			ELog.Msg(mtInformation, "Allocation in lock:    %llu ticks", g_AIMapCounters.time_allocation_in_lock.load(std::memory_order_relaxed));
+			ELog.Msg(mtInformation, "------------------------------------");
+		}
+
 		ELog.Msg(mtInformation, "Nodes generated:     %u", final_nodes);
 		ELog.Msg(mtInformation, "Average rate:        %.0f nodes/sec", rate);
 		ELog.Msg(mtInformation, "Generation time:     %.3f sec", sec);
-		ELog.Msg(mtInformation, " ");
 
 		Scene->unlock();
 
@@ -868,10 +851,100 @@ bool ESceneAIMapTool::GenerateMap(bool bFromSelectedOnly)
         bRes = true;
 
         UI->SetStatus		("");
-    }else{
-    	ELog.DlgMsg(mtError,"Fill snap list before generating slots!");
+    } else {
+    	ELog.DlgMsg(mtError, "Fill snap list before generating AI Map!");
     }
     return bRes;
+}
+
+void ESceneAIMapTool::CollectGeometry(ETOOLS::Collector* master) {
+	if (!master)
+		return;
+
+	std::vector<CSceneObject*> snapObjects;
+	snapObjects.reserve(m_SnapObjects.size());
+	for (ObjectIt o_it = m_SnapObjects.begin(); o_it != m_SnapObjects.end(); ++o_it) {
+		if (CSceneObject* S = dynamic_cast<CSceneObject*>(*o_it))
+			snapObjects.push_back(S);
+	}
+
+	if (snapObjects.empty())
+		return;
+
+	std::vector<ETOOLS::Collector*> localCollectors;
+	localCollectors.reserve(snapObjects.size());
+
+	std::mutex collectors_mutex;
+
+	u64		   collection_start = 0;
+	if (g_bShowDetailedAIMapStats) {
+		collection_start = __rdtsc();
+	}
+
+	std::for_each(std::execution::par,
+				  snapObjects.begin(),
+				  snapObjects.end(),
+				  [&](CSceneObject* S)
+				  {
+					  if (!S)
+						  return;
+
+					  CEditableObject* E = S->GetReference();
+					  if (!E)
+						  return;
+
+					  EditMeshVec&		 _meshes = E->Meshes();
+					  ETOOLS::Collector* localCL = ETOOLS::create_collector();
+
+					  for (EditMeshIt m_it = _meshes.begin(); m_it != _meshes.end(); ++m_it) {
+						  const SurfFaces& _sfaces = (*m_it)->GetSurfFaces();
+						  for (SurfFaces::const_iterator sp_it = _sfaces.begin(); sp_it != _sfaces.end(); ++sp_it) {
+							  CSurface* surf  = sp_it->first;
+
+							  auto		start = m_ignored_materials.begin();
+							  auto		end	  = m_ignored_materials.end();
+							  if (std::find(start, end, surf->_GameMtl()) != end)
+								  continue;
+
+							  Shader_xrLC* c_sh = Device.ShaderXRLC.Get(surf->_ShaderXRLCName());
+							  if (!c_sh->flags.bCollision && !c_sh->flags.bAIObstacle)
+								  continue;
+
+							  const IntVec& face_lst = sp_it->second;
+							  for (IntVec::const_iterator it = face_lst.begin(); it != face_lst.end(); ++it) {
+								  Fvector verts[3];
+								  E->GetFaceWorld(S->_Transform(), *m_it, *it, verts);
+
+								  ETOOLS::collector_add_face_d(localCL, verts[0], verts[1], verts[2], surf->_GameMtl());
+								  if (surf->m_Flags.is(CSurface::sf2Sided))
+									  ETOOLS::collector_add_face_d(localCL, verts[2], verts[1], verts[0], surf->_GameMtl());
+							  }
+						  }
+					  }
+
+					  {
+						  std::lock_guard<std::mutex> lock(collectors_mutex);
+						  localCollectors.push_back(localCL);
+					  }
+				  });
+
+	u64 merge_start = 0;
+	if (g_bShowDetailedAIMapStats) {
+		merge_start = __rdtsc();
+	}
+
+	for (ETOOLS::Collector* lc : localCollectors) {
+		if (lc) {
+			master->append(*lc);
+			ETOOLS::destroy_collector(lc);
+		}
+	}
+
+	if (g_bShowDetailedAIMapStats) {
+		g_AIMapCounters.time_geometry_merge.fetch_add(__rdtsc() - merge_start, std::memory_order_relaxed);
+
+		g_AIMapCounters.time_geometry_collection.fetch_add(__rdtsc() - collection_start, std::memory_order_relaxed);
+	}
 }
 
 int ESceneAIMapTool::RemoveOutOfBoundsNodes()
