@@ -265,6 +265,8 @@ void IM_EditLibrary::Render() {
 	if (ImGui::Begin("Object Library", &m_open, ImGuiWindowFlags_NoCollapse)) {
 		ImGui::Columns(2, "lib_cols", true);
 
+		BeginPersistedColumns("lib_cols", "im_objectlibrary", 280.0f);
+
 		ImGui::BeginChild("ItemsPanel", ImVec2(0, 0), true);
 		m_Items.Render();
 		ImGui::EndChild();
@@ -325,17 +327,18 @@ void IM_EditLibrary::Render() {
 
 		if (ImGui::BeginTabBar("ObjectPropsTabs")) {
 			if (ImGui::BeginTabItem("Main Options")) {
-				m_BasicProps.Render();
+				RenderPersistedPropertyTree(m_BasicProps, "im_object_library", "basic_props_splitter_width");
 				ImGui::EndTabItem();
 			}
 			if (ImGui::BeginTabItem("Surfaces")) {
-				m_SurfaceProps.Render();
+				RenderPersistedPropertyTree(m_SurfaceProps, "im_object_library", "surface_props_splitter_width");
 				ImGui::EndTabItem();
 			}
 			ImGui::EndTabBar();
 		}
 
 		ImGui::EndChild();
+		EndPersistedColumns("lib_cols", "im_object_library");
 		ImGui::Columns(1);
 	}
 

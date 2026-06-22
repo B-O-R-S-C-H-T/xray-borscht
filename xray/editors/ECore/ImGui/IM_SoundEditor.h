@@ -38,7 +38,7 @@ public:
 
 public:
 	IM_SoundEditor();
-	~IM_SoundEditor() = default;
+	~IM_SoundEditor();
 
 	void			 Open();
 	void			 Close();

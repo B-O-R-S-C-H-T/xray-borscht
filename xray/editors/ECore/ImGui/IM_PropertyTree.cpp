@@ -43,8 +43,23 @@
 */
 
 IM_PropertyTree::IM_PropertyTree(char folder_separator, bool allow_multiselect, bool draw_bullets)
-	: separator(folder_separator), multiselect(allow_multiselect), bullets(draw_bullets), modified(false), m_HasPendingUpdate(false),
-	  m_PendingFullExpand(false), m_PendingFullSort(false), root(""), editing_node(nullptr) {}
+	: separator(folder_separator)
+	, multiselect(allow_multiselect)
+	, bullets(draw_bullets)
+	, modified(false)
+	, m_HasPendingUpdate(false)
+	, m_PendingFullExpand(false)
+	, m_PendingFullSort(false)
+	, root("")
+	, editing_node(nullptr)
+	, m_ColumnWidth(220.0f)
+	, m_ColumnWidthInitialized(false)
+{
+}
+
+IM_PropertyTree::~IM_PropertyTree() {
+	Clear();
+}
 
 IM_PropertyTree::ImTreeNode* IM_PropertyTree::GetNodeChild(ImTreeNode& node, const xr_string& name) {
 	if (node.child) {
@@ -1351,6 +1366,12 @@ void IM_PropertyTree::Render() {
 	}
 
 	ImGui::Columns(2, "props_cols", true);
+
+	if (!m_ColumnWidthInitialized) {
+		ImGui::SetColumnWidth(0, m_ColumnWidth);
+		m_ColumnWidthInitialized = true;
+	}
+
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
 	RenderNode(root);
@@ -1362,6 +1383,8 @@ void IM_PropertyTree::Render() {
 			OnModifiedEvent();
 		modified = false;
 	}
+
+	m_ColumnWidth = ImGui::GetColumnWidth(0);
 
 	ImGui::Columns(1);
 }

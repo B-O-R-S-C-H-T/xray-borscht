@@ -23,9 +23,7 @@ IM_ImageEditor::IM_ImageEditor()
     , m_showbump(true)
     , m_shownormal(true)
     , m_showterrain(true)
-    ,
-
-    m_thm(THUMB_WIDTH, THUMB_HEIGHT)
+    , m_thm(THUMB_WIDTH, THUMB_HEIGHT)
 {
 	m_items.OnItemsFocused.bind(this, &IM_ImageEditor::OnItemsFocused);
 }
@@ -49,15 +47,14 @@ void IM_ImageEditor::Open(bool import) {
 		ListItemsVec items;
 		SPBItem*	 pb = UI->ProgressStart(texture_map.size(), "Fill list...");
 		// fill
-		FS_FileSetIt it = texture_map.begin();
-		FS_FileSetIt _E = texture_map.end();
-		for (; it != _E; it++) {
+		for (auto it = texture_map.begin(); it != texture_map.end(); ++it) {
 			pb->Inc();
 			ListItem* I = LHelper().CreateItem(items, it->name.c_str(), 0);
 			I->m_Object = (void*)(FindUsedTHM(it->name.c_str()));
 			R_ASSERT2(I->m_Object, it->name.c_str());
 		}
 		UI->ProgressEnd(pb);
+
 		m_items.AssignItems(items, false);
 
 		UI->AddIMWindow(this);
@@ -128,6 +125,8 @@ void IM_ImageEditor::Render() {
 
 	ImGui::Columns(2, "image_editor_cols", true);
 
+	BeginPersistedColumns("image_editor_cols", "im_image_editor", 280.0f);
+
 	if (ImGui::Checkbox("Image##image_show_image", &m_showimage))
 		OnShowTypeClick();
 	ImGui::SameLine();
@@ -154,8 +153,12 @@ void IM_ImageEditor::Render() {
 	ImGui::EndChild();
 
 	ImGui::BeginChild("ItemProps", ImVec2(0, -height), true);
-	m_props.Render();
+
+	RenderPersistedPropertyTree(m_props, "im_image_editor");
+
 	ImGui::EndChild();
+
+	EndPersistedColumns("image_editor_cols", "im_image_editor");
 
 	ImGui::Columns(1);
 
@@ -164,12 +167,10 @@ void IM_ImageEditor::Render() {
 		UpdateLib();
 		m_open = false;
 	}
-	auto r = ImGui::GetItemRectSize();
 	ImGui::SameLine();
 	if (ImGui::Button("Cancel##image_cancel")) {
 		m_open = false;
 	}
-	r = ImGui::GetItemRectSize();
 
 	ImGui::End();
 }

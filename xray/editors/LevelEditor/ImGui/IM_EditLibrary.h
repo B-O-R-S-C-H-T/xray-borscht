@@ -29,8 +29,6 @@ private:
 	bool					 cbPreview = true;
 	bool					 bReadOnly = false;
 
-	IM_Storage*				 m_Storage = nullptr;
-
 	static bool				 bFinalExit;
 	static bool				 bExitResult;
 

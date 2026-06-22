@@ -271,7 +271,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		} break;
 
 		case WM_CLOSE:
-			if (EPrefs) EPrefs->windowState.Save(hWnd);
+			if (EPrefs) {
+				IM_Storage& ws = EPrefs->GetSectionStorage("editor_main_window");
+				EPrefs->windowState.Save(hWnd);
+				ws.PutFloat("wp_showCmd",	EPrefs->windowState.wp.showCmd);
+				ws.PutFloat("wp_flags",		EPrefs->windowState.wp.flags);
+				ws.PutFloat("wp_left",		EPrefs->windowState.wp.rcNormalPosition.left);
+				ws.PutFloat("wp_top",		EPrefs->windowState.wp.rcNormalPosition.top);
+				ws.PutFloat("wp_right",		EPrefs->windowState.wp.rcNormalPosition.right);
+				ws.PutFloat("wp_bottom",	EPrefs->windowState.wp.rcNormalPosition.bottom);
+				EPrefs->Save();
+			}
 			g_idle = false;
 			ExecCommand(COMMAND_DESTROY);
 			DestroyWindow(g_MainWnd);

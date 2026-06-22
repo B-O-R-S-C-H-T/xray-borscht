@@ -106,7 +106,7 @@ public:
     virtual void 	OutGridSize				();
     virtual void 	OutInfo					();
 
-    virtual LPCSTR	EditorName				(){return "level";}
+    virtual LPCSTR	EditorName				(){return "level_editor";}
     virtual LPCSTR	EditorDesc				(){return "Level Editor";}
 
     void 			ShowContextMenu			(int cls);

@@ -1,6 +1,8 @@
 #ifndef EditorPreferencesH
 #define EditorPreferencesH
 
+#include "../ImGui/IM_Window.h"
+
 // refs
 class IM_PropertiesWnd;
 
@@ -134,7 +136,7 @@ public:
     float			cam_fly_alt;
     float			cam_sens_rot;
     float			cam_sens_move;
-	// поведение камеры при undo/redo
+	// РїРѕРІРµРґРµРЅРёРµ РєР°РјРµСЂС‹ РїСЂРё undo/redo
 	BOOL			cam_undo_enabled;
 	float			cam_undo_duration;
 	// tools mouse
@@ -205,7 +207,13 @@ public:				// User declarations
     void 			Save				();
     
     void 			AppendRecentFile	(LPCSTR name);
-    LPCSTR 			FirstRecentFile		(){return scene_recent_list.empty()?"":scene_recent_list.front().c_str();}
+    LPCSTR 			FirstRecentFile		(){return scene_recent_list.empty() ? "" : scene_recent_list.front().c_str();}
+
+private:
+	std::map        <xr_string, IM_Storage*> m_SectionStorages;		// РґР»СЏ _РІСЃРµС…_ СЃРµРєС†РёР№
+
+public:
+	IM_Storage&     GetSectionStorage   (LPCSTR section);
 };
 //---------------------------------------------------------------------------
 #define R_FLOAT_SAFE(S,L,D)	I->line_exist(S,L)?I->r_float(S,L):D;

@@ -121,6 +121,10 @@ CCustomPreferences::CCustomPreferences()
 
 CCustomPreferences::~CCustomPreferences()
 {
+	for (auto& pair : m_SectionStorages) {
+		xr_delete(pair.second);
+	}
+	m_SectionStorages.clear();
 }
 
 void CCustomPreferences::ApplyValues()
@@ -335,17 +339,18 @@ void CCustomPreferences::Load(CInifile* I)
 
     ui_scale			= R_FLOAT_SAFE  ("editor_prefs", "ui_scale"         , 1.0f);
 
-    windowState.wp.length				   = sizeof(WINDOWPLACEMENT);
-	windowState.wp.flags				   = R_U32_SAFE("editor_prefs", "wp_flags",     0);
-	windowState.wp.showCmd				   = R_U32_SAFE("editor_prefs", "wp_showCmd", SW_SHOWNORMAL);
-	windowState.wp.ptMinPosition.x		   = R_U32_SAFE("editor_prefs", "wp_ptMinX",   -1);
-	windowState.wp.ptMinPosition.y		   = R_U32_SAFE("editor_prefs", "wp_ptMinY",   -1);
-	windowState.wp.ptMaxPosition.x		   = R_U32_SAFE("editor_prefs", "wp_ptMaxX",   -1);
-	windowState.wp.ptMaxPosition.y		   = R_U32_SAFE("editor_prefs", "wp_ptMaxY",   -1);
-	windowState.wp.rcNormalPosition.left   = R_U32_SAFE("editor_prefs", "wp_left",    100);
-	windowState.wp.rcNormalPosition.top	   = R_U32_SAFE("editor_prefs", "wp_top",     100);
-	windowState.wp.rcNormalPosition.right  = R_U32_SAFE("editor_prefs", "wp_right",  1280);
-	windowState.wp.rcNormalPosition.bottom = R_U32_SAFE("editor_prefs", "wp_bottom",  720);
+	IM_Storage& ws						   = GetSectionStorage("editor_main_window");
+	windowState.wp.length				   = sizeof(WINDOWPLACEMENT);
+	windowState.wp.showCmd				   = (UINT)ws.GetFloat("wp_showCmd", SW_SHOWNORMAL);
+	windowState.wp.flags				   = (UINT)ws.GetFloat("wp_flags", 0);
+	windowState.wp.ptMinPosition.x		   = -1;
+	windowState.wp.ptMinPosition.y		   = -1;
+	windowState.wp.ptMaxPosition.x		   = -1;
+	windowState.wp.ptMaxPosition.y		   = -1;
+	windowState.wp.rcNormalPosition.left   = (LONG)ws.GetFloat("wp_left", 100);
+	windowState.wp.rcNormalPosition.top	   = (LONG)ws.GetFloat("wp_top", 100);
+	windowState.wp.rcNormalPosition.right  = (LONG)ws.GetFloat("wp_right", 1280);
+	windowState.wp.rcNormalPosition.bottom = (LONG)ws.GetFloat("wp_bottom", 720);
 
 	windowState.ValidateAndFix();
 
@@ -411,17 +416,6 @@ void CCustomPreferences::Save(CInifile* I)
 
     I->w_float  ("editor_prefs", "ui_scale",        ui_scale);
 
-	I->w_u32    ("editor_prefs", "wp_flags",        windowState.wp.flags);
-	I->w_u32    ("editor_prefs", "wp_showCmd",      windowState.wp.showCmd);
-	I->w_u32    ("editor_prefs", "wp_ptMinX",       windowState.wp.ptMinPosition.x);
-	I->w_u32    ("editor_prefs", "wp_ptMinY",       windowState.wp.ptMinPosition.y);
-	I->w_u32    ("editor_prefs", "wp_ptMaxX",       windowState.wp.ptMaxPosition.x);
-	I->w_u32    ("editor_prefs", "wp_ptMaxY",       windowState.wp.ptMaxPosition.y);
-	I->w_u32    ("editor_prefs", "wp_left",         windowState.wp.rcNormalPosition.left);
-	I->w_u32    ("editor_prefs", "wp_top",          windowState.wp.rcNormalPosition.top);
-	I->w_u32    ("editor_prefs", "wp_right",        windowState.wp.rcNormalPosition.right);
-	I->w_u32    ("editor_prefs", "wp_bottom",       windowState.wp.rcNormalPosition.bottom);
-
     for (AStringIt it=scene_recent_list.begin(); it!=scene_recent_list.end(); it++){
         AnsiString L = "recent_files_" + std::to_string(it - scene_recent_list.begin());
         AnsiString V = '"' + *it + '"';
@@ -435,22 +429,34 @@ void CCustomPreferences::Save(CInifile* I)
 
 void CCustomPreferences::Load()
 {
-    string_path			fn;
-    INI_NAME			(fn);
-    CInifile* I			= xr_new<CInifile>(fn, TRUE, TRUE, TRUE);
-    Load				(I);
-    xr_delete			(I);
-    ApplyValues			();
+	IM_Storage& main = GetSectionStorage("editor_prefs");
+	CInifile*	I	 = main.GetIni();
+
+	Load(I);
+	ApplyValues();
 }
+
 void CCustomPreferences::Save()
 {
-    string_path			fn;
-    INI_NAME			(fn);
-    CInifile* I 		= xr_new<CInifile>(fn, FALSE, TRUE, TRUE);
-    I->set_override_names(TRUE);
-    Save				(I);
-    xr_delete			(I);
+	IM_Storage& main = GetSectionStorage("editor_prefs");
+	CInifile*	I	 = main.GetIni();
+
+	Save(I);
+	main.Save();
 }
+
+IM_Storage& CCustomPreferences::GetSectionStorage(LPCSTR section) {
+		string_path path;
+		INI_NAME(path);
+
+		auto it = m_SectionStorages.find(section);
+		if (it == m_SectionStorages.end()) {
+			IM_Storage* storage		   = xr_new<IM_Storage>(true, xr_string(path), xr_string(section));
+			m_SectionStorages[section] = storage;
+			return *storage;
+		}
+		return *it->second;
+	}
 
 void CCustomPreferences::AppendRecentFile(LPCSTR name)
 {
@@ -485,4 +491,3 @@ void CCustomPreferences::OnDestroy()
     Save				();
 }
 //---------------------------------------------------------------------------
-

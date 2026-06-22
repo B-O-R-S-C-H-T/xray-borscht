@@ -24,6 +24,9 @@ private:
 	bool		m_PendingFullExpand = false;
 	bool		m_PendingFullSort	= false;
 
+	float		m_ColumnWidth			 = 220.0f;
+	bool		m_ColumnWidthInitialized = false;
+
 	struct ImTreeNode {
 		xr_string			 name;
 		xr_list<ImTreeNode>* child;
@@ -74,7 +77,7 @@ private:
 public:
 	IM_PropertyTree(char folder_separator = '\\', bool allow_multiselect = false, bool draw_bullets = true);
 
-	~IM_PropertyTree() { Clear(); }
+	~IM_PropertyTree();
 
 	void				Add(LPCSTR path, PropItem* item);
 	void				Clear();
@@ -115,6 +118,9 @@ public:
 	void				RenderCanvas(PropItem* item, IM_Canvas*& c);
 	void				RenderTime(PropItem* item);
 	void				RenderGameType(PropItem* item);
+
+	float				GetColumnWidth() const { return m_ColumnWidth; }
+	void				SetColumnWidth(float w) { m_ColumnWidth = w; }
 
 	virtual void		Render();
 };

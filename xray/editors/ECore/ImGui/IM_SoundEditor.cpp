@@ -12,11 +12,19 @@
 
 ECORE_API IM_SoundEditor imSoundEditor;
 
-IM_SoundEditor::IM_SoundEditor() : m_open(false), m_title("Sound Editor"), m_items('\\', true), m_Flags{0}, bAutoPlay(TRUE) {
+IM_SoundEditor::IM_SoundEditor()
+	: m_open(false)
+	, m_title("Sound Editor")
+	, m_items('\\', true)
+	, m_Flags{0}
+	, bAutoPlay(TRUE)
+{
 	m_items.OnItemsFocused.bind(this, &IM_SoundEditor::OnItemsFocused);
 	m_items.OnItemRemove.bind(this, &IM_SoundEditor::RemoveSound);
 	m_items.OnItemRename.bind(this, &IM_SoundEditor::RenameSound);
 }
+
+IM_SoundEditor::~IM_SoundEditor() {}
 
 void IM_SoundEditor::Open() {
 	if (!m_open) {
@@ -28,7 +36,7 @@ void IM_SoundEditor::Open() {
 		modif_map.clear	();
 		m_Flags.zero	();
 		if (!FS.can_write_to_alias(_sounds_)){
-			Log				("#!You don't have permisions to modify sounds.");
+			Log				("#!You don't have permissions to modify sounds.");
 			m_Flags.set		(flReadOnly,TRUE);
 			bAutoPlay		= TRUE;
 		}
@@ -110,6 +118,8 @@ void IM_SoundEditor::Render() {
 
 	ImGui::Columns(2, "sound_editor_cols", true);
 
+	BeginPersistedColumns("sound_editor_cols", "im_sound_editor", 250.0f);
+
 	ImGui::BeginChild("##ItemList", ImVec2(0, -40), true);
 	m_items.Render();
 	ImGui::EndChild();
@@ -117,8 +127,12 @@ void IM_SoundEditor::Render() {
 	ImGui::NextColumn();
 
 	ImGui::BeginChild("##ItemProps", ImVec2(0, -40), true);
-	m_props.Render();
+
+	RenderPersistedPropertyTree(m_props, "im_sound_editor");
+
 	ImGui::EndChild();
+
+	EndPersistedColumns("sound_editor_cols", "im_sound_editor");
 
 	ImGui::Columns(1);
 
