@@ -29,6 +29,9 @@ private:
 	bool					 cbPreview = true;
 	bool					 bReadOnly = false;
 
+	bool					 m_DropperMode = false;
+	bool					 m_PendingSwitchToSurfacesTab = false;
+
 	static bool				 bFinalExit;
 	static bool				 bExitResult;
 
@@ -42,13 +45,16 @@ private:
 
 	void					 ClearEditObjects();
 
-	void __stdcall			 OnObjectRename(LPCSTR p0, LPCSTR p1, EItemType type);
-	void __stdcall			 OnObjectRemove(LPCSTR name, EItemType type, bool& removed);
+	void					 OnObjectRename(LPCSTR p0, LPCSTR p1, EItemType type);
+	void					 OnObjectRemove(LPCSTR name, EItemType type, bool& removed);
 
 	void					 MakeThumbnail();
 	void					 MakeLOD(bool bHighQuality);
 	bool					 GenerateLOD(ListItemsVec& props, bool bHighQuality);
 	void					 Save();
+
+	void					 ApplyDropperPick(const SRayPickInfo& pinf);
+	void					 FocusSurfaceProperty(const char* path);
 
 public:
 	IM_EditLibrary();
@@ -58,9 +64,9 @@ public:
 
 	virtual void					Render() override;
 
-	static void __fastcall			OnRender();
-	static void __fastcall			ZoomObject();
-	static CSceneObject* __fastcall RayPick(const Fvector& start, const Fvector& direction, SRayPickInfo* pinf);
+	static void						OnRender();
+	static void						ZoomObject();
+	static CSceneObject*			RayPick(const Fvector& start, const Fvector& direction, SRayPickInfo* pinf);
 
 	void							FormShow();
 	void							FormClose();

@@ -64,6 +64,7 @@ void IM_EditLibrary::ShowEditor() {
 
 void IM_EditLibrary::FormShow() {
 	UI->BeginEState(esEditLibrary);
+	Scene->lock();
 	InitObjects();
 
 	Flight L;
@@ -304,6 +305,12 @@ void IM_EditLibrary::Render() {
 				if (ImGui::Checkbox("Preview", &cbPreview))
 					RefreshSelected();
 
+				ImGui::Checkbox("Dropper", &m_DropperMode);
+				if (m_DropperMode) {
+					ImGui::SameLine();
+					ImGui::TextDisabled("(click on surface in viewport)");
+				}
+
 				float used		= ImGui::GetCursorPosY();
 				float remaining = 140.0f - used - 8.0f;
 				if (remaining > 0)
@@ -325,19 +332,31 @@ void IM_EditLibrary::Render() {
 
 		ImGui::Separator();
 
-		if (ImGui::BeginTabBar("ObjectPropsTabs")) {
-			if (ImGui::BeginTabItem("Main Options")) {
-				RenderPersistedPropertyTree(m_BasicProps, "im_object_library", "basic_props_splitter_width");
-				ImGui::EndTabItem();
+		ImGui::BeginChild("ObjectPropsScroll", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+		{
+			if (ImGui::BeginTabBar("ObjectPropsTabs")) {
+				if (ImGui::BeginTabItem("Main Options")) {
+					RenderPersistedPropertyTree(m_BasicProps, "im_object_library", "basic_props_splitter_width");
+					ImGui::EndTabItem();
+				}
+
+				ImGuiTabItemFlags surfaceFlags = 0;
+				if (m_PendingSwitchToSurfacesTab) {
+					surfaceFlags |= ImGuiTabItemFlags_SetSelected;
+					m_PendingSwitchToSurfacesTab = false;
+				}
+
+				if (ImGui::BeginTabItem("Surfaces", nullptr, surfaceFlags)) {
+					RenderPersistedPropertyTree(m_SurfaceProps, "im_object_library", "surface_props_splitter_width");
+					ImGui::EndTabItem();
+				}
+				ImGui::EndTabBar();
 			}
-			if (ImGui::BeginTabItem("Surfaces")) {
-				RenderPersistedPropertyTree(m_SurfaceProps, "im_object_library", "surface_props_splitter_width");
-				ImGui::EndTabItem();
-			}
-			ImGui::EndTabBar();
 		}
+		ImGui::EndChild();
 
 		ImGui::EndChild();
+
 		EndPersistedColumns("lib_cols", "im_object_library");
 		ImGui::Columns(1);
 	}
@@ -369,13 +388,42 @@ void IM_EditLibrary::OnObjectRemove(LPCSTR name, EItemType type, bool& removed) 
 	Lib.RemoveObject(name, type, removed);
 }
 
+void IM_EditLibrary::ApplyDropperPick(const SRayPickInfo& pinf) {
+	if (!pinf.e_mesh)
+		return;
+
+	CSurface* surf = pinf.e_mesh->GetSurfaceByFaceID(pinf.inf.id);
+	if (!surf)
+		return;
+
+	const char* surf_name = surf->_Name();
+	if (!surf_name || surf_name[0] == '\0')
+		return;
+
+	xr_string path = xr_string("Surfaces\\") + surf_name;
+
+	FocusSurfaceProperty(path.c_str());
+
+	for (auto& SO : m_pEditObjects) {
+		CEditableObject* EO = SO ? SO->GetReference() : nullptr;
+		if (EO) {
+			SO->Blink(surf);
+		}
+	}
+}
+
+void IM_EditLibrary::FocusSurfaceProperty(const char* path) {
+	m_SurfaceProps.FocusPath(path);
+	m_PendingSwitchToSurfacesTab = true;
+}
+
 CSceneObject* IM_EditLibrary::RayPick(const Fvector& start, const Fvector& direction, SRayPickInfo* pinf) {
 	if (!g_imEditLibrary)
 		return nullptr;
 	if (g_imEditLibrary->m_pEditObjects.empty())
 		return nullptr;
 
-	float		 dist = UI->ZFar(); // Ð¸Ð»Ð¸ Device.m_Camera.GetFar()
+	float		 dist = UI->ZFar(); // èëè Device.m_Camera.GetFar()
 	SRayPickInfo localPinf;
 
 	for (auto& SO : g_imEditLibrary->m_pEditObjects) {
@@ -384,6 +432,11 @@ CSceneObject* IM_EditLibrary::RayPick(const Fvector& start, const Fvector& direc
 				*pinf = localPinf;
 
 			pinf->s_obj = SO;
+
+			if (g_imEditLibrary->m_DropperMode && pinf) {
+				g_imEditLibrary->ApplyDropperPick(*pinf);
+			}
+
 			return SO;
 		}
 	}

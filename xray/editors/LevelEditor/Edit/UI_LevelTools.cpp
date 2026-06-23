@@ -286,9 +286,7 @@ bool CLevelTool::Pick(TShiftState Shift)
         UI->m_StartCp = UI->m_CurrentCp;
         Device.m_Camera.MouseRayFromPoint(UI->m_CurrentRStart, UI->m_CurrentRNorm, UI->m_CurrentCp );
         SRayPickInfo pinf;
-#ifndef NO_VCL
-        TfrmEditLibrary::RayPick(UI->m_CurrentRStart,UI->m_CurrentRNorm,&pinf);
-#endif
+		IM_EditLibrary::RayPick(UI->m_CurrentRStart, UI->m_CurrentRNorm, &pinf);
         return true;
     }
     return false;

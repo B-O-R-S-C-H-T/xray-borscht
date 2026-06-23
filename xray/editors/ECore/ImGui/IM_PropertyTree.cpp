@@ -10,6 +10,7 @@
 #include "IM_ChooseForm.h"
 #include "IM_TextEditor.h"
 #include "utf8.h"
+#include <imgui_internal.h>
 
 #pragma package(smart_init)
 
@@ -54,6 +55,7 @@ IM_PropertyTree::IM_PropertyTree(char folder_separator, bool allow_multiselect, 
 	, editing_node(nullptr)
 	, m_ColumnWidth(220.0f)
 	, m_ColumnWidthInitialized(false)
+	, m_ScrollToSelected(false)
 {
 }
 
@@ -127,6 +129,11 @@ void IM_PropertyTree::RenderNode(ImTreeNode& node) {
 			if (ImGui::IsItemClicked())
 				clicked = true;
 
+			if (current.selected && m_ScrollToSelected) {
+				ImGui::ScrollToItem(ImGuiScrollFlags_AlwaysCenterY);
+				m_ScrollToSelected = false;
+			}
+
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			RenderItem(current);
@@ -149,6 +156,11 @@ void IM_PropertyTree::RenderNode(ImTreeNode& node) {
 			ImGui::Selectable(current.name.c_str(), current.selected);
 			if (ImGui::IsItemClicked())
 				clicked = true;
+
+			if (current.selected && m_ScrollToSelected) {
+				ImGui::ScrollToItem(ImGuiScrollFlags_AlwaysCenterY);
+				m_ScrollToSelected = false;
+			}
 
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
@@ -176,6 +188,8 @@ void IM_PropertyTree::SelectNode(ImTreeNode& node, bool select) {
 	} else if (!node.selected && select) {
 		selected.push_back(&node);
 		node.selected = true;
+
+		m_ScrollToSelected = true;
 
 		if (node.item && !node.item->OnItemFocused.empty())
 			node.item->OnItemFocused(node.item);
@@ -1347,6 +1361,18 @@ void IM_PropertyTree::RenderGameType(PropItem* item) {
 	if (item->AfterEdit<GameTypeValue, GameTypeChooser>(gtc))
 		if (item->ApplyValue<GameTypeValue, GameTypeChooser>(gtc))
 			Modified();
+}
+
+void IM_PropertyTree::FocusPath(LPCSTR path) {
+	ImTreeNode* node = GetNode(path, true);
+	if (node) {
+		if (!multiselect)
+			SelectAll(false);
+
+		SelectNode(*node);
+
+		m_PendingFullExpand = true;
+	}
 }
 
 void IM_PropertyTree::Render() {

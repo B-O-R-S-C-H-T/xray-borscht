@@ -27,6 +27,8 @@ private:
 	float		m_ColumnWidth			 = 220.0f;
 	bool		m_ColumnWidthInitialized = false;
 
+	bool		m_ScrollToSelected		 = false;
+
 	struct ImTreeNode {
 		xr_string			 name;
 		xr_list<ImTreeNode>* child;
@@ -35,15 +37,18 @@ private:
 		PropItem*			 item;
 		IM_Canvas*			 canvas;
 
-		ImTreeNode(const xr_string& node_name) : name(node_name), child(NULL), selected(false), item(NULL), canvas(NULL) {}
+		ImTreeNode(const xr_string& node_name)
+			: name(node_name)
+			, child(NULL)
+			, selected(false)
+			, item(NULL)
+			, canvas(NULL)
+		{}
 
 		void Clear() {
-			if (child)
-				xr_delete(child);
-			if (item)
-				xr_delete(item);
-			if (canvas)
-				xr_delete(canvas);
+			if (child)	xr_delete(child);
+			if (item)	xr_delete(item);
+			if (canvas)	xr_delete(canvas);
 		}
 
 		~ImTreeNode() { Clear(); }
@@ -121,6 +126,8 @@ public:
 
 	float				GetColumnWidth() const { return m_ColumnWidth; }
 	void				SetColumnWidth(float w) { m_ColumnWidth = w; }
+
+	void				FocusPath(LPCSTR path);
 
 	virtual void		Render();
 };
