@@ -22,6 +22,7 @@
 #include "../xrEProps/EditorChooseEvents.H"
 
 #include "StatusBar.h"
+#include <editors/ECore/ImGui/IM_Stats.h>
 
 #define MAX_LOADSTRING 100
 
@@ -94,6 +95,7 @@ int APIENTRY WinMain(
     UI->AddIMWindow(&imSidebar);
     UI->AddIMWindow(&imToolbar);
     UI->AddIMWindow(&imContextMenu);
+    UI->AddIMWindow(&imStats);
 
 	FillChooseEvents();
 

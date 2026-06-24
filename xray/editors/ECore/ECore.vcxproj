@@ -326,6 +326,7 @@
     <ClInclude Include="ImGui\IM_Log.h" />
     <ClInclude Include="ImGui\IM_PropertyTree.h" />
     <ClInclude Include="ImGui\IM_SoundEditor.h" />
+    <ClInclude Include="ImGui\IM_Stats.h" />
     <ClInclude Include="ImGui\IM_SVGCanvas.h" />
     <ClInclude Include="ImGui\IM_TextEditor.h" />
     <ClInclude Include="ImGui\IM_Tree.h" />
@@ -516,6 +517,10 @@
     <ClCompile Include="ImGui\IM_Log.cpp" />
     <ClCompile Include="ImGui\IM_PropertyTree.cpp" />
     <ClCompile Include="ImGui\IM_SoundEditor.cpp" />
+    <ClCompile Include="ImGui\IM_Stats.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="ImGui\IM_SVGCanvas.cpp" />
     <ClCompile Include="ImGui\IM_TextEditor.cpp" />
     <ClCompile Include="ImGui\IM_Tree.cpp" />

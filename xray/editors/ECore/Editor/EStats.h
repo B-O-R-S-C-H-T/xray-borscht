@@ -1,18 +1,11 @@
-// Stats.h: interface for the CStats class.
-//
-//////////////////////////////////////////////////////////////////////
-
 #ifndef EStatsH
 #define EStatsH
 #pragma once
 
-// refs
-class CGameFont;
-
 class ENGINE_API CStats
 {
 public:
-	float		fFPS,fRFPS,fTPS;	// FPS, RenderFPS, TPS
+	float	fFPS,fRFPS,fTPS;	// FPS, RenderFPS, TPS
 	u32		dwShader_Codes;		// Number of times the shader-code changes
 	u32		dwShader_Textures;	// Number of times the shader-tex changes
 	u32		dwShader_Matrices;	// Number of times the shader-xform changes
@@ -44,7 +37,7 @@ public:
 	CStatTimer	TEST2;				// debug counter
 	CStatTimer	TEST3;				// debug counter
 
-	void	Show		(CGameFont* font);
+	void	Show	();
 
 	CStats	();
 	~CStats	();

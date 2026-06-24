@@ -540,6 +540,9 @@
     <ClInclude Include="ImGui\IM_SoundEditor.h">
       <Filter>UI Common</Filter>
     </ClInclude>
+    <ClInclude Include="ImGui\IM_Stats.h">
+      <Filter>UI Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -1077,6 +1080,9 @@
       <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\IM_SoundEditor.cpp">
+      <Filter>UI Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\IM_Stats.cpp">
       <Filter>UI Common</Filter>
     </ClCompile>
   </ItemGroup>
