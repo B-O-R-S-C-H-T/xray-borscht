@@ -108,4 +108,4 @@ void IM_ContextMenu::ShowMenu() const
 		ExecCommand(COMMAND_SHOW_PROPERTIES);
 }
 
-IM_ContextMenu imContextMenu;
+IM_ContextMenu g_imContextMenu;

@@ -27,7 +27,7 @@ bool TUI_ControlPSAdd::AfterAppendCallback(TShiftState Shift, CCustomObject* obj
 #ifndef NO_VCL
     LPCSTR ref_name		= ((TfraPS*)parent_tool->pFrame)->Current();
 #else
-	LPCSTR ref_name = imSidebar.fraPS.Current();
+	LPCSTR ref_name = g_imSidebar.fraPS.Current();
 #endif
 
     if (!ref_name){

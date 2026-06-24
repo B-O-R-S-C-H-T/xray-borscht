@@ -14,7 +14,7 @@ ObjectList* EScene::GetSnapList(bool bIgnoreUse)
     ESceneToolBase* mt 		= m_SceneTools[cls];
     if (0==mt)				return 0;
     ObjectList* snap_list	= mt->GetSnapList()?mt->GetSnapList():&m_ESO_SnapObjects;
-	return bIgnoreUse ? snap_list : (imSidebar.m_enable_snap_list ? snap_list : NULL);
+	return bIgnoreUse ? snap_list : (g_imSidebar.m_enable_snap_list ? snap_list : NULL);
 }
 //--------------------------------------------------------------------------------------------------
 

@@ -76,19 +76,21 @@ void IM_FrameGroup::OnAdd() {
 	m_parent_tool = dynamic_cast<ESceneGroupTool*>(Scene->GetTool(OBJCLASS_GROUP));
 	VERIFY(m_parent_tool);
 
-	IM_Storage storage(false, "level.ini", "IM_FrameGroup");
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_frame_groups");
 
-	m_select_percent = storage.GetInt("select_percent", 0);
-	m_current		 = storage.GetString("current", "");
+	m_select_percent	= storage.GetInt("select_percent", 0);
+	m_current			= storage.GetString("current", "");
 	if (!m_current.empty())
 		m_parent_tool->SetCurrentObject(m_current.c_str());
 }
 
 void IM_FrameGroup::OnRemove() {
-	IM_Storage storage(true, "level.ini", "IM_FrameGroup");
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_frame_groups");
 
 	storage.PutInt("select_percent", m_select_percent);
 	storage.PutString("current", m_current);
+
+	storage.Save();
 }
 
 void IM_FrameGroup::Render() {

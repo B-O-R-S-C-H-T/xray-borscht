@@ -34,7 +34,8 @@ void IM_Sidebar::OnAdd() {
 	fraGroup.OnAdd();
 	fraAIMap.OnAdd();
 
-	IM_Storage s(false, "level.ini", "IM_Sidebar");
+	IM_Storage& s			= EPrefs->GetSectionStorage("im_sidebar");
+
 	m_enable_snap_list		= s.GetBool("enable_snap_list");
 	m_select_snap_objs_mode = s.GetBool("select_snap_objs_mode");
 	m_detach_tool_frame		= s.GetBool("detach_tool_frame");
@@ -56,12 +57,14 @@ void IM_Sidebar::OnRemove() {
 	fraGroup.OnRemove();
 	fraAIMap.OnRemove();
 
-	IM_Storage s(true, "level.ini", "IM_Sidebar");
+	IM_Storage& s = EPrefs->GetSectionStorage("im_sidebar");
 
 	s.PutBool("enable_snap_list", m_enable_snap_list);
 	s.PutBool("select_snap_objs_mode", m_select_snap_objs_mode);
 	s.PutBool("detach_tool_frame", m_detach_tool_frame);
 	s.PutBool("show_snaplist_panel", m_show_snaplist);
+
+	s.Save();
 }
 
 void IM_Sidebar::Render() {
@@ -231,4 +234,4 @@ void IM_Sidebar::RenderToolFrame() {
 	}
 }
 
-IM_Sidebar imSidebar;
+IM_Sidebar g_imSidebar;

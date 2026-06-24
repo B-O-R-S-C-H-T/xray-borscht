@@ -91,11 +91,11 @@ int APIENTRY WinMain(
     ShowWindow(g_MainWnd, showCmd);
     UpdateWindow(g_MainWnd);
 
-	UI->AddIMWindow(&imMainMenu);
-    UI->AddIMWindow(&imSidebar);
-    UI->AddIMWindow(&imToolbar);
-    UI->AddIMWindow(&imContextMenu);
-    UI->AddIMWindow(&imStats);
+	UI->AddIMWindow(&g_imMainMenu);
+    UI->AddIMWindow(&g_imSidebar);
+    UI->AddIMWindow(&g_imToolbar);
+    UI->AddIMWindow(&g_imContextMenu);
+    UI->AddIMWindow(&g_imStats);
 
 	FillChooseEvents();
 

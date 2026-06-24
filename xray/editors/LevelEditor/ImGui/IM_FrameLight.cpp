@@ -29,15 +29,16 @@ void IM_FrameLight::UseInD3D(bool bAll, bool bFlag) {
 }
 
 void IM_FrameLight::OnAdd() {
-	IM_Storage s(false, "level.ini", "IM_FrameLight");
-	m_show_useind3d		  = s.GetBool("show_useind3d_panel", true);
-	m_show_scene_lighting = s.GetBool("show_scene_lighting_panel", true);
+	IM_Storage& storage	  = EPrefs->GetSectionStorage("im_frame_light");
+	m_show_useind3d		  = storage.GetBool("show_useind3d_panel", true);
+	m_show_scene_lighting = storage.GetBool("show_scene_lighting_panel", true);
 }
 
 void IM_FrameLight::OnRemove() {
-	IM_Storage s(true, "level.ini", "IM_FrameLight");
-	s.PutBool("show_useind3d_panel", m_show_useind3d);
-	s.PutBool("show_scene_lighting_panel", m_show_scene_lighting);
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_frame_light");
+	storage.PutBool("show_useind3d_panel", m_show_useind3d);
+	storage.PutBool("show_scene_lighting_panel", m_show_scene_lighting);
+	storage.Save();
 }
 
 void IM_FrameLight::UpdateSceneLightingProps() {

@@ -92,7 +92,7 @@ void ESceneShapeTool::OnActivate()
 #ifndef NO_VCL
 	((TfraShape*)pFrame)->ebEditLevelBoundMode->Down = false;
 #else
-	imSidebar.fraShape.m_edit_level_bound = false;
+	g_imSidebar.fraShape.m_edit_level_bound = false;
 #endif
 }
 
@@ -102,6 +102,6 @@ void ESceneShapeTool::OnDeactivate()
 #ifndef NO_VCL
 	((TfraShape*)pFrame)->ebEditLevelBoundMode->Down = false;
 #else
-	imSidebar.fraShape.m_edit_level_bound = false;
+	g_imSidebar.fraShape.m_edit_level_bound = false;
 #endif
 }

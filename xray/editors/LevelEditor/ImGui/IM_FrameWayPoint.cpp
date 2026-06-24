@@ -95,13 +95,14 @@ void IM_FrameWayPoint::RemoveLinks() {
 }
 
 void IM_FrameWayPoint::OnAdd() {
-	IM_Storage storage(false, "level.ini", "IM_FrameWayPoint");
-	m_auto_link = storage.GetBool("auto_link", true);
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_frame_waypoints");
+	m_auto_link			= storage.GetBool("auto_link", true);
 }
 
 void IM_FrameWayPoint::OnRemove() {
-	IM_Storage storage(true, "level.ini", "IM_FrameWayPoint");
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_frame_waypoints");
 	storage.PutBool("auto_link", m_auto_link);
+	storage.Save();
 }
 
 void IM_FrameWayPoint::Render() {

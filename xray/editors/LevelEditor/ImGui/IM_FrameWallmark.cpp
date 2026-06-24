@@ -16,7 +16,7 @@ void IM_FrameWallmark::Render() {
 	}
 
 //	if (ImGui::CollapsingHeader("Wallmark Commands", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
-	// возможно, когда-нибудь кто-то напишет систему автоматической расстановки декалей...
+	// РІРѕР·РјРѕР¶РЅРѕ, РєРѕРіРґР°-РЅРёР±СѓРґСЊ РєС‚Рѕ-С‚Рѕ РЅР°РїРёС€РµС‚ СЃРёСЃС‚РµРјСѓ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕР№ СЂР°СЃСЃС‚Р°РЅРѕРІРєРё РґРµРєР°Р»РµР№...
 // }
 
 	ImGui::Separator();

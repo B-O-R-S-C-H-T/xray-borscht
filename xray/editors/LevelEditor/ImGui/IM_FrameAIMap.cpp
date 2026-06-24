@@ -71,7 +71,7 @@ void IM_FrameAIMap::OnAdd() {
 	m_parent_tool = dynamic_cast<ESceneAIMapTool*>(Scene->GetTool(OBJCLASS_AIMAP));
 	VERIFY(m_parent_tool);
 
-	IM_Storage storage(false, "level.ini", "IM_FrameAIMap");
+	IM_Storage& storage	 = EPrefs->GetSectionStorage("im_frame_aimap");
 
 	m_ignore_constraints = storage.GetBool("ignore_constraints", false);
 	m_auto_link			 = storage.GetBool("auto_link", true);
@@ -90,10 +90,13 @@ void IM_FrameAIMap::OnAdd() {
 }
 
 void IM_FrameAIMap::OnRemove() {
-	IM_Storage storage(true, "level.ini", "IM_FrameAIMap");
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_frame_aimap");
+
 	storage.PutBool("ignore_constraints", m_ignore_constraints);
 	storage.PutBool("auto_link", m_auto_link);
 	storage.PutString("link_mode", m_link_add ? "add" : m_link_del ? "del" : "invert");
+
+	storage.Save();
 }
 
 void IM_FrameAIMap::Render() {

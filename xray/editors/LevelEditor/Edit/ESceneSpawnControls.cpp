@@ -23,7 +23,7 @@ bool TUI_ControlSpawnAdd::AppendCallback(SBeforeAppendCallbackParams* p)
 #ifndef NO_VCL
 	LPCSTR ref_name = ((TfraSpawn*)parent_tool->pFrame)->Current();
 #else
-	LPCSTR ref_name = imSidebar.fraSpawn.Current();
+	LPCSTR ref_name = g_imSidebar.fraSpawn.Current();
 #endif
     if (!ref_name){
     	ELog.DlgMsg(mtInformation,"Nothing selected.");
@@ -67,7 +67,7 @@ bool TUI_ControlSpawnAdd::Start(TShiftState Shift)
 	    DefaultAddObject(Shift,std::bind(&TUI_ControlSpawnAdd::AppendCallback,this,_1));             
     }
 #else
-	IM_FrameSpawn& F = imSidebar.fraSpawn;
+	IM_FrameSpawn& F = g_imSidebar.fraSpawn;
 	if (F.m_attach_object){
 		CCustomObject* from = Scene->RayPickObject(UI->ZFar(), UI->m_CurrentRStart, UI->m_CurrentRNorm, OBJCLASS_DUMMY, 0, 0);
         if (from && from->ClassID!=OBJCLASS_SPAWNPOINT){

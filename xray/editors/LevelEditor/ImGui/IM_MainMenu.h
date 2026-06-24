@@ -17,4 +17,4 @@ public:
 	virtual void Render();
 };
 
-extern IM_MainMenu imMainMenu;
+extern IM_MainMenu g_imMainMenu;

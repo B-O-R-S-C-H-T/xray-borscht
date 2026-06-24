@@ -175,28 +175,30 @@ void IM_FrameObject::OnAdd() {
 	VERIFY(m_parent_tool);
 	RefreshList();
 
-	IM_Storage s(false, "level.ini", "IM_FrameObject");
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_frame_object");
 
-	m_select_percent = s.GetInt("select_percent", 0);
+	m_select_percent	= storage.GetInt("select_percent", 0);
 
-	m_objects_tree.Select(s.GetString("selected_object").c_str(), true);
+	m_objects_tree.Select(storage.GetString("selected_object").c_str(), true);
 
-	m_show_commands		 = s.GetBool("show_commands_panel", true);
-	m_show_refselect	 = s.GetBool("show_refselect_panel", true);
-	m_show_currentobject = s.GetBool("show_currentobject_panel", true);
+	m_show_commands		 = storage.GetBool("show_commands_panel", true);
+	m_show_refselect	 = storage.GetBool("show_refselect_panel", true);
+	m_show_currentobject = storage.GetBool("show_currentobject_panel", true);
 }
 
 void IM_FrameObject::OnRemove() {
-	IM_Storage s(true, "level.ini", "IM_FrameObject");
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_frame_object");
 
-	s.PutInt("select_percent", m_select_percent);
+	storage.PutInt("select_percent", m_select_percent);
 
 	shared_str sel_obj = m_objects_tree.GetSelected();
-	s.PutString("selected_object", !sel_obj ? "" : sel_obj.c_str());
+	storage.PutString("selected_object", !sel_obj ? "" : sel_obj.c_str());
 
-	s.PutBool("show_commands_panel", m_show_commands);
-	s.PutBool("show_refselect_panel", m_show_refselect);
-	s.PutBool("show_currentobject_panel", m_show_currentobject);
+	storage.PutBool("show_commands_panel", m_show_commands);
+	storage.PutBool("show_refselect_panel", m_show_refselect);
+	storage.PutBool("show_currentobject_panel", m_show_currentobject);
+
+	storage.Save();
 }
 
 void IM_FrameObject::Render() {

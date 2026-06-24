@@ -20,4 +20,4 @@ public:
 	virtual void Render() override;
 };
 
-extern ECORE_API IM_Stats imStats;
+extern ECORE_API IM_Stats g_imStats;

@@ -8,7 +8,7 @@
 #include "../ECore/Editor/device.h"
 
 void IM_Stats::OnAdd() {
-	IM_Storage storage(true, "level_editor.ini", "im_stats");
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_stats");
 
 	m_saved_x = storage.GetFloat("pos_x", 60.0f);
 	m_saved_y = storage.GetFloat("pos_y", 100.0f);
@@ -22,12 +22,14 @@ void IM_Stats::OnAdd() {
 }
 
 void IM_Stats::OnRemove() {
-	IM_Storage storage(true, "level_editor.ini", "im_stats");
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_stats");
 
 	storage.PutFloat("pos_x", m_saved_x);
 	storage.PutFloat("pos_y", m_saved_y);
 	storage.PutFloat("size_w", m_saved_w);
 	storage.PutFloat("size_h", m_saved_h);
+
+	storage.Save();
 }
 
 void IM_Stats::Render() {
@@ -144,4 +146,4 @@ void IM_Stats::Render() {
 	Device.Statistic->dwLevelSelVertexCount	   = 0;
 }
 
-IM_Stats imStats;
+IM_Stats g_imStats;

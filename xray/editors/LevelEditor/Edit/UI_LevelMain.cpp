@@ -38,6 +38,10 @@
 
 #include "StatusBar.h"
 #include "ImGui/IM_ContextMenu.h"
+#include "ImGui/IM_MainMenu.h"
+#include "ImGui/IM_Sidebar.h"
+#include "ImGui/IM_Toolbar.h"
+#include "editors/ECore/ImGui/IM_Stats.h"
 #include "ImGui/IM_EditLibrary.h"
 #include "editors/ECore/ImGui/IM_TextEditor.h"
 
@@ -57,12 +61,19 @@ CLevelMain::CLevelMain()
     EPrefs			= xr_new<CLevelPreferences>();
 }
 
-CLevelMain::~CLevelMain()
-{
-    xr_delete		(EPrefs);
-    xr_delete		(m_Cursor);
+CLevelMain::~CLevelMain() {
+	if (UI) {
+		UI->RemoveIMWindow(&g_imMainMenu);
+		UI->RemoveIMWindow(&g_imSidebar);
+		UI->RemoveIMWindow(&g_imToolbar);
+		UI->RemoveIMWindow(&g_imContextMenu);
+		UI->RemoveIMWindow(&g_imStats);
+	}
+
+	xr_delete(EPrefs);
+	xr_delete(m_Cursor);
 #ifndef NO_VCL
-    TClipMaker::DestroyForm(g_clip_maker);
+	TClipMaker::DestroyForm(g_clip_maker);
 #endif
 }
 
@@ -1370,7 +1381,7 @@ void CLevelMain::ShowContextMenu(int cls)
     fraLeftBar->pmObjectContext->TrackButton = tbRightButton;
     fraLeftBar->pmObjectContext->Popup(pt.x,pt.y);
 #else
-    imContextMenu.Open();
+    g_imContextMenu.Open();
 #endif
 }
 //---------------------------------------------------------------------------

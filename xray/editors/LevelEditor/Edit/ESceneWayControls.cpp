@@ -23,13 +23,13 @@ void ESceneWayTool::OnActivate()
 #else
 	if(sub_target == estWayModePoint)
     {
-		imSidebar.fraWayPoint.m_point_mode = true;
-		imSidebar.fraWayPoint.m_way_mode   = false;
+		g_imSidebar.fraWayPoint.m_point_mode = true;
+		g_imSidebar.fraWayPoint.m_way_mode   = false;
     }
     else
     {
-		imSidebar.fraWayPoint.m_point_mode = false;
-		imSidebar.fraWayPoint.m_way_mode   = true;
+		g_imSidebar.fraWayPoint.m_point_mode = false;
+		g_imSidebar.fraWayPoint.m_way_mode   = true;
     }
 #endif
 }
@@ -65,7 +65,7 @@ bool TUI_ControlWayPointAdd::Start(TShiftState Shift)
 	TfraWayPoint* frame=(TfraWayPoint*)parent_tool->pFrame;
 	bool bAutoLink = frame->ebAutoLink->Down;
 #else
-	bool bAutoLink = imSidebar.fraWayPoint.m_auto_link;
+	bool bAutoLink = g_imSidebar.fraWayPoint.m_auto_link;
 #endif
 
     if (1!=lst.size()){

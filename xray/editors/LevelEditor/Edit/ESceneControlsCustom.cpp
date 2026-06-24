@@ -104,7 +104,7 @@ bool TUI_CustomControl::AddEnd(TShiftState _Shift)
 
 bool TUI_CustomControl::CheckSnapList(TShiftState Shift)
 {
-	if (imSidebar.m_select_snap_objs_mode) {
+	if (g_imSidebar.m_select_snap_objs_mode) {
 	    CCustomObject* O=Scene->RayPickObject(UI->ZFar(),UI->m_CurrentRStart,UI->m_CurrentRNorm,OBJCLASS_SCENEOBJECT,0,0);
         if (O){
             if (Scene->FindObjectInSnapList(O)){

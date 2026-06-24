@@ -17,7 +17,7 @@ void IM_FrameShape::OnAdd() {
 	m_parent_tool = dynamic_cast<ESceneShapeTool*>(Scene->GetTool(OBJCLASS_SHAPE));
 	VERIFY(m_parent_tool);
 
-	IM_Storage storage(false, "level.ini", "IM_FrameShape");
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_frame_shapes");
 
 	if (storage.GetString("append_mode", "box") == "box") {
 		m_append_box	= true;
@@ -29,8 +29,9 @@ void IM_FrameShape::OnAdd() {
 }
 
 void IM_FrameShape::OnRemove() {
-	IM_Storage storage(true, "level.ini", "IM_FrameShape");
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_frame_shapes");
 	storage.PutString("append_mode", m_append_box ? "box" : "sphere");
+	storage.Save();
 }
 
 void IM_FrameShape::Render() {

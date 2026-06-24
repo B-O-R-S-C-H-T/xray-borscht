@@ -60,14 +60,17 @@ void IM_FramePS::RefreshList() {
 void IM_FramePS::OnAdd() {
 	RefreshList();
 
-	IM_Storage storage(false, "level.ini", "IM_FramePS");
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_frame_particles");
 	m_particles.Select(storage.GetString("current").c_str(), true);
 }
 
 void IM_FramePS::OnRemove() {
-	IM_Storage storage(true, "level.ini", "IM_FramePS");
-	LPCSTR	   current = Current();
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_frame_particles");
+
+	LPCSTR		current = Current();
 	storage.PutString("current", current ? current : "");
+
+	storage.Save();
 }
 
 void IM_FramePS::Render() {

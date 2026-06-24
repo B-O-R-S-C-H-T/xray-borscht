@@ -15,13 +15,14 @@ void IM_FrameFogVol::OnAdd() {
 	m_parent_tool = dynamic_cast<ESceneFogVolumeTool*>(Scene->GetOTool(OBJCLASS_FOG_VOL));
 	VERIFY(m_parent_tool);
 
-	IM_Storage s(false, "level.ini", "IM_FrameFogVol");
-	m_show_commands = s.GetBool("show_commands_panel", true);
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_frame_fog");
+	m_show_commands		= storage.GetBool("show_commands_panel", true);
 }
 
 void IM_FrameFogVol::OnRemove() {
-	IM_Storage s(true, "level.ini", "IM_FrameFogVol");
-	s.PutBool("show_commands_panel", m_show_commands);
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_frame_fog");
+	storage.PutBool("show_commands_panel", m_show_commands);
+	storage.Save();
 }
 
 void IM_FrameFogVol::Render() {

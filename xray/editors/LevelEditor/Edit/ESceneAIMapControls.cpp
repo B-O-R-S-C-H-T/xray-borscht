@@ -29,8 +29,8 @@ bool TUI_ControlAIMapNodeAdd::Start(TShiftState Shift)
     bIgnoreConstraints = ((TfraAIMap*)S->pFrame)->ebIgnoreConstraints->Down;
     bAutoLink = ((TfraAIMap*)S->pFrame)->ebAutoLink->Down;
 #else
-	bIgnoreConstraints = imSidebar.fraAIMap.m_ignore_constraints;
-	bAutoLink		   = imSidebar.fraAIMap.m_auto_link;
+	bIgnoreConstraints = g_imSidebar.fraAIMap.m_ignore_constraints;
+	bAutoLink		   = g_imSidebar.fraAIMap.m_auto_link;
 #endif
 
     if (S->PickObjects(p,UI->m_CurrentRStart,UI->m_CurrentRNorm,UI->ZFar())){
@@ -54,8 +54,8 @@ void TUI_ControlAIMapNodeAdd::Move(TShiftState _Shift)
     bIgnoreConstraints = ((TfraAIMap*)S->pFrame)->ebIgnoreConstraints->Down;
     bAutoLink = ((TfraAIMap*)S->pFrame)->ebAutoLink->Down;
 #else
-	bIgnoreConstraints = imSidebar.fraAIMap.m_ignore_constraints;
-	bAutoLink		   = imSidebar.fraAIMap.m_auto_link;
+	bIgnoreConstraints = g_imSidebar.fraAIMap.m_ignore_constraints;
+	bAutoLink		   = g_imSidebar.fraAIMap.m_auto_link;
 #endif
     
     if (S->PickObjects(p,UI->m_CurrentRStart,UI->m_CurrentRNorm,UI->ZFar())){

@@ -81,7 +81,7 @@ ImVec2 IM_Toolbar::ComputeDesiredSize(int icon_size) const {
 }
 
 void IM_Toolbar::OnAdd() {
-	IM_Storage storage(true, "level.ini", "IM_Toolbar");
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_toolbar");
 
 	m_vertical			= storage.GetBool("vertical", false);
 	m_icon_scale		= storage.GetFloat("icon_scale", 1.5f);
@@ -97,12 +97,14 @@ void IM_Toolbar::OnAdd() {
 }
 
 void IM_Toolbar::OnRemove() {
-	IM_Storage storage(true, "level.ini", "IM_Toolbar");
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_toolbar");
 
 	storage.PutBool("vertical", m_vertical);
 	storage.PutFloat("icon_scale", m_icon_scale);
 	storage.PutFloat("width", m_saved_width);
 	storage.PutFloat("height", m_saved_height);
+
+	storage.Save();
 }
 
 void IM_Toolbar::Render() {
@@ -256,4 +258,4 @@ void IM_Toolbar::Render() {
 	ImGui::End();
 }
 
-IM_Toolbar imToolbar;
+IM_Toolbar g_imToolbar;

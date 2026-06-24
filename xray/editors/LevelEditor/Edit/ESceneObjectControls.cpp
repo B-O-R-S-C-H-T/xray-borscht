@@ -26,7 +26,7 @@ bool TUI_ControlObjectAdd::Start(TShiftState Shift)
     TfraObject* fraObject = (TfraObject*)parent_tool->pFrame; VERIFY(fraObject);
     LPCSTR N = ((TfraObject*)parent_tool->pFrame)->Current();
 #else
-	LPCSTR N = imSidebar.fraObject.Current();
+	LPCSTR N = g_imSidebar.fraObject.Current();
 #endif
 
 	Fvector p,n;

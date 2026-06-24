@@ -46,4 +46,4 @@ public:
 	void		 RenderToolFrame();
 };
 
-extern IM_Sidebar imSidebar;
+extern IM_Sidebar g_imSidebar;

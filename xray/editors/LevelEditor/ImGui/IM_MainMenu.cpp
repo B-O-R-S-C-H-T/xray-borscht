@@ -348,4 +348,4 @@ void IM_About::Render() {
 	}
 }
 
-IM_MainMenu imMainMenu;
+IM_MainMenu g_imMainMenu;

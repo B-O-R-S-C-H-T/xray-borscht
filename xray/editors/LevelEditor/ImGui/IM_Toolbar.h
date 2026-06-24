@@ -31,6 +31,6 @@ public:
 	virtual void Render() override;
 };
 
-extern IM_Toolbar imToolbar;
+extern IM_Toolbar g_imToolbar;
 
 #endif

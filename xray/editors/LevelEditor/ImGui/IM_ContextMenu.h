@@ -23,6 +23,6 @@ public:
 	void		 ShowMenu() const;
 };
 
-extern IM_ContextMenu imContextMenu;
+extern IM_ContextMenu g_imContextMenu;
 
 #endif
