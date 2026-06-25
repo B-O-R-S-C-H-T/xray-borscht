@@ -5,9 +5,6 @@
 #include "LevelEditor.h"
 
 #include "../ECore/Editor/EditMesh.h"
-#ifndef NO_VCL
-#include "main.h"
-#endif
 #include <backends/imgui_impl_win32.h>
 
 #include "Edit/scene.h"
@@ -18,11 +15,12 @@
 #include "ImGui/IM_Sidebar.h"
 #include "ImGui/IM_Toolbar.h"
 #include "ImGui/IM_ContextMenu.h"
+#include "editors/ECore/ImGui/IM_Stats.h"
+#include "ImGui/IM_EditLibrary.h"
 
 #include "../xrEProps/EditorChooseEvents.H"
 
 #include "StatusBar.h"
-#include <editors/ECore/ImGui/IM_Stats.h>
 
 #define MAX_LOADSTRING 100
 
@@ -285,6 +283,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				EPrefs->Save();
 			}
 			g_idle = false;
+			if (g_imEditLibrary)
+				IM_EditLibrary::FinalClose();
 			ExecCommand(COMMAND_DESTROY);
 			DestroyWindow(g_MainWnd);
 			break;

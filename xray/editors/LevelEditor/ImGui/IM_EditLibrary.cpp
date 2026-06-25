@@ -91,7 +91,7 @@ void IM_EditLibrary::FormClose() {
 		UI->ResetStatus();
 	}
 
-	if (Scene->locked())
+	if (Scene && Scene->locked())
 		Scene->unlock();
 	UI->EndEState(esEditLibrary);
 
@@ -102,6 +102,14 @@ void IM_EditLibrary::FormClose() {
 	xr_delete(m_Thm);
 
 	UI->RemoveIMWindow(this);
+}
+
+bool IM_EditLibrary::FinalClose() {
+	if (!g_imEditLibrary)	return true;
+	bFinalExit = true;
+	g_imEditLibrary->FormClose();
+	xr_delete(g_imEditLibrary);
+	return bExitResult;
 }
 
 void IM_EditLibrary::ClearEditObjects() {

@@ -71,6 +71,8 @@ public:
 	void							FormShow();
 	void							FormClose();
 
+	static bool						FinalClose();
+
 private:
 	void OnNodeSelected(shared_str path, shared_str value, bool select);
 };
