@@ -310,10 +310,16 @@ void IM_EditLibrary::Render() {
 			ImGui::BeginGroup();
 			{
 				ImGui::Dummy(ImVec2(0, 12));
+
 				if (ImGui::Checkbox("Preview", &cbPreview))
 					RefreshSelected();
 
-				ImGui::Checkbox("Dropper", &m_DropperMode);
+				if (ImGui::Checkbox("Dropper", &m_DropperMode)) {
+					if (m_DropperMode) {
+						m_PendingSwitchToSurfacesTab = true;
+					}
+				}
+
 				if (m_DropperMode) {
 					ImGui::SameLine();
 					ImGui::TextDisabled("(click on surface in viewport)");
