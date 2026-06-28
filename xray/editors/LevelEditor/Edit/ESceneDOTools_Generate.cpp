@@ -33,6 +33,7 @@ struct DetailAtomicCounters {
 
 static DetailAtomicCounters		 g_DetailCounters;
 static bool						 g_bShowDetailedDetailStats = true;
+static thread_local std::mt19937 g_detail_rng(0x26111975u);
 
 static Fvector down_vec	={0.f,-1.f,0.f};
 static Fvector left_vec	={-1.f,0.f,0.f};
@@ -329,8 +330,6 @@ bool EDetailManager::UpdateSlotObjects(int x, int z) {
 	u64 t_slot_start = 0;
 	if (g_bShowDetailedDetailStats) t_slot_start = __rdtsc();
 
-    srand(time(NULL));
-
     DetailSlot* slot	= dtSlots+z*dtH.size_x+x;
     Irect		R;
     GetSlotTCRect(R,x,z);
@@ -432,21 +431,22 @@ bool EDetailManager::UpdateSlotObjects(int x, int z) {
 
     // заполним палитру и установим Random'ы
 //	ELog.Msg(mtInformation, "Slot: %d %d",x,z);
-    for(u32 k=0; k<best.size(); k++){
+    for (u32 k = 0; k < best.size(); k++) {
      	// objects
-		ColorIndexPairIt CI=m_ColorIndices.find(best[k].index); R_ASSERT(CI!=m_ColorIndices.end());
+		ColorIndexPairIt CI = m_ColorIndices.find(best[k].index); R_ASSERT(CI != m_ColorIndices.end());
         U8Vec elem; elem.resize(CI->second.size());
-        for (U8It b_it=elem.begin(); b_it!=elem.end(); b_it++) *b_it=u8(b_it-elem.begin());
-//        best_rand A(DetailRandom);
-        std::shuffle(elem.begin(),elem.end(), std::random_device());//,A);
-        for (U8It b_it=elem.begin(); b_it!=elem.end(); b_it++){
-			bool bNotFound=true;
-            slot->w_id	(k, GetObject(CI,*b_it));
-            for (u32 j=0; j<k; j++)
-                if (slot->r_id(j)==slot->r_id(k)){
-                	bNotFound	= false;
+        for (U8It b_it = elem.begin(); b_it != elem.end(); ++b_it)	*b_it = u8(b_it - elem.begin());
+
+        std::shuffle(elem.begin(), elem.end(), g_detail_rng);
+        for (U8It b_it = elem.begin(); b_it != elem.end(); ++b_it) {
+			bool bNotFound = true;
+            slot->w_id(k, GetObject(CI, *b_it));
+            for (u32 j = 0; j < k; j++) {
+                if (slot->r_id(j) == slot->r_id(k)) {
+                	bNotFound = false;
                     break;
                 }
+            }
             if (bNotFound) break;
         }
 
