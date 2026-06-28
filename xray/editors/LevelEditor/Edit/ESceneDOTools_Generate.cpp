@@ -1,27 +1,38 @@
-//----------------------------------------------------
 #include "stdafx.h"
 #pragma hdrstop
 
+#include <Include/cl_intersect.h>
+#include <utils/ETools/ETools.h>
+#include <random>
+#include <atomic>
+#include <intrin.h>
+
+#include "Scene.h"
+#include "SceneObject.h"
 #include "ESceneDOTools.h"
 #include "../ECore/Editor/EditMesh.h"
 #include "../ECore/Editor/EditObject.h"
-#include "../ECore/Engine/Texture.h"
-#include "Scene.h"
-#include "SceneObject.h"
-#ifndef NO_VCL
-#include "leftbar.h"
-#endif
-#include <Include/cl_intersect.h>
+#include "../ECore/Editor/ImageManager.h"
 #include "../ECore/Editor/Library.h"
 #include "../ECore/Editor/ui_main.h"
+#include "../ECore/Engine/Texture.h"
+#include "../../Layers/xrRender/DetailFormat.h"
 
-#include "..\..\Layers\xrRender\DetailFormat.h"
-#ifndef NO_VCL
-#include "bottombar.h"
-#endif
-#include "../ECore/Editor/ImageManager.h"
-#include <utils/ETools/ETools.h>
-#include <random>
+struct DetailAtomicCounters {
+	std::atomic<u64> time_update_objects{0};
+	std::atomic<u64> time_update_slot{0};
+	std::atomic<u64> time_find_closest{0};
+	std::atomic<u64> time_pixel_best_loop{0};
+	std::atomic<u64> time_calc_count_loop{0};
+	std::atomic<u64> time_shuffle{0};
+	std::atomic<u64> time_get_color{0};
+	std::atomic<u64> num_slots_processed{0};
+	std::atomic<u64> num_closest_calls{0};
+	std::atomic<u64> num_pixel_accesses{0};
+};
+
+static DetailAtomicCounters		 g_DetailCounters;
+static bool						 g_bShowDetailedDetailStats = true;
 
 static Fvector down_vec	={0.f,-1.f,0.f};
 static Fvector left_vec	={-1.f,0.f,0.f};
@@ -31,28 +42,28 @@ static Fvector back_vec	={0.f,0.f,-1.f};
 
 static CRandom DetailRandom(0x26111975);
 
-//------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
 DetailSlot&	EDetailManager::GetSlot(u32 sx, u32 sz){
 	VERIFY(sx<dtH.size_x);
 	VERIFY(sz<dtH.size_z);
 	return dtSlots[sz*dtH.size_x+sx];
 }
 
-bool EDetailManager::FindClosestIndex(const Fcolor& C, SIndexDistVec& best)
-{
+bool EDetailManager::FindClosestIndex(const Fcolor& C, SIndexDistVec& best) {
+	if (g_bShowDetailedDetailStats) {
+		g_DetailCounters.num_closest_calls.fetch_add(1, std::memory_order_relaxed);
+	}
+
     u32				 index;
     float			 dist = flt_max;
     Fcolor			 src;
     float			 inv_a = 1.0f - C.a;
     bool			 bRes  = false;
 
-    ColorIndexPairIt S	   = m_ColorIndices.begin();
-    ColorIndexPairIt E	   = m_ColorIndices.end();
-    ColorIndexPairIt it	   = S;
+	u64 t_start = 0;
+	if (g_bShowDetailedDetailStats)
+		t_start = __rdtsc();
 
-    for (; it != E; ++it) {
+    for (auto it = m_ColorIndices.begin(); it != m_ColorIndices.end(); ++it) {
         if (it->second.empty())
             continue;
 
@@ -109,6 +120,10 @@ bool EDetailManager::FindClosestIndex(const Fcolor& C, SIndexDistVec& best)
             }
         }
     }
+
+	if (g_bShowDetailedDetailStats) {
+		g_DetailCounters.time_find_closest.fetch_add(__rdtsc() - t_start, std::memory_order_relaxed);
+	}
     return bRes;
 }
 
@@ -306,7 +321,14 @@ struct best_rand
 	int operator()(int n) {return gen.randI(n);}
 };
 
-bool EDetailManager::UpdateSlotObjects(int x, int z){
+bool EDetailManager::UpdateSlotObjects(int x, int z) {
+	if (g_bShowDetailedDetailStats) {
+		g_DetailCounters.num_slots_processed.fetch_add(1, std::memory_order_relaxed);
+	}
+
+	u64 t_slot_start = 0;
+	if (g_bShowDetailedDetailStats) t_slot_start = __rdtsc();
+
     srand(time(NULL));
 
     DetailSlot* slot	= dtSlots+z*dtH.size_x+x;
@@ -314,20 +336,38 @@ bool EDetailManager::UpdateSlotObjects(int x, int z){
     GetSlotTCRect(R,x,z);
     //ELog.Msg(mtInformation,"TC [%d,%d]-[%d,%d]",R.x1,R.y1,R.x2,R.y2);
     SIndexDistVec best;
+
     // find best color index
     {
+		u64 t_best_loop = 0;
+		if (g_bShowDetailedDetailStats) t_best_loop = __rdtsc();
+
         for (int v=R.y1; v<=R.y2; v++){
             for (int u=R.x1; u<=R.x2; u++){
                 u32 clr;
+				u64 t_get = 0;
+				if (g_bShowDetailedDetailStats) t_get = __rdtsc();
+
                 if (m_Base.GetColor(clr,u,v)){
+					if (g_bShowDetailedDetailStats) {
+						g_DetailCounters.time_get_color.fetch_add(__rdtsc() - t_get, std::memory_order_relaxed);
+						g_DetailCounters.num_pixel_accesses.fetch_add(1, std::memory_order_relaxed);
+					}
                     Fcolor C;
                     C.set(clr);
                     FindClosestIndex(C,best);
+				} else if (g_bShowDetailedDetailStats) {
+					g_DetailCounters.time_get_color.fetch_add(__rdtsc() - t_get, std::memory_order_relaxed);
                 }
             }
         }
+		if (g_bShowDetailedDetailStats) {
+			g_DetailCounters.time_pixel_best_loop.fetch_add(__rdtsc() - t_best_loop, std::memory_order_relaxed);
+		}
     }
+
     std::sort(best.begin(),best.end(),CompareWeightFunc);
+
     // пройдем по 4 частям слота и определим плотность заполнения (учесть переворот V)
     Irect P[4];
     float dx=float(R.x2-R.x1)/2.f;
@@ -339,6 +379,9 @@ bool EDetailManager::UpdateSlotObjects(int x, int z){
     P[1].x1=iFloor(R.x1+dx+0.501f);	P[1].y1=iFloor(R.y1+dy+0.501f);	P[1].x2=R.x2; 					P[1].y2=R.y2;
     P[2].x1=R.x1; 		  			P[2].y1=R.y1; 		  			P[2].x2=iFloor(R.x1+dx+.499f); 	P[2].y2=iFloor(R.y1+dy+.499f);
     P[3].x1=iFloor(R.x1+dx+0.501f); P[3].y1=R.y1;		  			P[3].x2=R.x2; 					P[3].y2=iFloor(R.y1+dx+.499f);
+
+	u64 t_count_loop = 0;
+	if (g_bShowDetailedDetailStats) t_count_loop = __rdtsc();
 
     for (int part=0; part<4; part++){
         float	alpha=0;
@@ -361,6 +404,10 @@ bool EDetailManager::UpdateSlotObjects(int x, int z){
             best[i].dens[part] = cnt?(best[i].cnt[part]*alpha)/float(cnt):0;
     }
 
+	if (g_bShowDetailedDetailStats) {
+		g_DetailCounters.time_calc_count_loop.fetch_add(__rdtsc() - t_count_loop, std::memory_order_relaxed);
+	}
+
     // fill empty slots
     R_ASSERT(best.size());
     int id=-1;
@@ -379,6 +426,9 @@ bool EDetailManager::UpdateSlotObjects(int x, int z){
             if (best.size()==o_cnt) break;
         }
     }
+
+	u64 t_shuffle = 0;
+	if (g_bShowDetailedDetailStats) t_shuffle = __rdtsc();
 
     // заполним палитру и установим Random'ы
 //	ELog.Msg(mtInformation, "Slot: %d %d",x,z);
@@ -410,9 +460,17 @@ bool EDetailManager::UpdateSlotObjects(int x, int z){
         slot->palette[k].a3 	= (u16)iFloor(best[k].dens[3]*f*15.f+.5f);
     }
 
+	if (g_bShowDetailedDetailStats) {
+		g_DetailCounters.time_shuffle.fetch_add(__rdtsc() - t_shuffle, std::memory_order_relaxed);
+	}
+
     // определим ID незаполненных слотов как пустышки
     for(u32 k=best.size(); k<4; k++)
         slot->w_id(k,DetailSlot::ID_Empty);
+
+	if (g_bShowDetailedDetailStats) {
+		g_DetailCounters.time_update_slot.fetch_add(__rdtsc() - t_slot_start, std::memory_order_relaxed);
+	}
     return true;
 }
 
@@ -427,17 +485,59 @@ bool EDetailManager::UpdateObjects(bool bUpdateTex, bool bUpdateSelectedOnly)
     	ELog.DlgMsg(mtError,"Object list empty!");
      	return false;
     }
+
+	if (g_bShowDetailedDetailStats) {
+		g_DetailCounters.time_update_objects.store(0, std::memory_order_relaxed);
+		g_DetailCounters.time_update_slot.store(0, std::memory_order_relaxed);
+		g_DetailCounters.time_find_closest.store(0, std::memory_order_relaxed);
+		g_DetailCounters.time_pixel_best_loop.store(0, std::memory_order_relaxed);
+		g_DetailCounters.time_calc_count_loop.store(0, std::memory_order_relaxed);
+		g_DetailCounters.time_shuffle.store(0, std::memory_order_relaxed);
+		g_DetailCounters.time_get_color.store(0, std::memory_order_relaxed);
+		g_DetailCounters.num_slots_processed.store(0, std::memory_order_relaxed);
+		g_DetailCounters.num_closest_calls.store(0, std::memory_order_relaxed);
+		g_DetailCounters.num_pixel_accesses.store(0, std::memory_order_relaxed);
+	}
+
     // update objects
     SPBItem* pb = UI->ProgressStart(dtH.size_x*dtH.size_z,"Updating objects...");
+	u64 t_update_start = 0;
+	if (g_bShowDetailedDetailStats) t_update_start = __rdtsc();
+
     for (u32 z=0; z<dtH.size_z; z++)
         for (u32 x=0; x<dtH.size_x; x++){
         	if (!bUpdateSelectedOnly||(bUpdateSelectedOnly&&m_Selected[z*dtH.size_x+x]))
 	        	UpdateSlotObjects(x,z);
 	        pb->Inc();
         }
+
+	if (g_bShowDetailedDetailStats) {
+		g_DetailCounters.time_update_objects.fetch_add(__rdtsc() - t_update_start, std::memory_order_relaxed);
+	}
+
     UI->ProgressEnd(pb);
 
     InvalidateCache		();
+
+	if (g_bShowDetailedDetailStats) {
+		u64 total_slots = (u64)dtH.size_x * dtH.size_z;
+		ELog.Msg(mtInformation, "=== Detail Objects Generation ===");
+		ELog.Msg(mtInformation, "Total slots:           %llu", total_slots);
+		ELog.Msg(mtInformation, "Processed slots:       %llu", g_DetailCounters.num_slots_processed.load(std::memory_order_relaxed));
+		ELog.Msg(mtInformation, "UpdateObjects ticks:   %llu", g_DetailCounters.time_update_objects.load(std::memory_order_relaxed));
+		ELog.Msg(mtInformation, "UpdateSlot total:      %llu", g_DetailCounters.time_update_slot.load(std::memory_order_relaxed));
+		ELog.Msg(mtInformation, "FindClosest total:     %llu", g_DetailCounters.time_find_closest.load(std::memory_order_relaxed));
+		ELog.Msg(mtInformation, "Pixel best loop:       %llu", g_DetailCounters.time_pixel_best_loop.load(std::memory_order_relaxed));
+		ELog.Msg(mtInformation, "Calc count loop:       %llu", g_DetailCounters.time_calc_count_loop.load(std::memory_order_relaxed));
+		ELog.Msg(mtInformation, "Shuffle time:          %llu", g_DetailCounters.time_shuffle.load(std::memory_order_relaxed));
+		ELog.Msg(mtInformation, "GetColor time:         %llu", g_DetailCounters.time_get_color.load(std::memory_order_relaxed));
+		ELog.Msg(mtInformation, "Closest calls:         %llu", g_DetailCounters.num_closest_calls.load(std::memory_order_relaxed));
+		ELog.Msg(mtInformation, "Pixel accesses:        %llu", g_DetailCounters.num_pixel_accesses.load(std::memory_order_relaxed));
+		if (total_slots > 0) {
+			double avg = double(g_DetailCounters.time_update_slot.load(std::memory_order_relaxed)) / double(total_slots);
+			ELog.Msg(mtInformation, "Avg ticks per slot:    %.2f", avg);
+		}
+	}
 
     return true;
 }
