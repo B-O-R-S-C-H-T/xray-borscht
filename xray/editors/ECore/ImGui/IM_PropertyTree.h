@@ -53,7 +53,15 @@ private:
 
 		~ImTreeNode() { Clear(); }
 
-		bool operator<(ImTreeNode& other) { return name < other.name; }
+		bool operator<(const ImTreeNode& other) const {
+			const bool this_is_folder  = (child != nullptr);
+			const bool other_is_folder = (other.child != nullptr);
+
+			if (this_is_folder != other_is_folder)
+				return this_is_folder;
+
+			return name < other.name;
+		}
 
 		void Sort() {
 			if (child) {
