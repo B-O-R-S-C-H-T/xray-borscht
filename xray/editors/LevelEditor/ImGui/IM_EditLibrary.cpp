@@ -54,6 +54,20 @@ IM_EditLibrary::~IM_EditLibrary() {
 		g_imEditLibrary = nullptr;
 }
 
+void IM_EditLibrary::OnAdd() {
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_object_library");
+	m_SurfaceSortMode	= storage.GetInt("surface_sort_mode", 0);
+
+	if (!m_pEditObjects.empty()) {
+		UpdateObjectProperties();
+	}
+}
+
+void IM_EditLibrary::OnRemove() {
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_object_library");
+	storage.PutInt("surface_sort_mode", m_SurfaceSortMode);
+}
+
 void IM_EditLibrary::ShowEditor() {
 	if (!g_imEditLibrary)
 		g_imEditLibrary = xr_new<IM_EditLibrary>();
@@ -200,9 +214,28 @@ void IM_EditLibrary::UpdateObjectProperties() {
 
 		O->FillBasicProps("Main Options", basicItems);
 
+		xr_vector<CSurface*> surfs;
 		for (SurfaceIt s_it = O->FirstSurface(); s_it != O->LastSurface(); ++s_it) {
-			AnsiString pref = AnsiString("Surfaces\\") + (*s_it)->_Name();
-			O->FillSurfaceProps(*s_it, pref.c_str(), surfaceItems);
+			surfs.push_back(*s_it);
+		}
+
+		std::sort(surfs.begin(),
+				  surfs.end(),
+				  [this](CSurface* a, CSurface* b) -> bool
+				  {
+					  switch (m_SurfaceSortMode) {
+						  case 0:	return stricmp(a->_Name()			, b->_Name())			< 0;
+						  case 1:	return stricmp(a->_Texture()		, b->_Texture())		< 0;
+						  case 2:	return stricmp(a->_ShaderName()		, b->_ShaderName())		< 0;
+						  case 3:	return stricmp(a->_ShaderXRLCName()	, b->_ShaderXRLCName()) < 0;
+						  case 4:	return stricmp(a->_GameMtlName()	, b->_GameMtlName())	< 0;
+						  default:	return stricmp(a->_Name()			, b->_Name())			< 0;
+					  }
+				  });
+
+		for (CSurface* s : surfs) {
+			AnsiString pref = AnsiString("Surfaces\\") + s->_Name();
+			O->FillSurfaceProps(s, pref.c_str(), surfaceItems);
 		}
 	}
 
@@ -344,8 +377,6 @@ void IM_EditLibrary::Render() {
 			Save();
 		ImGui::EndDisabled();
 
-		ImGui::Separator();
-
 		ImGui::BeginChild("ObjectPropsScroll", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 		{
 			if (ImGui::BeginTabBar("ObjectPropsTabs")) {
@@ -361,7 +392,34 @@ void IM_EditLibrary::Render() {
 				}
 
 				if (ImGui::BeginTabItem("Surfaces", nullptr, surfaceFlags)) {
+
+					ImGui::Text("Sorted by:");
+					ImGui::SameLine();
+
+					const char* sort_items[] = {"Name", "Texture", "Shader", "Compile Shader" , "GameMtl"};
+
+					ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+					if (ImGui::Selectable(sort_items[m_SurfaceSortMode], false, 0, ImVec2(145, 0))) {
+						ImGui::OpenPopup("##SurfaceSortPopup");
+					}
+					ImGui::PopStyleColor();
+
+					if (ImGui::BeginPopup("##SurfaceSortPopup")) {
+						for (int i = 0; i < IM_ARRAYSIZE(sort_items); i++) {
+							bool selected = (m_SurfaceSortMode == i);
+							if (ImGui::MenuItem(sort_items[i], nullptr, selected)) {
+								if (m_SurfaceSortMode != i) {
+									m_SurfaceSortMode = i;
+									UpdateObjectProperties();
+								}
+								ImGui::CloseCurrentPopup();
+							}
+						}
+						ImGui::EndPopup();
+					}
+
 					RenderPersistedPropertyTree(m_SurfaceProps, "im_object_library", "surface_props_splitter_width");
+
 					ImGui::EndTabItem();
 				}
 				ImGui::EndTabBar();
@@ -437,7 +495,7 @@ CSceneObject* IM_EditLibrary::RayPick(const Fvector& start, const Fvector& direc
 	if (g_imEditLibrary->m_pEditObjects.empty())
 		return nullptr;
 
-	float		 dist = UI->ZFar(); // èëè Device.m_Camera.GetFar()
+	float		 dist = UI->ZFar(); // Ð¸Ð»Ð¸ Device.m_Camera.GetFar()
 	SRayPickInfo localPinf;
 
 	for (auto& SO : g_imEditLibrary->m_pEditObjects) {

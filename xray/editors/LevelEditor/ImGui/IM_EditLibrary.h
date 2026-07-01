@@ -32,8 +32,13 @@ private:
 	bool					 m_DropperMode = false;
 	bool					 m_PendingSwitchToSurfacesTab = false;
 
+	int						 m_SurfaceSortMode = 0;
+
 	static bool				 bFinalExit;
 	static bool				 bExitResult;
+
+	virtual void			 OnAdd() override;
+	virtual void			 OnRemove() override;
 
 	void					 InitObjects();
 	void					 OnModified();
@@ -56,6 +61,8 @@ private:
 	void					 ApplyDropperPick(const SRayPickInfo& pinf);
 	void					 FocusSurfaceProperty(const char* path);
 
+	void					 OnNodeSelected(shared_str path, shared_str value, bool select);
+
 public:
 	IM_EditLibrary();
 	~IM_EditLibrary();
@@ -72,9 +79,6 @@ public:
 	void							FormClose();
 
 	static bool						FinalClose();
-
-private:
-	void OnNodeSelected(shared_str path, shared_str value, bool select);
 };
 
 extern ECORE_API IM_EditLibrary* g_imEditLibrary;
