@@ -16,8 +16,11 @@ public:
 	~IM_ObjectListWnd() { instance = NULL; }
 
 public:
-	void Render() override;
-	void RefreshList();
+	void		 Render() override;
+	void		 RefreshList();
+
+	virtual void OnAdd() override;
+	virtual void OnRemove() override;
 
 private:
 	int	 m_filterTools = 0;

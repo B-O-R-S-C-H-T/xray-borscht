@@ -183,6 +183,34 @@ void IM_ObjectListWnd::RefreshList() {
 	refresh();
 }
 
+void IM_ObjectListWnd::OnAdd() {
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_object_list");
+
+	m_filterTools		= storage.GetInt("filter_tools", 0);
+	m_showOptions		= storage.GetInt("show_options", 0);
+
+	xr_string filterStr = storage.GetString("filter", "");
+	strncpy(m_filter, filterStr.c_str(), sizeof(m_filter) - 1);
+	m_filter[sizeof(m_filter) - 1] = '\0';
+
+	m_needRefresh				   = true;
+}
+
+void IM_ObjectListWnd::OnRemove() {
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_object_list");
+
+	storage.PutInt("filter_tools", m_filterTools);
+	storage.PutInt("show_options", m_showOptions);
+	storage.PutString("filter", m_filter);
+
+	for (auto& group : m_items) {
+		xr_string key = xr_string("opened_") + group.Tool->ClassDesc();
+		storage.PutBool(key.c_str(), group.Opened);
+	}
+
+	storage.Save();
+}
+
 void IM_ObjectListWnd::refresh() {
 	m_needRefresh = false;
 
@@ -205,9 +233,15 @@ void IM_ObjectListWnd::refresh() {
 		std::sort(tools.begin(), tools.end(), [](auto el1, auto el2) { return stricmp(el1->ClassDesc(), el2->ClassDesc()) < 0; });
 	}
 
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_object_list");
+
 	for (auto tool : tools) {
 		m_items.push_back(Group{tool, true});
 		auto& group = m_items.back();
+
+		xr_string openedKey = xr_string("opened_") + tool->ClassDesc();
+		group.Opened		= storage.GetBool(openedKey.c_str(), true);
+
 		for (auto obj : tool->GetObjects()) {
 			if (!strstr(obj->GetName(), m_filter))
 				continue;
