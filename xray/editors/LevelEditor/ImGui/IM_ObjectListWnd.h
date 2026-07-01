@@ -51,4 +51,7 @@ private:
 
 	int								 getTopSelInGroup(int group);
 	int								 getBottomSelInGroup(int group);
+
+	bool							 m_ScrollToSelected		= false;
+	int								 m_ScrollTargetVisIndex = -1; // индекс в m_vis
 };

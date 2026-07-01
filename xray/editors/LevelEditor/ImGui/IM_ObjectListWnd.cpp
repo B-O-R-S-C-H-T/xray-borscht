@@ -3,6 +3,7 @@
 #include "IM_ObjectListWnd.h"
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #include "../ECore/Editor/ui_main.h"
 #include "../Edit/Scene.h"
@@ -12,7 +13,7 @@
 IM_ObjectListWnd* IM_ObjectListWnd::instance;
 
 void IM_ObjectListWnd::Render() {
-	// ����� ��������� ����� ������������� ������, ����� ����� �� �������� ���������� ������
+	// нужно проверять перед перестроением списка, иначе упадёт на загрузке следующего уровня
 	if (Scene && Scene->ObjCount() != m_lastSceneObjCount) {
 		m_needRefresh		 = true;
 		m_lastSceneObjCount = Scene->ObjCount();
@@ -75,17 +76,26 @@ void IM_ObjectListWnd::Render() {
 
 		 ImGuiListClipper clipper;
 		 clipper.Begin(m_vis.size(), ImGui::GetTextLineHeightWithSpacing());
+
+		// принудительно включить элемент в отрисовку
+		if (m_ScrollToSelected && m_ScrollTargetVisIndex >= 0) {
+			clipper.IncludeItemByIndex(m_ScrollTargetVisIndex);
+		}
+
 		 while (clipper.Step()) {
 			 ImGui::Indent();
 			 for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
 				 const auto& vis = m_vis[i];
 
 				 if (vis.second == -1) {
+					 // группа
 					 auto& group = m_items[vis.first];
 					 ImGui::Unindent();
+
 					 if (!group.Objects.empty()) {
 						 bool opened =
 							 ImGui::TreeNodeEx(group.Tool, ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen, "%ss", group.Tool->ClassDesc());
+
 						 if (opened != group.Opened) {
 							 m_needRecalcVis = true;
 							 group.Opened	 = opened;
@@ -94,7 +104,9 @@ void IM_ObjectListWnd::Render() {
 						 ImGui::BulletText("%ss", group.Tool->ClassDesc());
 					 }
 					 ImGui::Indent();
+
 				 } else {
+					 // объект
 					 auto& object  = m_items[vis.first].Objects[vis.second];
 					 bool  visible = object.Obj->Visible();
 
@@ -143,6 +155,12 @@ void IM_ObjectListWnd::Render() {
 					 }
 
 					 ImGui::PopID();
+
+					if (m_ScrollToSelected && i == m_ScrollTargetVisIndex) {
+						ImGui::ScrollToItem(ImGuiScrollFlags_AlwaysCenterY);
+						m_ScrollToSelected		= false;
+						m_ScrollTargetVisIndex = -1;
+					}
 				 }
 			 }
 			 ImGui::Unindent();
@@ -258,7 +276,38 @@ void IM_ObjectListWnd::refresh() {
 
 	m_lastSceneObjCount = Scene ? Scene->ObjCount() : 0;
 
+	// авторазворачивание групп с выделенными объектами
+	bool expanded_any	= false;
+	for (auto& g : m_items) {
+		if (!g.Opened) {
+			for (const auto& o : g.Objects) {
+				if (o.Selected) {
+					g.Opened	 = true;
+					expanded_any = true;
+					break;
+				}
+			}
+		}
+	}
+
 	recalcVis();
+	if (expanded_any)
+		recalcVis();
+
+	// ищем первый выделенный объект для прокрутки
+	m_ScrollTargetVisIndex = -1;
+	m_ScrollToSelected	   = false;
+
+	for (size_t i = 0; i < m_vis.size(); ++i) {
+		const auto& v = m_vis[i];
+		if (v.second != -1) { // объект
+			if (m_items[v.first].Objects[v.second].Selected) {
+				m_ScrollTargetVisIndex = (int)i;
+				m_ScrollToSelected	   = true;
+				break;
+			}
+		}
+	}
 }
 
 void IM_ObjectListWnd::clearAllSel() {
