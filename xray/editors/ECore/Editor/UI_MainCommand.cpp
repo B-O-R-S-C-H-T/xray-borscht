@@ -450,7 +450,19 @@ CCommandVar 	CommandZoomExtents(CCommandVar p1, CCommandVar p2)
     UI->RedrawScene		();
     return				TRUE;
 }
-CCommandVar 	CommandToggleRenderWire(CCommandVar p1, CCommandVar p2)
+CCommandVar 	CommandToggleLighting(CCommandVar p1, CCommandVar p2)
+{
+	psDeviceFlags.set   (rsLighting, !psDeviceFlags.is(rsLighting));
+	UI->RedrawScene     ();
+	return              TRUE;
+}
+CCommandVar     CommandToggleEdgedFaces(CCommandVar p1, CCommandVar p2)
+{
+	psDeviceFlags.set   (rsEdgedFaces, !psDeviceFlags.is(rsEdgedFaces));
+	UI->RedrawScene     ();
+	return              TRUE;
+}
+CCommandVar 	CommandToggleWireframe(CCommandVar p1, CCommandVar p2)
 {
     if (Device.dwFillMode!=D3DFILL_WIREFRAME)	Device.dwFillMode 	= D3DFILL_WIREFRAME;
     else 										Device.dwFillMode 	= D3DFILL_SOLID;
@@ -472,7 +484,7 @@ CCommandVar 	CommandToggleGrid(CCommandVar p1, CCommandVar p2)
 }
 CCommandVar 	CommandUpdateGrid(CCommandVar p1, CCommandVar p2)
 {
-    DUImpl.UpdateGrid		(EPrefs->grid_cell_count,EPrefs->grid_cell_size);
+    DUImpl.UpdateGrid	(EPrefs->grid_cell_count,EPrefs->grid_cell_size);
     UI->OutGridSize		();
     UI->RedrawScene		();
     return				TRUE;
@@ -650,8 +662,8 @@ void TUI::RegisterCommands()
 	REGISTER_CMD_S		(COMMAND_DESTROY,        		CommandDestroy);
 	REGISTER_CMD_SE		(COMMAND_EXIT,               	"Exit",					CommandExit,		true);
 	REGISTER_CMD_S		(COMMAND_QUIT,           		CommandQuit);
-	REGISTER_CMD_SE		(COMMAND_EDITOR_PREF,    		"Editor Preference",	CommandEditorPrefs, false);
-	REGISTER_SUB_CMD_SE	(COMMAND_CHANGE_ACTION,  		"Change Action",      	CommandChangeAction,false);
+	REGISTER_CMD_SE		(COMMAND_EDITOR_PREF,    		"Editor Preferences",	CommandEditorPrefs, false);
+	REGISTER_SUB_CMD_SE	(COMMAND_CHANGE_ACTION,  		"Change Actions",      	CommandChangeAction,false);
     	APPEND_SUB_CMD	("Select",						etaSelect,	0);
     	APPEND_SUB_CMD	("Add",							etaAdd,		0);
     	APPEND_SUB_CMD	("Move",						etaMove,	0);
@@ -683,16 +695,18 @@ void TUI::RegisterCommands()
     	APPEND_SUB_CMD	("Extent",						0,0);
     	APPEND_SUB_CMD	("Selected",					1,0);
     REGISTER_SUB_CMD_END;
-	REGISTER_CMD_SE	    (COMMAND_MOVE_CAMERA_TO,        "Scene\\Move Camera To",CommandMoveCameraTo,false);
-    REGISTER_CMD_SE	    (COMMAND_TOGGLE_RENDER_WIRE,	"Toggle Wireframe",		CommandToggleRenderWire,			false);
     REGISTER_CMD_C	    (COMMAND_RENDER_FOCUS,       	this,TUI::CommandRenderFocus);
-	REGISTER_CMD_CE	    (COMMAND_BREAK_LAST_OPERATION,	"Break Last Operation",	this,TUI::CommandBreakLastOperation,false);
-    REGISTER_CMD_SE	    (COMMAND_TOGGLE_SAFE_RECT,   	"Toggle Safe Rect",		CommandToggleSafeRect,false);
 	REGISTER_CMD_C	    (COMMAND_RENDER_RESIZE,      	this,TUI::CommandRenderResize);
-    REGISTER_CMD_SE	    (COMMAND_TOGGLE_GRID,        	"Toggle Grid",			CommandToggleGrid,false);
+	REGISTER_CMD_CE	    (COMMAND_BREAK_LAST_OPERATION,	"Break Last Operation",	this,TUI::CommandBreakLastOperation,false);
+	REGISTER_CMD_SE	    (COMMAND_MOVE_CAMERA_TO,        "Scene\\Move Camera To",    CommandMoveCameraTo,     false);
+	REGISTER_CMD_SE     (COMMAND_TOGGLE_LIGHTING,       "Render\\Lighting",         CommandToggleLighting,   false);
+	REGISTER_CMD_SE     (COMMAND_TOGGLE_EDGED_FACES,    "Render\\Edged Faces",      CommandToggleEdgedFaces, false);
+    REGISTER_CMD_SE	    (COMMAND_TOGGLE_WIREFRAME,      "Render\\Wireframe",        CommandToggleWireframe,  false);
+    REGISTER_CMD_SE	    (COMMAND_TOGGLE_SAFE_RECT,   	"Render\\Safe Rect",		CommandToggleSafeRect,   false);
+    REGISTER_CMD_SE	    (COMMAND_TOGGLE_GRID,        	"Render\\Grid",			    CommandToggleGrid,       false);
 	REGISTER_CMD_S	    (COMMAND_UPDATE_GRID,        	CommandUpdateGrid);
     REGISTER_CMD_S	    (COMMAND_GRID_NUMBER_OF_SLOTS,	CommandGridNumberOfSlots);
-    REGISTER_SUB_CMD_SE (COMMAND_GRID_SLOT_SIZE,     	"Change Grid Size",		CommandGridSlotSize,false);
+    REGISTER_SUB_CMD_SE (COMMAND_GRID_SLOT_SIZE,     	"Change Grid Size",		    CommandGridSlotSize,false);
     	APPEND_SUB_CMD	("Decrease",					0,0);
     	APPEND_SUB_CMD	("Increase",					1,0);
     REGISTER_SUB_CMD_END;
@@ -701,7 +715,7 @@ void TUI::RegisterCommands()
     REGISTER_CMD_S	    (COMMAND_EDIT_COMMAND_LIST, 	CommandEditCommandList);
     REGISTER_CMD_S	    (COMMAND_EXECUTE_COMMAND_LIST, 	CommandExecuteCommandList);
     REGISTER_CMD_S	    (COMMAND_LOG_COMMANDS, 			CommandLogCommands);
-    REGISTER_SUB_CMD_SE (COMMAND_RUN_MACRO,     		"Run Macro",			CommandRunMacro,false);
+    REGISTER_SUB_CMD_SE (COMMAND_RUN_MACRO,     		"Run Macro",			    CommandRunMacro,false);
     	APPEND_SUB_CMD	("Slot #1",						xr_string(""),0);
     	APPEND_SUB_CMD	("Slot #2",						xr_string(""),0);
     	APPEND_SUB_CMD	("Slot #3",						xr_string(""),0);

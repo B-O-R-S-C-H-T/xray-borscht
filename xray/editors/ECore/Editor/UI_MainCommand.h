@@ -1,7 +1,7 @@
 #ifndef UI_MainCommandH
 #define UI_MainCommandH
 
-enum{
+enum {
 	COMMAND_INITIALIZE=0,		// p1 - D3DWindow, p2 - TPanel
 	COMMAND_DESTROY,
 	COMMAND_QUIT,
@@ -27,24 +27,26 @@ enum{
     COMMAND_MOVE_CAMERA_TO,
 	COMMAND_ZOOM_EXTENTS,
     COMMAND_RENDER_FOCUS,
-    COMMAND_RENDER_RESIZE,		
-    COMMAND_TOGGLE_RENDER_WIRE,
+    COMMAND_RENDER_RESIZE,
     COMMAND_UPDATE_CAPTION,
 	COMMAND_BREAK_LAST_OPERATION,
 	COMMAND_UPDATE_TOOLBAR,
+	COMMAND_TOGGLE_LIGHTING,
+	COMMAND_TOGGLE_WIREFRAME,
+	COMMAND_TOGGLE_EDGED_FACES,
     COMMAND_TOGGLE_SAFE_RECT,
     COMMAND_TOGGLE_GRID,
 	COMMAND_UPDATE_GRID,
     COMMAND_GRID_NUMBER_OF_SLOTS,
     COMMAND_GRID_SLOT_SIZE,
-    
+
     COMMAND_REFRESH_UI_BAR,
     COMMAND_RESTORE_UI_BAR,
     COMMAND_SAVE_UI_BAR,
 
     COMMAND_MUTE_SOUND,
 
-    // èìåþò ðàçíóþ ðåàëèçàöèþ
+    // Ð¸Ð¼ÐµÑŽÑ‚ Ñ€Ð°Ð·Ð½ÑƒÑŽ Ñ€ÐµÐ°Ð»Ð¸Ð·Ð°Ñ†Ð¸ÑŽ
     COMMAND_CLEAR,
     COMMAND_LOAD,
     COMMAND_SAVE,
@@ -52,14 +54,14 @@ enum{
 
     COMMAND_CREATE_SOUND_LIB,
 	COMMAND_TOGGLE_AIMAP_VISIBILITY,
-    
+
     // sound
 	COMMAND_SOUND_EDITOR,
 	COMMAND_SYNC_SOUNDS,
-    
+
 	COMMAND_UNDO,
 	COMMAND_REDO,
-                                                                
+
     COMMAND_EDIT_COMMAND_LIST,
     COMMAND_EXECUTE_COMMAND_LIST,
     COMMAND_LOG_COMMANDS,
@@ -68,7 +70,6 @@ enum{
 
     COMMAND_MAIN_LAST
 };
-//------------------------------------------------------------------------------
 
 class CCommandVar{
     enum EType{
@@ -151,6 +152,4 @@ ECORE_API void      	    DispatchQueueedCommands();
 #define REGISTER_SUB_CMD_END }
 
 #endif //UI_MainCommandH
-
-
 
