@@ -15,6 +15,8 @@ public:
 
 	~IM_ObjectListWnd() { instance = NULL; }
 
+	static void FinalClose();
+
 public:
 	void		 Render() override;
 	void		 RefreshList();

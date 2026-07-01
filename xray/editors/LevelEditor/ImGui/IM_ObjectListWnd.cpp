@@ -12,6 +12,13 @@
 
 IM_ObjectListWnd* IM_ObjectListWnd::instance;
 
+void IM_ObjectListWnd::FinalClose() {
+	 if (instance) {
+		 UI->RemoveIMWindow(instance);
+		 xr_delete(instance);
+	 }
+}
+
 void IM_ObjectListWnd::Render() {
 	// нужно проверять перед перестроением списка, иначе упадёт на загрузке следующего уровня
 	if (Scene && Scene->ObjCount() != m_lastSceneObjCount) {

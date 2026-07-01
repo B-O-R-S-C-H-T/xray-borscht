@@ -15,8 +15,9 @@
 #include "ImGui/IM_Sidebar.h"
 #include "ImGui/IM_Toolbar.h"
 #include "ImGui/IM_ContextMenu.h"
-#include "editors/ECore/ImGui/IM_Stats.h"
 #include "ImGui/IM_EditLibrary.h"
+#include "ImGui/IM_ObjectListWnd.h"
+#include "editors/ECore/ImGui/IM_Stats.h"
 
 #include "../xrEProps/EditorChooseEvents.H"
 
@@ -283,29 +284,40 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				EPrefs->Save();
 			}
 			g_idle = false;
+
 			if (g_imEditLibrary)
 				IM_EditLibrary::FinalClose();
+
+			if (IM_ObjectListWnd::instance)
+				IM_ObjectListWnd::FinalClose();
+
 			ExecCommand(COMMAND_DESTROY);
 			DestroyWindow(g_MainWnd);
 			break;
+
 		case WM_KEYDOWN:
+
 		case WM_SYSKEYDOWN:
 			g_ShiftKey = getShiftState();
 			if (!UI->KeyDown(wParam, g_ShiftKey)) {
 				UI->ApplyShortCut(wParam, g_ShiftKey);
 			}
 			break;
+
 		case WM_KEYUP:
+
 		case WM_SYSKEYUP:
 			if (!UI->KeyUp(wParam, getShiftState())) {
 				;
 			}
 			break;
+
 		case WM_CHAR:
 			if (!UI->KeyPress(wParam, g_ShiftKey)) {
 				;
 			}
 			break;
+
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
