@@ -18,6 +18,10 @@ public:
 	IM_FrameDetail() : parent_tool(nullptr) {}
 
 	void		 RefreshProperties() { m_props_initialized = false; }
+
+	virtual void OnAdd() override;
+	virtual void OnRemove() override;
+
 	virtual void Render() override;
 };
 

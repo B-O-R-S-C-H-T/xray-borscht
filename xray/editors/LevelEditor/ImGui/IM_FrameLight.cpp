@@ -61,7 +61,7 @@ void IM_FrameLight::Render() {
 		if (m_show_scene_lighting) {
 			UpdateSceneLightingProps();
 
-			m_sceneProps.Render();
+			RenderPersistedPropertyTree(m_sceneProps, "im_frame_light", "props_splitter_width", 220.0f);
 		}
 	}
 

@@ -1429,6 +1429,12 @@ IM_PropertiesWnd::IM_PropertiesWnd(const xr_string&				   caption,
 	: Caption(caption), Modal(false), ShowButtonsBar(true), OnClose(on_close), m_props(folder_separator, allow_multiselect, draw_bullets), m_open(false) {
 	m_props.OnItemFocused	= on_focused;
 	m_props.OnModifiedEvent = on_modified;
+
+	m_StorageSection		= caption;
+	for (size_t i = 0; i < m_StorageSection.size(); ++i) {
+		if (m_StorageSection[i] == ' ')
+			m_StorageSection[i] = '_';
+	}
 }
 
 bool IM_PropertiesWnd::IsOpen() {
@@ -1472,7 +1478,9 @@ void IM_PropertiesWnd::Render() {
 		ImGui::OpenPopup(Caption.c_str());
 		if (ImGui::BeginPopupModal(Caption.c_str(), &m_open)) {
 			ImGui::BeginChild("ItemProps", ImVec2(0, ShowButtonsBar ? -height : 0), true);
-			m_props.Render();
+
+			RenderPersistedPropertyTree(m_props, m_StorageSection.c_str(), "props_splitter_width", 220.0f);
+
 			ImGui::EndChild();
 
 			if (ShowButtonsBar) {
@@ -1496,8 +1504,9 @@ void IM_PropertiesWnd::Render() {
 			ImGui::EndPopup();
 		}
 	} else {
-		if (ImGui::Begin(Caption.c_str(), &m_open))
-			m_props.Render();
+		if (ImGui::Begin(Caption.c_str(), &m_open)) {
+			RenderPersistedPropertyTree(m_props, m_StorageSection.c_str(), "props_splitter_width", 220.0f);
+		}
 
 		ImGui::End();
 	}

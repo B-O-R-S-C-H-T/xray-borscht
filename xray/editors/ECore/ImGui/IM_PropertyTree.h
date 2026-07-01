@@ -153,6 +153,9 @@ public:
 	TOnCloseEvent	OnOK;
 	TOnCloseEvent	OnCancel;
 
+protected:
+	xr_string		m_StorageSection;
+
 public:
 	IM_PropertiesWnd(const xr_string&				 caption,
 					 TOnModifiedEvent				 on_modified	   = NULL,

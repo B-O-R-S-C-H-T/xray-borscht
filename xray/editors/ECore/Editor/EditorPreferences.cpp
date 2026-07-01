@@ -229,10 +229,12 @@ void CCustomPreferences::FillProp(PropItemVec& props)
     PHelper().CreateFlag32	(props,"Objects\\Loading\\Deffered Loading RB",	&object_flags, 	epoDeffLoadRB);
     PHelper().CreateFlag32	(props,"Objects\\Loading\\Deffered Loading CF",	&object_flags, 	epoDeffLoadCF);
 
-	PHelper().CreateU32     (props, "Scene\\Undo Manager\\Recent Count",    &scene_recent_count, 0, 25);
-	PHelper().CreateU32     (props, "Scene\\Undo Manager\\Undo Level",      &scene_undo_level,   0, 125);
+	PHelper().CreateU32     (props, "Scene\\Recent Files\\Maximum Recent Files",         &scene_recent_count, 0, 25);
+
+	PHelper().CreateU32     (props, "Scene\\Undo Manager\\Undo Queue Size",              &scene_undo_level,   0, 125);
 	PHelper().CreateBOOL    (props, "Scene\\Undo Manager\\Enable Camera Interpolation",  &cam_undo_enabled);
 	PHelper().CreateFloat   (props, "Scene\\Undo Manager\\Interpolation Duration (sec)", &cam_undo_duration, 0.05f, 2.0f, 0.01f, 2);
+
 	PHelper().CreateFloat	(props,"Scene\\Grid\\Cell Size", 	           	&grid_cell_size,	0.1f,	10.f);
     PHelper().CreateU32		(props,"Scene\\Grid\\Cell Count", 	           	&grid_cell_count,	10, 	1000);
 
@@ -246,8 +248,8 @@ void CCustomPreferences::FillProp(PropItemVec& props)
     PHelper().CreateFloat	(props,"Tools\\Snap\\Move",			          	&snap_move, 		0.01f,	1000.f);
     PHelper().CreateFloat	(props,"Tools\\Snap\\Move To", 		          	&snap_moveto,		0.01f,	1000.f);
 
-    PHelper().CreateFlag32	(props,"Sounds\\Use\\Hardware",					&psSoundFlags, 	ss_Hardware);
-    PHelper().CreateFlag32	(props,"Sounds\\Use\\EAX",						&psSoundFlags, 	ss_EAX);        
+    PHelper().CreateFlag32	(props,"Sounds\\Hardware",					    &psSoundFlags, 	ss_Hardware);
+    PHelper().CreateFlag32	(props,"Sounds\\EAX",						    &psSoundFlags, 	ss_EAX);        
 
     PHelper().CreateFloat	(props,"Viewport\\Camera\\Move Sens",		    &cam_sens_move);
     PHelper().CreateFloat	(props,"Viewport\\Camera\\Rotate Sens",		    &cam_sens_rot);
@@ -297,47 +299,47 @@ void CCustomPreferences::Edit()
 
 void CCustomPreferences::Load(CInifile* I)
 {
-    psDeviceFlags.flags		= R_U32_SAFE	("editor_prefs","device_flags",	psDeviceFlags.flags);
-    psSoundFlags.flags		= R_U32_SAFE	("editor_prefs","sound_flags",	psSoundFlags.flags)
+    psDeviceFlags.flags		= R_U32_SAFE	("editor_preferences","device_flags",	psDeviceFlags.flags);
+    psSoundFlags.flags		= R_U32_SAFE	("editor_preferences","sound_flags",	psSoundFlags.flags)
 
-    Tools->m_Settings.flags	= R_U32_SAFE	("editor_prefs","tools_settings",Tools->m_Settings.flags);
+    Tools->m_Settings.flags	= R_U32_SAFE	("editor_preferences","tools_settings"  ,Tools->m_Settings.flags);
     
-    view_np				= R_FLOAT_SAFE	("editor_prefs","view_np"			,view_np		 	);
-    view_fp				= R_FLOAT_SAFE	("editor_prefs","view_fp"			,view_fp		 	);
-    view_fov			= R_FLOAT_SAFE	("editor_prefs","view_fov"			,view_fov			);
+    view_np				= R_FLOAT_SAFE	("editor_preferences","view_np"			    ,view_np		 	);
+    view_fp				= R_FLOAT_SAFE	("editor_preferences","view_fp"			    ,view_fp		 	);
+    view_fov			= R_FLOAT_SAFE	("editor_preferences","view_fov"			,view_fov			);
 
-    fog_color			= R_U32_SAFE	("editor_prefs","fog_color"			,fog_color			);
-    fog_fogness			= R_FLOAT_SAFE	("editor_prefs","fog_fogness"		,fog_fogness	 	);
+    fog_color			= R_U32_SAFE	("editor_preferences","fog_color"			,fog_color			);
+    fog_fogness			= R_FLOAT_SAFE	("editor_preferences","fog_fogness"		    ,fog_fogness	 	);
 
-    cam_fly_speed		= R_FLOAT_SAFE	("editor_prefs","cam_fly_speed"		,cam_fly_speed		);
-    cam_fly_alt			= R_FLOAT_SAFE	("editor_prefs","cam_fly_alt"		,cam_fly_alt	 	);
-    cam_sens_rot		= R_FLOAT_SAFE	("editor_prefs","cam_sens_rot"		,cam_sens_rot		);
-    cam_sens_move		= R_FLOAT_SAFE	("editor_prefs","cam_sens_move"		,cam_sens_move		);
-	cam_undo_enabled    = R_BOOL_SAFE   ("editor_prefs","cam_undo_enabled"  ,TRUE               );
-	cam_undo_duration   = R_FLOAT_SAFE  ("editor_prefs","cam_undo_duration" ,0.3f               );
+    cam_fly_speed		= R_FLOAT_SAFE	("editor_preferences","cam_fly_speed"		,cam_fly_speed		);
+    cam_fly_alt			= R_FLOAT_SAFE	("editor_preferences","cam_fly_alt"		    ,cam_fly_alt	 	);
+    cam_sens_rot		= R_FLOAT_SAFE	("editor_preferences","cam_sens_rot"		,cam_sens_rot		);
+    cam_sens_move		= R_FLOAT_SAFE	("editor_preferences","cam_sens_move"		,cam_sens_move		);
+	cam_undo_enabled    = R_BOOL_SAFE   ("editor_preferences","cam_undo_enabled"    ,TRUE               );
+	cam_undo_duration   = R_FLOAT_SAFE  ("editor_preferences","cam_undo_duration"   ,0.3f               );
 
-    tools_sens_move		= R_FLOAT_SAFE	("editor_prefs","tools_sens_move"	,tools_sens_move  	);
-    tools_sens_rot		= R_FLOAT_SAFE	("editor_prefs","tools_sens_rot"	,tools_sens_rot		);
-    tools_sens_scale	= R_FLOAT_SAFE	("editor_prefs","tools_sens_scale"	,tools_sens_scale	);
+    tools_sens_move		= R_FLOAT_SAFE	("editor_preferences","tools_sens_move"	    ,tools_sens_move  	);
+    tools_sens_rot		= R_FLOAT_SAFE	("editor_preferences","tools_sens_rot"	    ,tools_sens_rot		);
+    tools_sens_scale	= R_FLOAT_SAFE	("editor_preferences","tools_sens_scale"	,tools_sens_scale	);
     
-    bp_lim_depth		= R_BOOL_SAFE	("editor_prefs","bp_lim_depth"		,bp_lim_depth		);
-    bp_cull				= R_BOOL_SAFE	("editor_prefs","bp_lim_depth"		,bp_cull		  	);  //.???
-    bp_depth_tolerance	= R_FLOAT_SAFE	("editor_prefs","tools_sens_rot"	,bp_depth_tolerance	);  //.???
+    bp_lim_depth		= R_BOOL_SAFE	("editor_preferences","bp_lim_depth"		,bp_lim_depth		);
+    bp_cull				= R_BOOL_SAFE	("editor_preferences","bp_lim_depth"		,bp_cull		  	);  //.???
+    bp_depth_tolerance	= R_FLOAT_SAFE	("editor_preferences","tools_sens_rot"	    ,bp_depth_tolerance	);  //.???
 
-    snap_angle			= R_FLOAT_SAFE	("editor_prefs","snap_angle"		,snap_angle			);
-    snap_move			= R_FLOAT_SAFE	("editor_prefs","snap_move"			,snap_move			);
-    snap_moveto			= R_FLOAT_SAFE	("editor_prefs","snap_moveto"		,snap_moveto	   	);
+    snap_angle			= R_FLOAT_SAFE	("editor_preferences","snap_angle"		    ,snap_angle			);
+    snap_move			= R_FLOAT_SAFE	("editor_preferences","snap_move"			,snap_move			);
+    snap_moveto			= R_FLOAT_SAFE	("editor_preferences","snap_moveto"		    ,snap_moveto	   	);
 
-    grid_cell_size		= R_FLOAT_SAFE	("editor_prefs","grid_cell_size"	,grid_cell_size		);
-    grid_cell_count		= R_U32_SAFE	("editor_prefs","grid_cell_count"	,grid_cell_count   	);
+    grid_cell_size		= R_FLOAT_SAFE	("editor_preferences","grid_cell_size"	    ,grid_cell_size		);
+    grid_cell_count		= R_U32_SAFE	("editor_preferences","grid_cell_count"	    ,grid_cell_count   	);
 
-    scene_undo_level	= R_U32_SAFE	("editor_prefs","scene_undo_level"	,scene_undo_level	);
-    scene_recent_count	= R_U32_SAFE	("editor_prefs","scene_recent_count",scene_recent_count	);
-    scene_clear_color	= R_U32_SAFE	("editor_prefs","scene_clear_color"	,scene_clear_color	);
+    scene_undo_level	= R_U32_SAFE	("editor_preferences","scene_undo_level"	,scene_undo_level	);
+    scene_recent_count	= R_U32_SAFE	("editor_preferences","scene_recent_count"  ,scene_recent_count	);
+    scene_clear_color	= R_U32_SAFE	("editor_preferences","scene_clear_color"	,scene_clear_color	);
 
-    object_flags.flags	= R_U32_SAFE	("editor_prefs","object_flags"		,object_flags.flags );
+    object_flags.flags	= R_U32_SAFE	("editor_preferences","object_flags"		,object_flags.flags );
 
-    ui_scale			= R_FLOAT_SAFE  ("editor_prefs", "ui_scale"         , 1.0f);
+    ui_scale			= R_FLOAT_SAFE  ("editor_preferences", "ui_scale"           , 1.0f);
 
 	IM_Storage& ws						   = GetSectionStorage("editor_main_window");
 	windowState.wp.length				   = sizeof(WINDOWPLACEMENT);
@@ -357,7 +359,7 @@ void CCustomPreferences::Load(CInifile* I)
     // read recent list    
     for (u32 i=0; i<scene_recent_count; i++){
         AnsiString key = "recent_files_" + std::to_string(i);
-        shared_str fn  	= R_STRING_SAFE	("editor_prefs",key.c_str(),shared_str("") );
+        shared_str fn  	= R_STRING_SAFE	("editor_preferences",key.c_str(),shared_str("") );
         if (fn.size())
         {
         	AStringIt it =   std::find(scene_recent_list.begin(), scene_recent_list.end(), fn.c_str() ) ;
@@ -365,7 +367,7 @@ void CCustomPreferences::Load(CInifile* I)
 	        	scene_recent_list.push_back(*fn);
         }
     }
-    sWeather = R_STRING_SAFE	("editor_prefs", "weather", shared_str("") );
+    sWeather = R_STRING_SAFE	("editor_preferences", "weather", shared_str("") );
     // load shortcuts
     LoadShortcuts		(I);
 
@@ -374,54 +376,54 @@ void CCustomPreferences::Load(CInifile* I)
 
 void CCustomPreferences::Save(CInifile* I)
 {
-    I->w_u32	("editor_prefs","device_flags",		psDeviceFlags.flags	);
-    I->w_u32	("editor_prefs","sound_flags",		psSoundFlags.flags	);
+    I->w_u32	("editor_preferences","device_flags",		psDeviceFlags.flags	);
+    I->w_u32	("editor_preferences","sound_flags",		psSoundFlags.flags	);
 
-    I->w_u32	("editor_prefs","tools_settings",	Tools->m_Settings.flags	);
+    I->w_u32	("editor_preferences","tools_settings",	    Tools->m_Settings.flags	);
 
-    I->w_float	("editor_prefs","view_np",			view_np			);
-    I->w_float	("editor_prefs","view_fp",			view_fp			);
-    I->w_float	("editor_prefs","view_fov",			view_fov		);
+    I->w_float	("editor_preferences","view_np",			view_np			);
+    I->w_float	("editor_preferences","view_fp",			view_fp			);
+    I->w_float	("editor_preferences","view_fov",			view_fov		);
 
-    I->w_u32	("editor_prefs","fog_color",		fog_color		);
-    I->w_float	("editor_prefs","fog_fogness",		fog_fogness		);
+    I->w_u32	("editor_preferences","fog_color",		    fog_color		);
+    I->w_float	("editor_preferences","fog_fogness",		fog_fogness		);
 
-    I->w_float	("editor_prefs","cam_fly_speed",	cam_fly_speed	);
-    I->w_float	("editor_prefs","cam_fly_alt",		cam_fly_alt		);
-    I->w_float	("editor_prefs","cam_sens_rot",		cam_sens_rot	);
-    I->w_float	("editor_prefs","cam_sens_move",	cam_sens_move	);
-	I->w_bool   ("editor_prefs","cam_undo_enabled", cam_undo_enabled);
-	I->w_float  ("editor_prefs","cam_undo_duration",cam_undo_duration);
+    I->w_float	("editor_preferences","cam_fly_speed",	    cam_fly_speed	);
+    I->w_float	("editor_preferences","cam_fly_alt",		cam_fly_alt		);
+    I->w_float	("editor_preferences","cam_sens_rot",		cam_sens_rot	);
+    I->w_float	("editor_preferences","cam_sens_move",	    cam_sens_move	);
+	I->w_bool   ("editor_preferences","cam_undo_enabled",   cam_undo_enabled);
+	I->w_float  ("editor_preferences","cam_undo_duration",  cam_undo_duration);
 
-    I->w_float	("editor_prefs","tools_sens_rot",	tools_sens_rot	);
-    I->w_float	("editor_prefs","tools_sens_move",	tools_sens_move	);
-    I->w_float	("editor_prefs","tools_sens_scale",	tools_sens_scale);
+    I->w_float	("editor_preferences","tools_sens_rot",	    tools_sens_rot	);
+    I->w_float	("editor_preferences","tools_sens_move",	tools_sens_move	);
+    I->w_float	("editor_preferences","tools_sens_scale",	tools_sens_scale);
 
-    I->w_bool	("editor_prefs","bp_lim_depth",		bp_lim_depth	);
-    I->w_bool	("editor_prefs","bp_lim_depth",		bp_cull			);
-    I->w_float	("editor_prefs","bp_depth_tolerance",bp_depth_tolerance	);
+    I->w_bool	("editor_preferences","bp_lim_depth",		bp_lim_depth	);
+    I->w_bool	("editor_preferences","bp_lim_depth",		bp_cull			);
+    I->w_float	("editor_preferences","bp_depth_tolerance", bp_depth_tolerance	);
 
-    I->w_float	("editor_prefs","snap_angle",		snap_angle		);
-    I->w_float	("editor_prefs","snap_move",		snap_move		);
-    I->w_float	("editor_prefs","snap_moveto",		snap_moveto		);
+    I->w_float	("editor_preferences","snap_angle",		    snap_angle		);
+    I->w_float	("editor_preferences","snap_move",		    snap_move		);
+    I->w_float	("editor_preferences","snap_moveto",		snap_moveto		);
 
-    I->w_float	("editor_prefs","grid_cell_size",	grid_cell_size	);
-    I->w_u32	("editor_prefs","grid_cell_count",	grid_cell_count	);
+    I->w_float	("editor_preferences","grid_cell_size",	    grid_cell_size	);
+    I->w_u32	("editor_preferences","grid_cell_count",	grid_cell_count	);
 
-    I->w_u32	("editor_prefs","scene_undo_level",		scene_undo_level	);
-    I->w_u32	("editor_prefs","scene_recent_count",	scene_recent_count	);
-    I->w_u32	("editor_prefs","scene_clear_color",	scene_clear_color 	);
+    I->w_u32	("editor_preferences","scene_undo_level",	scene_undo_level	);
+    I->w_u32	("editor_preferences","scene_recent_count",	scene_recent_count	);
+    I->w_u32	("editor_preferences","scene_clear_color",	scene_clear_color 	);
 
-    I->w_u32	("editor_prefs","object_flags",		object_flags.flags);
+    I->w_u32	("editor_preferences","object_flags",		object_flags.flags);
 
-    I->w_float  ("editor_prefs", "ui_scale",        ui_scale);
+    I->w_float  ("editor_preferences", "ui_scale",          ui_scale);
 
     for (AStringIt it=scene_recent_list.begin(); it!=scene_recent_list.end(); it++){
         AnsiString L = "recent_files_" + std::to_string(it - scene_recent_list.begin());
         AnsiString V = '"' + *it + '"';
-        I->w_string("editor_prefs",L.c_str(),V.c_str());
+        I->w_string("editor_preferences",L.c_str(),V.c_str());
     }
-    I->w_string("editor_prefs","weather",   sWeather.c_str() );
+    I->w_string("editor_preferences","weather",   sWeather.c_str() );
     // load shortcuts
     SaveShortcuts		(I);
     UI->SaveSettings	(I);
@@ -429,7 +431,7 @@ void CCustomPreferences::Save(CInifile* I)
 
 void CCustomPreferences::Load()
 {
-	IM_Storage& main = GetSectionStorage("editor_prefs");
+	IM_Storage& main = GetSectionStorage("editor_preferences");
 	CInifile*	I	 = main.GetIni();
 
 	Load(I);
@@ -438,7 +440,7 @@ void CCustomPreferences::Load()
 
 void CCustomPreferences::Save()
 {
-	IM_Storage& main = GetSectionStorage("editor_prefs");
+	IM_Storage& main = GetSectionStorage("editor_preferences");
 	CInifile*	I	 = main.GetIni();
 
 	Save(I);

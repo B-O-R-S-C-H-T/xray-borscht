@@ -9,6 +9,10 @@
 #include "../Edit/ESceneWallmarkTools.h"
 #include "../Edit/Scene.h"
 
+void IM_FrameWallmark::OnAdd() {}
+
+void IM_FrameWallmark::OnRemove() {}
+
 void IM_FrameWallmark::Render() {
 	if (!parent_tool) {
 		parent_tool = dynamic_cast<ESceneWallmarkTool*>(Scene->GetTool(OBJCLASS_WM));
@@ -30,7 +34,9 @@ void IM_FrameWallmark::Render() {
 		}
 
 		ImGui::BeginChild("##wallmark_properties_child", ImVec2(0, 0), false);
-		m_wallmark_props.Render();
+
+		RenderPersistedPropertyTree(m_wallmark_props, "im_frame_wallmark", "props_splitter_width", 220.0f);
+
 		ImGui::EndChild();
 	}
 }

@@ -10,7 +10,12 @@
 #include "IM_DetailShuffle.h"
 #include "../ECore/Editor/ui_main.h"
 
-void IM_FrameDetail::Render() {
+void IM_FrameDetail::OnAdd() {}
+
+void IM_FrameDetail::OnRemove() {}
+
+void IM_FrameDetail::Render()
+{
 	if (!parent_tool) {
 		parent_tool = dynamic_cast<EDetailManager*>(Scene->GetTool(OBJCLASS_DO));
 		VERIFY(parent_tool);
@@ -78,7 +83,9 @@ void IM_FrameDetail::Render() {
 		}
 
 		ImGui::BeginChild("##detail_properties_child", ImVec2(0, 0), false);
-		m_detail_props.Render();
+
+		RenderPersistedPropertyTree(m_detail_props, "im_frame_detail", "props_splitter_width", 220.0f);
+
 		ImGui::EndChild();
 	}
 }
