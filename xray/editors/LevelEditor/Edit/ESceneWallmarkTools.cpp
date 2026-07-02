@@ -25,8 +25,8 @@
 #define WM_CHUNK_ITEMS2				0x0005
 //----------------------------------------------------
 
-#define MAX_WALLMARK_COUNT			500
-#define MAX_WALLMARK_VERTEX_COUNT	512
+#define MAX_WALLMARK_COUNT			500     // не используется, см. ниже
+#define MAX_WALLMARK_VERTEX_COUNT	4096
 #define COMPILER_SHADER				"def_shaders\\def_vertex_ghost_no_shadow"
 
 ESceneWallmarkTool::ESceneWallmarkTool():ESceneToolBase(OBJCLASS_WM)
