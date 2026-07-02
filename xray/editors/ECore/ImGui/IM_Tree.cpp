@@ -5,6 +5,8 @@
 
 #include <imgui.h>
 
+constexpr int MAX_EXPANDED_FOLDERS = 64;	// максимальное количество раскрытых папок в дереве
+
 IM_Tree::ImTreeNode* IM_Tree::GetNode(LPCSTR path, bool must_exist) {
 	ImTreeNode* node  = &root;
 	int			count = _GetItemCount(path, separator);
@@ -108,15 +110,43 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 				if (node.selected)
 					flags |= ImGuiTreeNodeFlags_Selected;
-				if (full_expand)
+				if (full_expand || node.is_open)
 					flags |= ImGuiTreeNodeFlags_DefaultOpen;
+
+				ImGui::SetNextItemOpen(node.is_open, ImGuiCond_Always);
 
 				bool open	 = ImGui::TreeNodeEx(map_it->first.c_str(), flags);
 				node.is_open = open;
 
+				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+					node.is_open = !node.is_open;
+				}
+
+				bool clicked = ImGui::IsItemClicked();
+
 				if (ImGui::BeginPopupContextItem()) {
 					ShowContextMenu(node, remove);
 					ImGui::EndPopup();
+				}
+
+				if (clicked) {
+					if (ImGui::GetIO().KeyShift && m_lastClickedNode) {
+						SelectRange(m_lastClickedNode, &node);
+					} else if (CheckmarkMode) {
+						SelectNode(node, !node.selected);
+						m_lastClickedNode = &node;
+					} else {
+						if (ImGui::GetIO().KeyCtrl)
+							SelectNode(node, !node.selected);
+						else {
+							SelectAll(false);
+							SelectNode(node, true);
+						}
+						m_lastClickedNode = &node;
+					}
+
+					if (node.item && !node.item->OnClickEvent.empty())
+						node.item->OnClickEvent(node.item);
 				}
 
 				if (open) {
@@ -547,5 +577,126 @@ void IM_Tree::Render() {
 	if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByPopup) &&
 		ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsAnyItemHovered() && !ImGui::IsAnyItemActive()) {
 		SelectAll(false);
+	}
+}
+
+void IM_Tree::SaveExpandedState(IM_Storage& storage, const char* key) {
+	xr_string result;
+	result.reserve(8192);
+
+	int count = 0;
+
+	std::function<void(ImTreeNode*)> collect = [&](ImTreeNode* node)
+	{
+		if (!node || !node->child)
+			return;
+
+		if (node->is_open && node != &root) {
+			if (count >= MAX_EXPANDED_FOLDERS)
+				return;
+
+			if (!result.empty())
+				result += '|';
+			result += *node->name;
+			count++;
+		}
+
+		for (auto& pair : *node->child)
+			collect(&pair.second);
+	};
+
+	collect(&root);
+	storage.PutString(key, result.c_str());
+}
+
+void IM_Tree::RestoreExpandedState(IM_Storage& storage, const char* key) {
+	xr_string data = storage.GetString(key, "");
+	if (data.empty())
+		return;
+
+	xr_vector<xr_string> paths;
+	_SequenceToList(paths, data.c_str(), '|');
+
+	for (const auto& path : paths) {
+		ImTreeNode* node = GetNode(path.c_str(), true);
+		if (node && node->child)
+			node->is_open = true;
+	}
+}
+
+void IM_Tree::CollapseAll() {
+	std::function<void(ImTreeNode*)> coll = [&](ImTreeNode* node)
+	{
+		if (!node || !node->child)
+			return;
+		if (node != &root)
+			node->is_open = false;
+		for (auto& p : *node->child)
+			coll(&p.second);
+	};
+	coll(&root);
+}
+
+void IM_Tree::CollapseAllExceptSelection() {
+	if (selected.empty()) {
+		CollapseAll();
+		return;
+	}
+
+	std::set<xr_string> keep;
+	for (auto* node : selected) {
+		if (!node)
+			continue;
+
+		xr_string p = *node->name;
+		while (!p.empty()) {
+			keep.insert(p);
+			size_t pos = p.rfind('\\');
+			if (pos == xr_string::npos)
+				break;
+			p = p.substr(0, pos);
+		}
+	}
+
+	std::function<void(ImTreeNode*)> process = [&](ImTreeNode* node)
+	{
+		if (!node || !node->child)
+			return;
+
+		// у root нет валидного имени
+		if (node != &root) {
+			xr_string nodePath = *node->name;
+			if (keep.find(nodePath) == keep.end()) {
+				node->is_open = false;
+			}
+		}
+
+		for (auto& pr : *node->child) {
+			process(&pr.second);
+		}
+	};
+
+	process(&root);
+}
+
+void IM_Tree::ExpandAllDescendantsOfSelection() {
+	for (auto* sel : selected) {
+		if (!sel->child)
+			continue; // не папка
+
+		std::function<void(ImTreeNode*)> exp = [&](ImTreeNode* node)
+		{
+			if (!node)
+				return;
+			if (node->child)
+				node->is_open = true;
+
+			if (node->child) {
+				for (auto& pr : *node->child)
+					exp(&pr.second);
+			}
+		};
+
+		exp(sel);
 	}
 }

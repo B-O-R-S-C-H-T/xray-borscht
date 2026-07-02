@@ -26,15 +26,20 @@ private:
 
 		IM_Canvas* canvas;
 
-		ImTreeNode() : child(NULL), selected(false), is_open(false), name(NULL), value(NULL), item(NULL), canvas(NULL) {}
+		ImTreeNode()
+			: child(NULL)
+			, selected(false)
+			, is_open(false)
+			, name(NULL)
+			, value(NULL)
+			, item(NULL)
+			, canvas(NULL)
+		{}
 
 		void Clear() {
-			if (child)
-				xr_delete(child);
-			if (item)
-				xr_delete(item);
-			if (canvas)
-				xr_delete(canvas);
+			if (child)		xr_delete(child);
+			if (item)		xr_delete(item);
+			if (canvas)		xr_delete(canvas);
 		}
 
 		void ClearNotFree() {
@@ -87,9 +92,21 @@ public: // properties
 
 public:
 	IM_Tree(char folder_separator = '\\', bool allow_multiselect = false, bool draw_bullets = false)
-		: separator(folder_separator), multiselect(allow_multiselect), renaming(nullptr), DrawBullets(draw_bullets), CheckmarkMode(false),
-		  DrawThumbnails(false), MaxSelectedCount(-1), OnNodeSelected(nullptr), OnDrawThumbnail(nullptr), full_expand(false), m_HasPendingUpdate(false),
-		  m_PendingFullExpand(false), newname{} { root.is_open = true; }
+		: separator(folder_separator)
+		, multiselect(allow_multiselect)
+		, renaming(nullptr)
+		, DrawBullets(draw_bullets)
+		, CheckmarkMode(false)
+		, DrawThumbnails(false)
+		, MaxSelectedCount(-1)
+		, OnNodeSelected(nullptr)
+		, OnDrawThumbnail(nullptr)
+		, full_expand(false)
+		, m_HasPendingUpdate(false)
+		, m_PendingFullExpand(false)
+		, newname
+		{}
+	{ root.is_open = true; }
 
 	~IM_Tree() { Clear(); }
 
@@ -121,6 +138,13 @@ public:
 
 	void			  SetCacheInvalidator(std::function<void(const shared_str&)> func) { m_OnInvalidateCache = std::move(func); }
 	void			  InvalidateCache(const shared_str& key);
+
+	void			  SaveExpandedState(IM_Storage& storage, const char* key);
+	void			  RestoreExpandedState(IM_Storage& storage, const char* key);
+
+	void			  CollapseAll();
+	void			  CollapseAllExceptSelection();
+	void			  ExpandAllDescendantsOfSelection();
 
 	virtual void	  Render();
 };

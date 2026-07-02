@@ -57,15 +57,12 @@ IM_EditLibrary::~IM_EditLibrary() {
 void IM_EditLibrary::OnAdd() {
 	IM_Storage& storage = EPrefs->GetSectionStorage("im_object_library");
 	m_SurfaceSortMode	= storage.GetInt("surface_sort_mode", 0);
-
-	if (!m_pEditObjects.empty()) {
-		UpdateObjectProperties();
-	}
 }
 
 void IM_EditLibrary::OnRemove() {
 	IM_Storage& storage = EPrefs->GetSectionStorage("im_object_library");
 	storage.PutInt("surface_sort_mode", m_SurfaceSortMode);
+	m_Items.SaveExpandedState(storage, "expanded_folders");
 }
 
 void IM_EditLibrary::ShowEditor() {
@@ -80,6 +77,9 @@ void IM_EditLibrary::FormShow() {
 	UI->BeginEState(esEditLibrary);
 	Scene->lock();
 	InitObjects();
+
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_object_library");
+	m_Items.RestoreExpandedState(storage, "expanded_folders");
 
 	Flight L;
 	ZeroMemory(&L, sizeof(Flight));
@@ -176,19 +176,37 @@ void IM_EditLibrary::OnItemsFocused(ListItemsVec& items) {
 
 	if (cbPreview || (m_IMProps && m_IMProps->IsOpen())) {
 		RStringVec sel_strings;
-		for (const auto& path : selected_paths)
-			sel_strings.push_back(path.c_str());
 
-		ChangeReference(sel_strings);
+		for (const auto& path : selected_paths) {
+			string_path obj_path;
+			FS.update_path(obj_path, _objects_, (xr_string(path.c_str()) + ".object").c_str());
+
+			if (FS.exist(obj_path)) {
+				sel_strings.push_back(path.c_str());
+			}
+		}
+
+		if (!sel_strings.empty()) {
+			ChangeReference(sel_strings);
+		} else {
+			// папка
+			ClearEditObjects();
+
+			m_BasicProps.Clear();
+			m_SurfaceProps.Clear();
+
+			// чтобы не протекали старые PropItem
+			PropItemVec empty;
+			m_BasicProps.AssignItems(empty, false, false);
+			m_SurfaceProps.AssignItems(empty, false, false);
+		}
 	}
 
 	if (m_Thm && m_Thm->Valid()) {
 		HDC	  hdc = m_Image.BeginPaint();
-		Irect r;
-		r.set(0, 0, m_Image.Width(), m_Image.Height());
+		Irect r{0, 0, m_Image.Width(), m_Image.Height()};
 		m_Thm->Draw(hdc, r);
 		m_Image.EndPaint();
-
 	} else {
 		m_Image.Clear();
 	}
@@ -307,10 +325,33 @@ void IM_EditLibrary::Render() {
 	if (ImGui::Begin("Object Library", &m_open, ImGuiWindowFlags_NoCollapse)) {
 		ImGui::Columns(2, "lib_cols", true);
 
-		BeginPersistedColumns("lib_cols", "im_objectlibrary", 280.0f);
+		BeginPersistedColumns("lib_cols", "im_object_library", 280.0f);
 
 		ImGui::BeginChild("ItemsPanel", ImVec2(0, 0), true);
-		m_Items.Render();
+
+		float buttons_reserved_height = ImGui::GetFrameHeightWithSpacing();
+
+		ImGui::BeginChild("##TreeScrollArea", ImVec2(0, -buttons_reserved_height), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+		{ m_Items.Render(); }
+		ImGui::EndChild();
+
+		ImGui::BeginGroup();
+		{
+			if (ImGui::Button("Collapse Others")) {
+				m_Items.CollapseAllExceptSelection();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Expand Descendants")) {
+				m_Items.ExpandAllDescendantsOfSelection();
+			}
+		}
+		ImGui::EndGroup();
+
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+			ImGui::SetTooltip("Collapse all folders except the branch of current selection\n"
+							  "Expand all subfolders of current selection");
+		}
+
 		ImGui::EndChild();
 
 		ImGui::NextColumn();
@@ -396,7 +437,7 @@ void IM_EditLibrary::Render() {
 					ImGui::Text("Sorted by:");
 					ImGui::SameLine();
 
-					const char* sort_items[] = {"Name", "Texture", "Shader", "Compile Shader" , "GameMtl"};
+					const char* sort_items[] = {"Name", "Texture", "Shader", "Compile Shader", "GameMtl"};
 
 					ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
 					if (ImGui::Selectable(sort_items[m_SurfaceSortMode], false, 0, ImVec2(145, 0))) {
