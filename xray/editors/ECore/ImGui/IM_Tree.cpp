@@ -80,6 +80,17 @@ void IM_Tree::RenderNode(ImTreeNode& parent) {
 			bool		remove = false;
 			bool		rename = false;
 
+			if (node.child) { // папка
+				if (m_FilterActive && !HasMatchingDescendant(node)) {
+					continue;
+				}
+			} else { // файл
+				xr_string display_name = GetBasename(node.name);
+				if (m_FilterActive && !MatchesFilter(display_name)) {
+					continue;
+				}
+			}
+
 			ImGui::PushID(&node);
 
 			if (renaming == &node) {
@@ -699,4 +710,56 @@ void IM_Tree::ExpandAllDescendantsOfSelection() {
 
 		exp(sel);
 	}
+}
+
+void IM_Tree::SetFilter(const char* filter) {
+	m_FilterText   = filter ? filter : "";
+	m_FilterActive = !m_FilterText.empty();
+
+	if (m_FilterActive) {
+		std::function<void(ImTreeNode&)> expandMatching = [&](ImTreeNode& node)
+		{
+			if (!node.child)
+				return;
+
+			if (HasMatchingDescendant(node)) {
+				node.is_open = true;
+			}
+			for (auto& pr : *node.child) {
+				expandMatching(pr.second);
+			}
+		};
+		expandMatching(root);
+	}
+}
+
+bool IM_Tree::MatchesFilter(const xr_string& name) const {
+	if (!m_FilterActive)
+		return true;
+	if (m_FilterText.empty())
+		return true;
+
+	xr_string lowerName	  = name;
+	xr_string lowerFilter = m_FilterText;
+
+	std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+	std::transform(lowerFilter.begin(), lowerFilter.end(), lowerFilter.begin(), ::tolower);
+
+	return lowerName.find(lowerFilter) != xr_string::npos;
+}
+
+bool IM_Tree::HasMatchingDescendant(ImTreeNode& node) {
+	if (!m_FilterActive)
+		return true;
+
+	if (!node.child) {
+		return MatchesFilter(GetBasename(node.name));
+	}
+
+	for (auto& pr : *node.child) {
+		if (HasMatchingDescendant(pr.second)) {
+			return true;
+		}
+	}
+	return false;
 }

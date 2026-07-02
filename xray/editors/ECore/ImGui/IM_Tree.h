@@ -81,6 +81,16 @@ private:
 
 	std::function<void(const shared_str&)> m_OnInvalidateCache;
 
+private:
+	xr_string			m_FilterText;
+	bool				m_FilterActive = false;
+
+	bool				MatchesFilter(const xr_string& name) const;
+	bool				HasMatchingDescendant(ImTreeNode& node);
+
+public:
+	void				SetFilter(const char* filter);
+
 public: // properties
 	bool				multiselect;
 	bool				DrawBullets;

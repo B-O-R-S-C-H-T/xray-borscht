@@ -329,6 +329,11 @@ void IM_EditLibrary::Render() {
 
 		ImGui::BeginChild("ItemsPanel", ImVec2(0, 0), true);
 
+		ImGui::SetNextItemWidth(-1);
+		if (ImGui::InputTextWithHint("##search", "Search...", m_ItemsFilter, sizeof(m_ItemsFilter))) {
+			m_Items.SetFilter(m_ItemsFilter);
+		}
+
 		float buttons_reserved_height = ImGui::GetFrameHeightWithSpacing();
 
 		ImGui::BeginChild("##TreeScrollArea", ImVec2(0, -buttons_reserved_height), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
@@ -346,11 +351,6 @@ void IM_EditLibrary::Render() {
 			}
 		}
 		ImGui::EndGroup();
-
-		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-			ImGui::SetTooltip("Collapse all folders except the branch of current selection\n"
-							  "Expand all subfolders of current selection");
-		}
 
 		ImGui::EndChild();
 
@@ -421,10 +421,6 @@ void IM_EditLibrary::Render() {
 		ImGui::BeginChild("ObjectPropsScroll", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 		{
 			if (ImGui::BeginTabBar("ObjectPropsTabs")) {
-				if (ImGui::BeginTabItem("Main Options")) {
-					RenderPersistedPropertyTree(m_BasicProps, "im_object_library", "basic_props_splitter_width");
-					ImGui::EndTabItem();
-				}
 
 				ImGuiTabItemFlags surfaceFlags = 0;
 				if (m_PendingSwitchToSurfacesTab) {
@@ -460,9 +456,14 @@ void IM_EditLibrary::Render() {
 					}
 
 					RenderPersistedPropertyTree(m_SurfaceProps, "im_object_library", "surface_props_splitter_width");
-
 					ImGui::EndTabItem();
 				}
+
+				if (ImGui::BeginTabItem("Main Options")) {
+					RenderPersistedPropertyTree(m_BasicProps, "im_object_library", "basic_props_splitter_width");
+					ImGui::EndTabItem();
+				}
+
 				ImGui::EndTabBar();
 			}
 		}

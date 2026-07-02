@@ -34,6 +34,8 @@ private:
 
 	int						 m_SurfaceSortMode = 0;
 
+	char					 m_ItemsFilter[256] = {};
+
 	static bool				 bFinalExit;
 	static bool				 bExitResult;
 
