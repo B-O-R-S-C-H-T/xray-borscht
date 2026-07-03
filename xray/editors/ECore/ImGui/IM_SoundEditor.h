@@ -6,7 +6,7 @@
 #include "IM_PropertyTree.h"
 #include "../Editor/EThumbnail.h"
 
-class IM_SoundEditor : public IM_Window {
+class ECORE_API IM_SoundEditor : public IM_Window {
 public:
 	bool			m_open;
 	xr_string		m_title;
@@ -28,6 +28,9 @@ public:
 
 	BOOL	   bAutoPlay = TRUE;
 
+private:
+	char m_ItemsFilter[256] = {};
+
 public:
 	string_path			  pending_rename_old = {};
 	string_path			  pending_rename_new = {};
@@ -42,6 +45,7 @@ public:
 
 	void			 Open();
 	void			 Close();
+	static void		 FinalClose();
 
 	virtual void	 OnRemove();
 	virtual void	 Render();
@@ -56,16 +60,16 @@ public:
 	void			 RegisterModifiedTHM();
 	void			 UpdateLib();
 
-	void __stdcall	 OnItemsFocused(ListItemsVec& items);
-	void __stdcall	 OnControlClick(ButtonValue* sender, bool& bModif, bool& bSafe);
-	void __stdcall	 OnControl2Click(ButtonValue* sender, bool& bModif, bool& bSafe);
-	void __stdcall	 OnSyncCurrentClick(ButtonValue* sender, bool& bModif, bool& bSafe);
-	void __stdcall	 OnAttClick(ButtonValue* sender, bool& bModif, bool& bSafe);
-	void __stdcall	 OnPlotDraw(PlotValue* sender, void*);
+	void			 OnItemsFocused(ListItemsVec& items);
+	void			 OnControlClick(ButtonValue* sender, bool& bModif, bool& bSafe);
+	void			 OnControl2Click(ButtonValue* sender, bool& bModif, bool& bSafe);
+	void			 OnSyncCurrentClick(ButtonValue* sender, bool& bModif, bool& bSafe);
+	void			 OnAttClick(ButtonValue* sender, bool& bModif, bool& bSafe);
+	void			 OnPlotDraw(PlotValue* sender, void*);
 
 	bool			 IsDangerousSound(LPCSTR fname) const;
-	void __stdcall	 RemoveSound(LPCSTR fname, EItemType type, bool& res);
-	void __stdcall	 RenameSound(LPCSTR p0, LPCSTR p1, EItemType type);
+	void			 RemoveSound(LPCSTR fname, EItemType type, bool& res);
+	void			 RenameSound(LPCSTR p0, LPCSTR p1, EItemType type);
 
 	void			 PlaySound(LPCSTR name, u32& size, float& time);
 };

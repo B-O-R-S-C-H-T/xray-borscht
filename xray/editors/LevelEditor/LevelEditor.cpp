@@ -17,7 +17,8 @@
 #include "ImGui/IM_ContextMenu.h"
 #include "ImGui/IM_EditLibrary.h"
 #include "ImGui/IM_ObjectListWnd.h"
-#include "editors/ECore/ImGui/IM_Stats.h"
+#include "../ECore/ImGui/IM_Stats.h"
+#include "../ECore/ImGui/IM_SoundEditor.h"
 
 #include "../xrEProps/EditorChooseEvents.H"
 
@@ -285,11 +286,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			}
 			g_idle = false;
 
-			if (g_imEditLibrary)
-				IM_EditLibrary::FinalClose();
-
-			if (IM_ObjectListWnd::instance)
-				IM_ObjectListWnd::FinalClose();
+			if (g_imEditLibrary)                IM_EditLibrary::FinalClose();   // указатель
+			if (IM_ObjectListWnd::instance)     IM_ObjectListWnd::FinalClose(); // стат.указатель
+												IM_SoundEditor::FinalClose();   // глобальный объект
 
 			ExecCommand(COMMAND_DESTROY);
 			DestroyWindow(g_MainWnd);

@@ -48,6 +48,14 @@ void IM_SoundEditor::Close() {
 	m_open = false;
 }
 
+void IM_SoundEditor::FinalClose() {
+	if (imSoundEditor.m_open) {
+		UI->RemoveIMWindow(&imSoundEditor);
+		imSoundEditor.m_open = false;
+		imSoundEditor.Close();
+	}
+}
+
 void IM_SoundEditor::OnRemove() {
 	modif_map.clear();
 	DestroyUsedTHM();
@@ -120,13 +128,38 @@ void IM_SoundEditor::Render() {
 
 	BeginPersistedColumns("sound_editor_cols", "im_sound_editor", 250.0f);
 
-	ImGui::BeginChild("##ItemList", ImVec2(0, -40), true);
+	float bottom_reserve = m_Flags.is(flReadOnly) ? 0.0f : 42.0f;
+
+	ImGui::BeginChild("##ItemList", ImVec2(0, -bottom_reserve), true);
+
+	ImGui::SetNextItemWidth(-1);
+	if (ImGui::InputTextWithHint("##search", "Search...", m_ItemsFilter, sizeof(m_ItemsFilter))) {
+		m_items.SetFilter(m_ItemsFilter);
+	}
+
+	float buttons_reserved_height = ImGui::GetFrameHeightWithSpacing();
+
+	ImGui::BeginChild("##TreeScrollArea", ImVec2(0, -buttons_reserved_height), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 	m_items.Render();
+	ImGui::EndChild();
+
+	ImGui::BeginGroup();
+	{
+		if (ImGui::Button("Collapse Others")) {
+			m_items.CollapseAllExceptSelection();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Expand Descendants")) {
+			m_items.ExpandAllDescendantsOfSelection();
+		}
+	}
+	ImGui::EndGroup();
+
 	ImGui::EndChild();
 
 	ImGui::NextColumn();
 
-	ImGui::BeginChild("##ItemProps", ImVec2(0, -40), true);
+	ImGui::BeginChild("##ItemProps", ImVec2(0, -bottom_reserve), true);
 
 	RenderPersistedPropertyTree(m_props, "im_sound_editor");
 
