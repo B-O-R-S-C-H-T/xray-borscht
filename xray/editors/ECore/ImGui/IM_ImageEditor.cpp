@@ -72,6 +72,14 @@ void IM_ImageEditor::Close() {
 	m_open = false;
 }
 
+void IM_ImageEditor::FinalClose() {
+	if (imImageEditor.m_open) {
+		UI->RemoveIMWindow(&imImageEditor);
+		imImageEditor.m_open = false;
+		imImageEditor.Close();
+	}
+}
+
 void IM_ImageEditor::OnShowTypeClick() {
 	ListItemsVec items;
 	m_items.GetItems(items);
@@ -101,8 +109,8 @@ void IM_ImageEditor::OnShowTypeClick() {
 }
 
 void IM_ImageEditor::Render() {
-	static float width = ImGui::CalcTextSize("OK").x + ImGui::CalcTextSize("Cancel").x + ImGui::GetStyle().ItemSpacing.x + ImGui::GetStyle().FramePadding.x * 5;
-	static float height = ImGui::CalcTextSize("OK").y + ImGui::GetStyle().FramePadding.y * 2 + ImGui::GetStyle().ItemSpacing.y;
+	static float btn_width = ImGui::CalcTextSize("OK").x + ImGui::CalcTextSize("Cancel").x + ImGui::GetStyle().ItemSpacing.x +
+							 ImGui::GetStyle().FramePadding.x * 5;
 
 	if (!m_open) {
 		Close();
@@ -123,52 +131,79 @@ void IM_ImageEditor::Render() {
 		m_needupdate = false;
 	}
 
-	ImGui::Columns(2, "image_editor_cols", true);
+	float bottom_reserve = 42.0f;
 
+	ImGui::Columns(2, "image_editor_cols", true);
 	BeginPersistedColumns("image_editor_cols", "im_image_editor", 280.0f);
 
-	if (ImGui::Checkbox("Image##image_show_image", &m_showimage))
-		OnShowTypeClick();
-	ImGui::SameLine();
-	if (ImGui::Checkbox("Cube##image_show_cube", &m_showcube))
-		OnShowTypeClick();
-	ImGui::SameLine();
-	if (ImGui::Checkbox("Bump##image_show_bump", &m_showbump))
-		OnShowTypeClick();
-	ImGui::SameLine();
-	if (ImGui::Checkbox("Normal##image_show_normal", &m_shownormal))
-		OnShowTypeClick();
-	ImGui::SameLine();
-	if (ImGui::Checkbox("Terrain##image_show_terrain", &m_showterrain))
-		OnShowTypeClick();
+	ImGui::BeginChild("ItemList", ImVec2(0, -bottom_reserve), true);
 
-	ImGui::BeginChild("ItemList", ImVec2(0, -height), true);
+	ImGui::SetNextItemWidth(-1);
+	if (ImGui::InputTextWithHint("##search", "Search...", m_ItemsFilter, sizeof(m_ItemsFilter))) {
+		m_items.SetFilter(m_ItemsFilter);
+	}
+
+	float buttons_reserved_height = ImGui::GetFrameHeightWithSpacing();
+
+	ImGui::BeginChild("##TreeScrollArea", ImVec2(0, -buttons_reserved_height), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 	m_items.Render();
+
+	if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && !ImGui::IsAnyItemHovered()) {
+		ImGui::OpenPopup("##TypeFilterContext");
+	}
+
+	if (ImGui::BeginPopup("##TypeFilterContext")) {
+		ImGui::TextDisabled("Show Types");
+		ImGui::Separator();
+
+		if (ImGui::MenuItem("Diffuse", nullptr, &m_showimage))		OnShowTypeClick();
+		if (ImGui::MenuItem("Bump", nullptr, &m_showbump))			OnShowTypeClick();
+		if (ImGui::MenuItem("Normal", nullptr, &m_shownormal))		OnShowTypeClick();
+		if (ImGui::MenuItem("Cube", nullptr, &m_showcube))			OnShowTypeClick();
+		if (ImGui::MenuItem("Terrain", nullptr, &m_showterrain))	OnShowTypeClick();
+
+		ImGui::EndPopup();
+	}
+
+	ImGui::EndChild();
+
+	ImGui::BeginGroup();
+	{
+		if (ImGui::Button("Collapse Others"))
+			m_items.CollapseAllExceptSelection();
+		ImGui::SameLine();
+		if (ImGui::Button("Expand Descendants"))
+			m_items.ExpandAllDescendantsOfSelection();
+	}
+	ImGui::EndGroup();
+
 	ImGui::EndChild();
 
 	ImGui::NextColumn();
+
+	ImGui::BeginChild("RightPanel", ImVec2(0, -bottom_reserve), true);
 
 	ImGui::BeginChild("THM", ImVec2(m_thm.Width() + 16, m_thm.Height() + 16), true);
 	m_thm.Render();
 	ImGui::EndChild();
 
-	ImGui::BeginChild("ItemProps", ImVec2(0, -height), true);
-
+	ImGui::BeginChild("ItemProps", ImVec2(0, 0), true);
 	RenderPersistedPropertyTree(m_props, "im_image_editor");
+	ImGui::EndChild();
 
 	ImGui::EndChild();
 
 	EndPersistedColumns("image_editor_cols", "im_image_editor");
-
 	ImGui::Columns(1);
 
-	ImGui::Indent(ImGui::GetContentRegionAvail().x - width);
-	if (ImGui::Button("OK##image_ok")) {
+	ImGui::Indent(ImGui::GetContentRegionAvail().x - 172);
+
+	if (ImGui::Button("OK##image_ok", ImVec2(80, 0))) {
 		UpdateLib();
 		m_open = false;
 	}
 	ImGui::SameLine();
-	if (ImGui::Button("Cancel##image_cancel")) {
+	if (ImGui::Button("Cancel##image_cancel", ImVec2(80, 0))) {
 		m_open = false;
 	}
 

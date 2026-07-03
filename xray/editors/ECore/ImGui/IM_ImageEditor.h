@@ -7,7 +7,7 @@
 #include "IM_Tree.h"
 #include "IM_Window.h"
 
-class IM_ImageEditor : public IM_Window {
+class ECORE_API IM_ImageEditor : public IM_Window {
 public:
 	bool			m_open;
 	xr_string		m_title;
@@ -36,6 +36,8 @@ public:
 
 	void			   Open(bool import);
 	void			   Close();
+	static void		   FinalClose();
+
 	bool			   IsOpen() { return m_open; }
 
 	void			   OnShowTypeClick();
@@ -48,6 +50,9 @@ public:
 
 	void			   OnItemsFocused(ListItemsVec& items);
 	void			   OnTypeChange(PropValue*);
+
+private:
+	char m_ItemsFilter[256] = {};
 
 private:
 	void UpdateLib();
