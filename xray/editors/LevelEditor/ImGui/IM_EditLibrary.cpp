@@ -327,7 +327,7 @@ void IM_EditLibrary::Render() {
 
 		BeginPersistedColumns("lib_cols", "im_object_library", 280.0f);
 
-		ImGui::BeginChild("ItemsPanel", ImVec2(0, 0), true);
+		ImGui::BeginChild("ItemsPanel", ImVec2(0, 0), false);
 
 		ImGui::SetNextItemWidth(-1);
 		if (ImGui::InputTextWithHint("##search", "Search...", m_ItemsFilter, sizeof(m_ItemsFilter))) {

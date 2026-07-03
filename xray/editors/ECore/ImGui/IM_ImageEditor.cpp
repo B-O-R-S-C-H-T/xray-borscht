@@ -136,7 +136,7 @@ void IM_ImageEditor::Render() {
 	ImGui::Columns(2, "image_editor_cols", true);
 	BeginPersistedColumns("image_editor_cols", "im_image_editor", 280.0f);
 
-	ImGui::BeginChild("ItemList", ImVec2(0, -bottom_reserve), true);
+	ImGui::BeginChild("ItemList", ImVec2(0, -bottom_reserve), false);
 
 	ImGui::SetNextItemWidth(-1);
 	if (ImGui::InputTextWithHint("##search", "Search...", m_ItemsFilter, sizeof(m_ItemsFilter))) {
@@ -181,9 +181,9 @@ void IM_ImageEditor::Render() {
 
 	ImGui::NextColumn();
 
-	ImGui::BeginChild("RightPanel", ImVec2(0, -bottom_reserve), true);
+	ImGui::BeginChild("RightPanel", ImVec2(0, -bottom_reserve), false);
 
-	ImGui::BeginChild("THM", ImVec2(m_thm.Width() + 16, m_thm.Height() + 16), true);
+	ImGui::BeginChild("THM", ImVec2(m_thm.Width() + 16, m_thm.Height() + 16), false);
 	m_thm.Render();
 	ImGui::EndChild();
 

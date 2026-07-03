@@ -130,7 +130,7 @@ void IM_SoundEditor::Render() {
 
 	float bottom_reserve = m_Flags.is(flReadOnly) ? 0.0f : 42.0f;
 
-	ImGui::BeginChild("##ItemList", ImVec2(0, -bottom_reserve), true);
+	ImGui::BeginChild("##ItemList", ImVec2(0, -bottom_reserve), false);
 
 	ImGui::SetNextItemWidth(-1);
 	if (ImGui::InputTextWithHint("##search", "Search...", m_ItemsFilter, sizeof(m_ItemsFilter))) {
