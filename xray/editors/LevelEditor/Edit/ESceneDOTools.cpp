@@ -1,30 +1,24 @@
-//----------------------------------------------------
 #include "stdafx.h"
 #pragma hdrstop
 
 #include "ESceneDOTools.h"
+
 #include "../ECore/Editor/EditMesh.h"
 #include "../ECore/Editor/EditObject.h"
 #include "../ECore/Engine/Texture.h"
 #include "Scene.h"
 #include "SceneObject.h"
-#ifndef NO_VCL
-#include "leftbar.h"
-#endif
 #include <Include/cl_intersect.h>
 #include "../ECore/Editor/Library.h"
 #include "ui_levelmain.h"
 
 #include "..\..\Layers\xrRender\DetailFormat.h"
-#ifndef NO_VCL
-#include "bottombar.h"
-#endif
 #include "../ECore/Editor/ImageManager.h"
 #include <Layers/xrRender/D3DUtils.h>
 
 static const u32 DETMGR_VERSION = 0x0003ul;
 //------------------------------------------------------------------------------
-enum{
+enum {
     DETMGR_CHUNK_VERSION		= 0x1000ul,
     DETMGR_CHUNK_HEADER 		= 0x0000ul,
     DETMGR_CHUNK_OBJECTS 		= 0x0001ul,
@@ -182,7 +176,7 @@ void EDetailManager::OnObjectRemove(CCustomObject* O, bool bDeleting)
 void EDetailManager::OnSynchronize()
 {
 }
-void EDetailManager::OnSceneUpdate()       
+void EDetailManager::OnSceneUpdate()
 {
 }
 
@@ -273,7 +267,7 @@ bool EDetailManager::LoadColorIndices(IReader& F)
 		for (int j=0; j<ref_cnt; j++){
         	F.r_stringZ	(buf,sizeof(buf));
             EDetail* DO	= FindDOByName(buf);
-            if (DO) 	m_ColorIndices[index].push_back(DO);    
+            if (DO) 	m_ColorIndices[index].push_back(DO);
             else		bRes=false;
         }
     }
@@ -290,45 +284,6 @@ bool EDetailManager::LoadLTX(CInifile& ini)
 void EDetailManager::SaveLTX(CInifile& ini)
 {
 	R_ASSERT2			(0, "not_implemented");
-/*
-	inherited::SaveLTX	(ini);
-
-    ini.w_u32			("main", "version", DETMGR_VERSION);
-
-    ini.w_u32			("main", "flags", m_Flags.get());
-
-	// header
-
-    ini.w_u32			("detail_header", "version", dtH.version);
-    ini.w_u32			("detail_header", "object_count", dtH.object_count);
-    ini.w_ivector2		("detail_header", "offset", Ivector2().set(dtH.offs_x, dtH.offs_z) );
-    ini.w_ivector2		("detail_header", "size", Ivector2().set(dtH.size_x, dtH.size_z) );
-
-    // objects
-    SaveColorIndicesLTX	(F);
-
-    // slots
-	F.open_chunk		(DETMGR_CHUNK_SLOTS);
-    F.w_u32				(dtH.size_x*dtH.size_z);
-	F.w					(dtSlots,dtH.size_x*dtH.size_z*sizeof(DetailSlot));
-    F.close_chunk		();
-
-    // internal
-    // bbox
-    ini.w_fvector3		("main", "bbox_min", m_BBox.min);
-    ini.w_fvector3		("main", "bbox_max", m_BBox.max);
-
-	// base texture
-    if (m_Base.Valid())
-    {
-    	ini.w_string	("main", "base_texture", m_Base.GetName());
-    }
-    ini.w_float			("main", "detail_density", ps_r__Detail_density);
-
-	// snap objects
-    for (ObjectIt o_it=m_SnapObjects.begin(); o_it!=m_SnapObjects.end(); ++o_it)
-    	ini.w_string	("snap_objects", (*o_it)->Name, NULL);
-*/        
 }
 
 bool EDetailManager::LoadStream(IReader& F)

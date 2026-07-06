@@ -1,4 +1,3 @@
-//----------------------------------------------------
 #ifndef ESceneDOToolsH
 #define ESceneDOToolsH
 
@@ -19,35 +18,32 @@ struct SIndexDist{
     float 	dist;
     float	dens[4];
     float	cnt[4];
-	SIndexDist(){ZeroMemory(this,sizeof(SIndexDist));}
+	SIndexDist() { ZeroMemory(this, sizeof(SIndexDist)); }
 };
-DEFINE_SVECTOR		(SIndexDist,4,SIndexDistVec,SIndexDistIt);
+DEFINE_SVECTOR		(SIndexDist, 4, SIndexDistVec, SIndexDistIt);
 
-DEFINE_MAP			(u32,DOVec,ColorIndexMap,ColorIndexPairIt);
+DEFINE_MAP			(u32, DOVec, ColorIndexMap, ColorIndexPairIt);
 
-#define DETAIL_SLOT_SIZE_2 	DETAIL_SLOT_SIZE*0.5f
-#define DETAIL_SLOT_RADIUS	DETAIL_SLOT_SIZE*0.7071f
+#define DETAIL_SLOT_SIZE_2 	DETAIL_SLOT_SIZE * 0.5f
+#define DETAIL_SLOT_RADIUS	DETAIL_SLOT_SIZE * 0.7071f
 
 class EDetailManager:
 	public CDetailManager,
     public ESceneToolBase
-//	,public pureDeviceCreate,
-//	public pureDeviceDestroy
 {
-	friend class TfrmDOShuffle;
 	typedef ESceneToolBase inherited;
 
-	enum{
-    	flBaseTextureDraw		= (1<<31),
-        flBaseTextureBlended	= (1<<30),
-        flSlotBoxesDraw			= (1<<29),
-		flObjectsDraw			= (1<<28),
-		flDontMergeTextures     = (1<<27)
+	enum {
+    	flBaseTextureDraw		= (1 << 31),
+        flBaseTextureBlended	= (1 << 30),
+        flSlotBoxesDraw			= (1 << 29),
+		flObjectsDraw			= (1 << 28),
+		flDontMergeTextures     = (1 << 27)
     };
     Flags32				m_Flags;
 
-    enum{
-    	flRTGenerateBaseMesh	= (1<<0)
+    enum {
+    	flRTGenerateBaseMesh	= (1 << 0)
     };
     Flags32				m_RTFlags;
 
@@ -55,10 +51,10 @@ class EDetailManager:
 
     Fbox				m_BBox;
 
-	IC u32				toSlotX			(float x)	{return (x/DETAIL_SLOT_SIZE+0.5f)+dtH.offs_x;}
-	IC u32				toSlotZ			(float z)	{return (z/DETAIL_SLOT_SIZE+0.5f)+dtH.offs_z;}
-	IC float			fromSlotX		(int x)		{return (x-dtH.offs_x)*DETAIL_SLOT_SIZE+DETAIL_SLOT_SIZE_2;}
-	IC float			fromSlotZ		(int z)		{return (z-dtH.offs_z)*DETAIL_SLOT_SIZE+DETAIL_SLOT_SIZE_2;}
+	IC u32				toSlotX			(float x)	{ return (x / DETAIL_SLOT_SIZE + 0.5f) + dtH.offs_x; }
+	IC u32				toSlotZ			(float z)	{ return (z / DETAIL_SLOT_SIZE + 0.5f) + dtH.offs_z; }
+	IC float			fromSlotX		(int x)		{ return (x - dtH.offs_x) * DETAIL_SLOT_SIZE + DETAIL_SLOT_SIZE_2; }
+	IC float			fromSlotZ		(int z)		{ return (z - dtH.offs_z) * DETAIL_SLOT_SIZE + DETAIL_SLOT_SIZE_2; }
 
     void				UpdateSlotBBox	(int x, int z, DetailSlot& slot);
 
@@ -74,16 +70,19 @@ class EDetailManager:
 
     void         		OnDensityChange		(PropValue* prop);
     void         		OnBaseTextureChange	(PropValue* prop);
+
 protected:
     // controls
     virtual void 		CreateControls			();
 	virtual void 		RemoveControls			();
+
 public:
 // render part -----------------------------------------------------------------
     void 				InitRender				();
     void				RenderTexture			(float alpha);
     void				InvalidateCache			();
 // render part -----------------------------------------------------------------
+
 public:
     ColorIndexMap		m_ColorIndices;
 	U8Vec				m_Selected;
@@ -91,36 +90,37 @@ public:
 
     void				SaveColorIndices		(IWriter&);
     bool				LoadColorIndices		(IReader&);
+
 public:
 						EDetailManager			();
     virtual 			~EDetailManager			();
 
-	virtual	bool		AllowEnabling    		(){return true;}
-    virtual BOOL 		AllowMouseStart			(){return true;}
+	virtual	bool		AllowEnabling    		() { return true; }
+    virtual BOOL 		AllowMouseStart			() { return true; }
 
     // snap 
-	virtual ObjectList* GetSnapList				(){return &m_SnapObjects;}
-    virtual void		UpdateSnapList			(){};
+	virtual ObjectList* GetSnapList				() { return &m_SnapObjects; }
+    virtual void		UpdateSnapList			() {};
 
 	// selection manipulate
 	virtual int			RaySelect				(int flag, float& distance, const Fvector& start, const Fvector& direction, BOOL bDistanceOnly);
 	virtual int			FrustumSelect			(int flag, const CFrustum& frustum);
 	virtual void		SelectObjects           (bool flag);
 	virtual void		InvertSelection         ();
-	virtual void		RemoveSelection         (){}
+	virtual void		RemoveSelection         () {}
 	virtual int			SelectionCount          (bool testflag);
-	virtual void		ShowObjects				(bool flag, bool bAllowSelectionFlag=false, bool bSelFlag=true){}
+	virtual void		ShowObjects				(bool flag, bool bAllowSelectionFlag = false, bool bSelFlag = true) {}
 
-    virtual void		Clear					(bool bSpecific=false);
+    virtual void		Clear					(bool bSpecific = false);
 
 	// definition
-    IC LPCSTR			ClassName				(){return "detail_object";}
-    IC LPCSTR			ClassDesc				(){return "Detail Objects";}
-    IC int				RenderPriority			(){return 10;}
+    IC LPCSTR			ClassName				() { return "detail_object"; }
+    IC LPCSTR			ClassDesc				() { return "Detail Objects"; }
+    IC int				RenderPriority			() { return 10; }
 
     // validation
-    virtual bool		Valid					(){return dtSlots||objects.size()||m_Base.Valid()||m_SnapObjects.size();}
-    virtual bool		Validate				(bool){return true;}
+    virtual bool		Valid					() { return dtSlots || objects.size() || m_Base.Valid() || m_SnapObjects.size(); }
+    virtual bool		Validate				(bool) { return true; }
 
     // events
 	virtual void		OnDeviceCreate			();

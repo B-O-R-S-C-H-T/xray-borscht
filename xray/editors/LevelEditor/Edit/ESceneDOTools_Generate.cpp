@@ -4,8 +4,6 @@
 #include <Include/cl_intersect.h>
 #include <utils/ETools/ETools.h>
 #include <random>
-#include <atomic>
-#include <intrin.h>
 #include <execution>
 #include <ranges>
 
@@ -20,29 +18,13 @@
 #include "../ECore/Engine/Texture.h"
 #include "../../Layers/xrRender/DetailFormat.h"
 
-struct DetailAtomicCounters {
-	std::atomic<u64> time_update_objects{0};
-	std::atomic<u64> time_update_slot{0};
-	std::atomic<u64> time_find_closest{0};
-	std::atomic<u64> time_pixel_best_loop{0};
-	std::atomic<u64> time_calc_count_loop{0};
-	std::atomic<u64> time_shuffle{0};
-	std::atomic<u64> time_get_color{0};
-	std::atomic<u64> num_slots_processed{0};
-	std::atomic<u64> num_closest_calls{0};
-	std::atomic<u64> num_pixel_accesses{0};
-};
+static Fvector down_vec  = { 0.f, -1.f,  0.f};
+static Fvector left_vec  = {-1.f,  0.f,  0.f};
+static Fvector right_vec = { 1.f,  0.f,  0.f};
+static Fvector fwd_vec   = { 0.f,  0.f,  1.f};
+static Fvector back_vec  = { 0.f,  0.f, -1.f};
 
-static DetailAtomicCounters		 g_DetailCounters;
-static bool						 g_bShowDetailedDetailStats = true;
 static thread_local std::mt19937 g_detail_rng(0x26111975u);
-
-static Fvector down_vec	={0.f,-1.f,0.f};
-static Fvector left_vec	={-1.f,0.f,0.f};
-static Fvector right_vec={1.f,0.f,0.f};
-static Fvector fwd_vec	={0.f,0.f,1.f};
-static Fvector back_vec	={0.f,0.f,-1.f};
-
 static CRandom DetailRandom(0x26111975);
 
 DetailSlot&	EDetailManager::GetSlot(u32 sx, u32 sz){
@@ -52,19 +34,12 @@ DetailSlot&	EDetailManager::GetSlot(u32 sx, u32 sz){
 }
 
 bool EDetailManager::FindClosestIndex(const Fcolor& C, SIndexDistVec& best) {
-	if (g_bShowDetailedDetailStats) {
-		g_DetailCounters.num_closest_calls.fetch_add(1, std::memory_order_relaxed);
-	}
 
     u32				 index;
     float			 dist = flt_max;
     Fcolor			 src;
     float			 inv_a = 1.0f - C.a;
     bool			 bRes  = false;
-
-	u64 t_start = 0;
-	if (g_bShowDetailedDetailStats)
-		t_start = __rdtsc();
 
     for (auto it = m_ColorIndices.begin(); it != m_ColorIndices.end(); ++it) {
         if (it->second.empty())
@@ -124,9 +99,6 @@ bool EDetailManager::FindClosestIndex(const Fcolor& C, SIndexDistVec& best) {
         }
     }
 
-	if (g_bShowDetailedDetailStats) {
-		g_DetailCounters.time_find_closest.fetch_add(__rdtsc() - t_start, std::memory_order_relaxed);
-	}
     return bRes;
 }
 
