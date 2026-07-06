@@ -6,6 +6,8 @@
 #include <random>
 #include <atomic>
 #include <intrin.h>
+#include <execution>
+#include <ranges>
 
 #include "Scene.h"
 #include "SceneObject.h"
@@ -193,69 +195,101 @@ void EDetailManager::UpdateSlotBBox(int sx, int sz, DetailSlot& slot)
 
     SBoxPickInfoVec pinf;
     ETOOLS::box_options(0);
-    if (Scene->BoxPickObjects(bbox,pinf,&m_SnapObjects)){
-		bbox.grow		(EPS_L_VAR);
-    	Fplane			frustum_planes[4];
-		frustum_planes[0].build(bbox.min,left_vec);
-		frustum_planes[1].build(bbox.min,back_vec);
-		frustum_planes[2].build(bbox.max,right_vec);
-		frustum_planes[3].build(bbox.max,fwd_vec);
+	bool has_hit = Scene->BoxPickObjects(bbox, pinf, &m_SnapObjects);
 
-        CFrustum frustum;
-        frustum.CreateFromPlanes(frustum_planes,4);
+	if (has_hit) {
+		bbox.grow(EPS_L_VAR);
 
-        float y_min		= flt_max;
-        float y_max		= flt_min;
-		for (SBoxPickInfoIt it=pinf.begin(); it!=pinf.end(); it++){
-        	for (int k=0; k<(int)it->inf.size(); k++){
-                float range;
-                Fvector verts[3];
-                it->e_obj->GetFaceWorld(it->s_obj->_Transform(),it->e_mesh,it->inf[k].id,verts);
-                sPoly sSrc	(verts,3);
-                sPoly sDest;
-                sPoly* sRes = frustum.ClipPoly(sSrc, sDest);
-                if (sRes){
-                    for (u32 k=0; k<sRes->size(); k++){
-                        float H = (*sRes)[k].y;
-                        if (H>y_max) y_max = H+0.03f;
-                        if (H<y_min) y_min = H-0.03f;
-                    }
-                    slot.w_y	(y_min,y_max-y_min);
-                    slot.w_id(0,DetailSlot::ID_Empty);
-                    slot.w_id(1,DetailSlot::ID_Empty);
-                    slot.w_id(2,DetailSlot::ID_Empty);
-                    slot.w_id(3,DetailSlot::ID_Empty);
-                }
-            }
-	    }
-    }else{
-    	ZeroMemory(&slot,sizeof(DetailSlot));
-    	slot.w_id(0,DetailSlot::ID_Empty);
-    	slot.w_id(1,DetailSlot::ID_Empty);
-    	slot.w_id(2,DetailSlot::ID_Empty);
-    	slot.w_id(3,DetailSlot::ID_Empty);
-    }
+		Fplane frustum_planes[4];
+		frustum_planes[0].build(bbox.min, left_vec);
+		frustum_planes[1].build(bbox.min, back_vec);
+		frustum_planes[2].build(bbox.max, right_vec);
+		frustum_planes[3].build(bbox.max, fwd_vec);
+
+		CFrustum frustum;
+		frustum.CreateFromPlanes(frustum_planes, 4);
+
+		float y_min = flt_max;
+		float y_max = flt_min;
+
+		for (auto& info : pinf) {
+			for (auto& face : info.inf) {
+				Fvector verts[3];
+				info.e_obj->GetFaceWorld(info.s_obj->_Transform(), info.e_mesh, face.id, verts);
+
+				sPoly src(verts, 3), dst;
+				if (frustum.ClipPoly(src, dst)) {
+					for (auto& v : dst) {
+						y_min = std::min(y_min, v.y - 0.03f);
+						y_max = std::max(y_max, v.y + 0.03f);
+					}
+				}
+			}
+		}
+
+		slot.w_y(y_min, y_max - y_min);
+		for (int i = 0; i < 4; ++i)
+			slot.w_id(i, DetailSlot::ID_Empty);
+	} else {
+		ZeroMemory(&slot, sizeof(DetailSlot));
+		for (int i = 0; i < 4; ++i)
+			slot.w_id(i, DetailSlot::ID_Empty);
+	}
 }
 
 bool EDetailManager::UpdateSlots()
 {
+	CTimer timer;
+	timer.Start();
+
 	// clear previous slots
     xr_free				(dtSlots);
-    dtSlots				= xr_alloc<DetailSlot>(dtH.size_x*dtH.size_z);
+    dtSlots				= xr_alloc<DetailSlot>(dtH.size_x * dtH.size_z);
 
-    SPBItem* pb = UI->ProgressStart(dtH.size_x*dtH.size_z,"Updating bounding boxes...");
-    for (u32 z=0; z<dtH.size_z; z++){
-        for (u32 x=0; x<dtH.size_x; x++){
-        	DetailSlot* slot = dtSlots+z*dtH.size_x+x;
-        	UpdateSlotBBox	(x,z,*slot);
-	        pb->Inc();
-        }
-    }
-    UI->ProgressEnd(pb);
+	{
+		SPBItem* pbPrep = UI->ProgressStart(m_SnapObjects.size(), "Preparing collision models...");
+		for (ObjectIt o_it = m_SnapObjects.begin(); o_it != m_SnapObjects.end(); ++o_it) {
+			CSceneObject*   S = (CSceneObject*)(*o_it);
+			CEditableObject* O = S->GetReference();
+			if (O) {
+				for (EditMeshIt m_it = O->FirstMesh(); m_it != O->LastMesh(); ++m_it) {
+					(*m_it)->GenerateCFModel();
+				}
+			}
+			pbPrep->Inc();
+		}
+		UI->ProgressEnd(pbPrep);
+	}
 
-    m_Selected.resize	(dtH.size_x*dtH.size_z);
+	SPBItem* pb = UI->ProgressStart(dtH.size_x * dtH.size_z, "Updating bounding boxes...");
 
-    return true;
+	auto process_slot = [&](u32 idx)
+	{
+		u32 z = idx / dtH.size_x;
+		u32 x = idx % dtH.size_x;
+		UpdateSlotBBox(x, z, dtSlots[z * dtH.size_x + x]);
+	};
+
+	std::for_each(std::execution::par,
+				  std::views::iota(0u, dtH.size_x * dtH.size_z).begin(),
+				  std::views::iota(0u, dtH.size_x * dtH.size_z).end(),
+				  process_slot);
+
+	UI->ProgressEnd(pb);
+	m_Selected.resize(dtH.size_x * dtH.size_z);
+
+	float sec = timer.GetElapsed_sec();
+
+	ELog.Msg(mtInformation, "=== Detail BBox Generation ===");
+	ELog.Msg(mtInformation, "Slots:           %u", dtH.size_x * dtH.size_z);
+	ELog.Msg(mtInformation, "Time:            %.3f sec", sec);
+
+	if (sec > 0.0001f) {
+		float rate = (dtH.size_x * dtH.size_z) / sec;
+		ELog.Msg(mtInformation, "Rate:            %.0f slots/sec", rate);
+	}
+
+	return true;
 }
 
 void EDetailManager::GetSlotRect(Frect& rect, int sx, int sz){
