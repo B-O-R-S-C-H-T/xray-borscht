@@ -1,0 +1,30 @@
+#include "common.h"
+#include "mblur.h"
+#include "dof.h"
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+#ifndef USE_MSAA
+Texture2D 			s_distort;
+#define	EPSDEPTH	0.001
+#else
+Texture2DMS<float4, MSAA_SAMPLES> s_distort;
+#define	EPSDEPTH	0.001
+#endif
+uniform float4 		e_barrier;	// x=norm(.8f), y=depth(.1f), z=clr
+uniform float4 		e_weights;	// x=norm, y=depth, z=clr
+uniform float4 		e_kernel;	// x=norm, y=depth, z=clr
+//////////////////////////////////////////////////////////////////////////////////////////
+
+// Pixel
+float4 main( v2p_aa_AA I ) : SV_Target
+{
+
+#ifdef GBUFFER_OPTIMIZATION
+	gbuffer_data gbd	= gbuffer_load_data(I.Tex0, I.HPos, 0 );
+#else
+	gbuffer_data gbd	= gbuffer_load_data(I.Tex0, 0 );
+#endif
+
+	return float4(gbd.C,1.f);
+}

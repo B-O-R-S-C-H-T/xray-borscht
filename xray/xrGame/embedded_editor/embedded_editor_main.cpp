@@ -112,6 +112,19 @@ void ShowMain(bool& show) {
         stage = full ? EditorStage::Full : EditorStage::Light;
     ImGui::Checkbox("Use Diffuse", &Device.useDiffuse);
 
+	// Option for G-Buffer preview
+	if(::Render->get_generation() != IRender_interface::GENERATION_R1) {
+		static const char *dbg_names[] = { "None", "Show Normals", "Show AO", "Show Position", "Show Material", "Show Albedo", "Show Gloss", NULL }; // order must match enum GbufferDebug !
+
+		if(ImGui::BeginCombo("GBuffer Debug", dbg_names[Device.GbufferDebugMode])) {
+			for(size_t i = 0; dbg_names[i]; i++) {
+				if(ImGui::Selectable(dbg_names[i], i == Device.GbufferDebugMode)) 
+					Device.GbufferDebugMode = i;
+			}
+			ImGui::EndCombo();
+		}
+	}
+
     ImGui::Text(
         "Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 }

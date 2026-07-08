@@ -1,0 +1,21 @@
+#include "common.h"
+#include "mblur.h"
+#include "dof.h"
+
+struct 	v2p
+{
+  float4 tc0: 		TEXCOORD0;	// Center
+  float4 tc1: 		TEXCOORD1;	// LT 		 
+  float4 tc2: 		TEXCOORD2;	// RB
+  float4 tc3: 		TEXCOORD3;	// RT 
+  float4 tc4: 		TEXCOORD4;	// LB
+  float4 tc5:		TEXCOORD5;	// Left	/ Right	
+  float4 tc6:		TEXCOORD6;	// Top  / Bottom 
+};
+
+// Pixel
+half4 	main		( v2p I )	: COLOR
+{
+	half4 Dg		=  tex2D	(s_diffuse,   	I.tc0);
+	return Dg.wwww;
+}

@@ -25,6 +25,17 @@
 
 class engine_impl;
 
+enum GbufferDebug
+{
+	gbd_none = 0,
+	gbd_normals_only = 1,
+	gbd_ao_only = 2,
+	gbd_pos_only = 3,
+	gbd_material_only = 4,
+	gbd_color_only = 5,
+	gbd_gloss_only = 6
+};
+
 // refs
 class ENGINE_API CRenderDevice 
 {
@@ -113,6 +124,7 @@ public:
 	float									fASPECT;
 
 	bool									useDiffuse = true;
+	int										GbufferDebugMode = 0;
 	
 	CRenderDevice			()
 		:

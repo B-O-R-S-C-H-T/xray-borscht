@@ -28,6 +28,7 @@ public:
 	IBlender*					b_ssao;
 	IBlender*					b_luminance;
 	IBlender*					b_combine;
+	IBlender*					b_combine_dbg;
 #ifdef DEBUG
 	struct		dbg_line_t		{
 		Fvector	P0,P1;
@@ -135,6 +136,7 @@ private:
 	ref_shader					s_combine_dbg_1;
 	ref_shader					s_combine_dbg_Accumulator;
 	ref_shader					s_combine;
+	ref_shader					s_combine_dbg;
 	ref_shader					s_combine_volumetric;
 public:
 	ref_shader					s_postprocess;

@@ -7,6 +7,7 @@
 #include "blender_light_spot.h"
 #include "blender_light_reflected.h"
 #include "blender_combine.h"
+#include "blender_combine_dbg.h"
 #include "blender_bloom_build.h"
 #include "blender_luminance.h"
 #include "blender_ssao.h"
@@ -306,6 +307,7 @@ CRenderTarget::CRenderTarget		()
 	}
 	b_luminance				= xr_new<CBlender_luminance>			();
 	b_combine				= xr_new<CBlender_combine>				();
+	b_combine_dbg			= xr_new<CBlender_combine_dbg>			();
 	b_ssao					= xr_new<CBlender_SSAO_noMSAA>			();
 
 	if( RImplementation.o.dx10_msaa )
@@ -650,6 +652,7 @@ CRenderTarget::CRenderTarget		()
 			D3DDECL_END()
 		};
 		s_combine.create					(b_combine,					"r2\\combine");
+		s_combine_dbg.create				(b_combine_dbg,				"r2\\g-buffer_debug");
 		s_combine_volumetric.create			("combine_volumetric");
 		s_combine_dbg_0.create				("effects\\screen_set",		r2_RT_smap_surf		);	
 		s_combine_dbg_1.create				("effects\\screen_set",		r2_RT_luminance_t8	);
@@ -1004,6 +1007,7 @@ CRenderTarget::~CRenderTarget	()
 
 	// Blenders
 	xr_delete					(b_combine				);
+	xr_delete					(b_combine_dbg			);
 	xr_delete					(b_luminance			);
 	xr_delete					(b_bloom				);
 	xr_delete					(b_accum_reflected		);

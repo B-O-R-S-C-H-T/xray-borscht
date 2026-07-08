@@ -268,8 +268,30 @@ void	CRenderTarget::phase_combine	()
 		vDofKernel.mul(ps_r2_dof_kernel_size);
 
 		// Draw COLOR
-		if (ps_r2_ls_flags.test(R2FLAG_AA))			RCache.set_Element	(s_combine->E[bDistort?3:1]);	// look at blender_combine.cpp
-		else										RCache.set_Element	(s_combine->E[bDistort?4:2]);	// look at blender_combine.cpp
+		switch(Device.GbufferDebugMode) {
+			default:
+				if (ps_r2_ls_flags.test(R2FLAG_AA))			RCache.set_Element	(s_combine->E[bDistort?3:1]);	// look at blender_combine.cpp
+				else										RCache.set_Element	(s_combine->E[bDistort?4:2]);	// look at blender_combine.cpp
+			break;
+			case gbd_normals_only:
+				RCache.set_Element	(s_combine_dbg->E[0]);	// look at blender_combine_dbg.cpp
+			break;
+			case gbd_ao_only:
+				RCache.set_Element	(s_combine_dbg->E[1]);	// look at blender_combine_dbg.cpp
+			break;
+			case gbd_pos_only:
+				RCache.set_Element	(s_combine_dbg->E[2]);	// look at blender_combine_dbg.cpp
+			break;
+			case gbd_material_only:
+				RCache.set_Element	(s_combine_dbg->E[3]);	// look at blender_combine_dbg.cpp
+			break;
+			case gbd_color_only:
+				RCache.set_Element	(s_combine_dbg->E[4]);	// look at blender_combine_dbg.cpp
+			break;
+			case gbd_gloss_only:
+				RCache.set_Element	(s_combine_dbg->E[5]);	// look at blender_combine_dbg.cpp
+			break;
+		}
 		RCache.set_c				("e_barrier",	ps_r2_aa_barier.x,	ps_r2_aa_barier.y,	ps_r2_aa_barier.z,	0);
 		RCache.set_c				("e_weights",	ps_r2_aa_weight.x,	ps_r2_aa_weight.y,	ps_r2_aa_weight.z,	0);
 		RCache.set_c				("e_kernel",	ps_r2_aa_kernel,	ps_r2_aa_kernel,	ps_r2_aa_kernel,	0);
