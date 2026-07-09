@@ -635,6 +635,21 @@ void IM_Tree::RestoreExpandedState(IM_Storage& storage, const char* key) {
 	}
 }
 
+void IM_Tree::ProcessPendingAssignments() {
+	if (!m_HasPendingUpdate)	return;
+
+	Clear();
+
+	for (ListItem* item : m_PendingItems) {
+		if (item)	Add(item->Key(), item);
+	}
+
+	full_expand = m_PendingFullExpand;
+
+	m_PendingItems.clear();
+	m_HasPendingUpdate = false;
+}
+
 void IM_Tree::CollapseAll() {
 	std::function<void(ImTreeNode*)> coll = [&](ImTreeNode* node)
 	{
