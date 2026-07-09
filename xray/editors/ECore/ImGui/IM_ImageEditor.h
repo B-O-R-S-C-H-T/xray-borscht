@@ -38,6 +38,9 @@ public:
 	void			   Close();
 	static void		   FinalClose();
 
+	virtual void	   OnAdd()	  override;
+	virtual void	   OnRemove() override;
+
 	bool			   IsOpen() { return m_open; }
 
 	void			   OnShowTypeClick();

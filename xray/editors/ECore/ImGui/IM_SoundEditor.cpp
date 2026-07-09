@@ -33,6 +33,11 @@ void IM_SoundEditor::Open() {
 		m_open = true;
 		InitItemsList();
 
+		m_items.ProcessPendingAssignments();
+
+		IM_Storage& storage = EPrefs->GetSectionStorage("im_sound_editor");
+		m_items.RestoreExpandedState(storage, "expanded_folders");
+
 		modif_map.clear	();
 		m_Flags.zero	();
 		if (!FS.can_write_to_alias(_sounds_)){
@@ -45,6 +50,13 @@ void IM_SoundEditor::Open() {
 
 void IM_SoundEditor::Close() {
 	UI->RemoveIMWindow(this);
+
+	modif_map.clear();
+	DestroyUsedTHM();
+	m_items.Clear();
+	m_props.Clear();
+	m_Snd.destroy();
+
 	m_open = false;
 }
 
@@ -56,12 +68,11 @@ void IM_SoundEditor::FinalClose() {
 	}
 }
 
+void IM_SoundEditor::OnAdd() {}
+
 void IM_SoundEditor::OnRemove() {
-	modif_map.clear();
-	DestroyUsedTHM();
-	m_items.Clear();
-	m_props.Clear();
-	m_Snd.destroy();
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_sound_editor");
+	m_items.SaveExpandedState(storage, "expanded_folders");
 }
 
 void IM_SoundEditor::Render() {

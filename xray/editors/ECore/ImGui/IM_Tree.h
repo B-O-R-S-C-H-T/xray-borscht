@@ -152,6 +152,8 @@ public:
 	void			  SaveExpandedState(IM_Storage& storage, const char* key);
 	void			  RestoreExpandedState(IM_Storage& storage, const char* key);
 
+	void			  ProcessPendingAssignments();
+
 	void			  CollapseAll();
 	void			  CollapseAllExceptSelection();
 	void			  ExpandAllDescendantsOfSelection();

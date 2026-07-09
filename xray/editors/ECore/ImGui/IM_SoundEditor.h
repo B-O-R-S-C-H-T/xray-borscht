@@ -47,7 +47,9 @@ public:
 	void			 Close();
 	static void		 FinalClose();
 
-	virtual void	 OnRemove();
+	virtual void	 OnAdd()	override;
+	virtual void	 OnRemove() override;
+
 	virtual void	 Render();
 
 	void			 InitItemsList();

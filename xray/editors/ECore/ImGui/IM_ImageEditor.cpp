@@ -57,6 +57,19 @@ void IM_ImageEditor::Open(bool import) {
 
 		m_items.AssignItems(items, false);
 
+		m_items.ProcessPendingAssignments();
+
+		IM_Storage& storage = EPrefs->GetSectionStorage("im_image_editor");
+		m_items.RestoreExpandedState(storage, "expanded_folders");
+
+		m_showimage	  = storage.GetBool("show_image",	true);
+		m_showcube	  = storage.GetBool("show_cube",	true);
+		m_showbump	  = storage.GetBool("show_bump",	true);
+		m_shownormal  = storage.GetBool("show_normal",	true);
+		m_showterrain = storage.GetBool("show_terrain",	true);
+
+		OnShowTypeClick();
+
 		UI->AddIMWindow(this);
 		m_open = true;
 	}
@@ -80,6 +93,28 @@ void IM_ImageEditor::FinalClose() {
 	}
 }
 
+void IM_ImageEditor::OnAdd() {
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_image_editor");
+
+	m_showimage			= storage.GetBool("show_image",		true);
+	m_showcube			= storage.GetBool("show_cube",		true);
+	m_showbump			= storage.GetBool("show_bump",		true);
+	m_shownormal		= storage.GetBool("show_normal",	true);
+	m_showterrain		= storage.GetBool("show_terrain",	true);
+}
+
+void IM_ImageEditor::OnRemove() {
+	IM_Storage& storage = EPrefs->GetSectionStorage("im_image_editor");
+
+	storage.PutBool("show_image",	m_showimage);
+	storage.PutBool("show_cube",	m_showcube);
+	storage.PutBool("show_bump",	m_showbump);
+	storage.PutBool("show_normal",	m_shownormal);
+	storage.PutBool("show_terrain",	m_showterrain);
+
+	m_items.SaveExpandedState(storage, "expanded_folders");
+}
+
 void IM_ImageEditor::OnShowTypeClick() {
 	ListItemsVec items;
 	m_items.GetItems(items);
@@ -89,21 +124,11 @@ void IM_ImageEditor::OnShowTypeClick() {
 		ETextureThumbnail* thm	= (ETextureThumbnail*)item->m_Object;
 
 		switch (thm->_Format().type) {
-			case STextureParams::ttImage:
-				item->Visible(m_showimage);
-				break;
-			case STextureParams::ttCubeMap:
-				item->Visible(m_showcube);
-				break;
-			case STextureParams::ttBumpMap:
-				item->Visible(m_showbump);
-				break;
-			case STextureParams::ttNormalMap:
-				item->Visible(m_shownormal);
-				break;
-			case STextureParams::ttTerrain:
-				item->Visible(m_showterrain);
-				break;
+			case STextureParams::ttImage:		item->Visible(m_showimage);		break;
+			case STextureParams::ttCubeMap:		item->Visible(m_showcube);		break;
+			case STextureParams::ttBumpMap:		item->Visible(m_showbump);		break;
+			case STextureParams::ttNormalMap:	item->Visible(m_shownormal);	break;
+			case STextureParams::ttTerrain:		item->Visible(m_showterrain);	break;
 		}
 	}
 }
@@ -156,11 +181,11 @@ void IM_ImageEditor::Render() {
 		ImGui::TextDisabled("Show Types");
 		ImGui::Separator();
 
-		if (ImGui::MenuItem("Diffuse", nullptr, &m_showimage))		OnShowTypeClick();
-		if (ImGui::MenuItem("Bump", nullptr, &m_showbump))			OnShowTypeClick();
-		if (ImGui::MenuItem("Normal", nullptr, &m_shownormal))		OnShowTypeClick();
-		if (ImGui::MenuItem("Cube", nullptr, &m_showcube))			OnShowTypeClick();
-		if (ImGui::MenuItem("Terrain", nullptr, &m_showterrain))	OnShowTypeClick();
+		if (ImGui::MenuItem("Diffuse",	nullptr, &m_showimage))		OnShowTypeClick();
+		if (ImGui::MenuItem("Bump",		nullptr, &m_showbump))		OnShowTypeClick();
+		if (ImGui::MenuItem("Normal",	nullptr, &m_shownormal))	OnShowTypeClick();
+		if (ImGui::MenuItem("Cube",		nullptr, &m_showcube))		OnShowTypeClick();
+		if (ImGui::MenuItem("Terrain",	nullptr, &m_showterrain))	OnShowTypeClick();
 
 		ImGui::EndPopup();
 	}
