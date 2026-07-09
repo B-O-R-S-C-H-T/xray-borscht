@@ -31,6 +31,12 @@ void	CRenderTarget::phase_scene_prepare	()
 		CHK_DX	( HW.pDevice->Clear	( 0L, NULL, D3DCLEAR_ZBUFFER|D3DCLEAR_STENCIL, 0x0, 1.0f, 0L) );
 	}
 
+	if(Device.GbufferDebugMode != gbd_none) {
+		/* clear all targets for G-buffer preview */
+		u_setrt	( Device.dwWidth,Device.dwHeight,rt_Position->pRT,rt_Normal->pRT,rt_Color->pRT,HW.pBaseZB );
+		CHK_DX	( HW.pDevice->Clear	( 0L, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER|D3DCLEAR_STENCIL, 0x0, 1.0f, 0L) );
+	}
+
 	//	Igor: for volumetric lights
 	m_bHasActiveVolumetric				= false;
 	//	Clear later if try to draw volumetric
