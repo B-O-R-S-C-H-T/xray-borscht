@@ -3,6 +3,7 @@
 #include <imgui.h>
 
 #include "../ImGui/IM_PropertyTree.h"
+#include "../LevelEditor/ImGui/IM_Toolbar.h"
 #include "ImGui/IM_SVGCanvas.h"
 #include "ui_main.h"
 #include "ui_toolscustom.h"
@@ -117,6 +118,9 @@ CCustomPreferences::CCustomPreferences()
     log_confirmation_color = 0x00E7E6FF;
 
     ui_scale            = 1.0f;
+
+	toolbar_vertical    = true;
+	toolbar_icon_scale  = 1.3f;
 }
 
 CCustomPreferences::~CCustomPreferences()
@@ -156,6 +160,16 @@ void CCustomPreferences::OnUIScaleApply(PropItem* item) {
 	if (ImGui::GetCurrentContext() != nullptr) {
 		IM_SVGCanvas::ForceRebuild();
 	}
+}
+
+void CCustomPreferences::OnToolbarVerticalChange(PropValue* prop) {
+	IM_Storage& storage = GetSectionStorage("im_toolbar");
+	storage.PutBool("vertical", toolbar_vertical);
+}
+
+void CCustomPreferences::OnToolbarIconScaleChange(PropValue* prop) {
+	IM_Storage& storage = GetSectionStorage("im_toolbar");
+	storage.PutFloat("icon_scale", toolbar_icon_scale);
 }
 
 void CCustomPreferences::OnClose	()
@@ -264,7 +278,16 @@ void CCustomPreferences::FillProp(PropItemVec& props)
 
     PHelper().CreateFloatWithApply(props,"UI\\Interface Scale",             &ui_scale,          0.5f, 3.0f, 0.01f, 2,
         fastdelegate::MakeDelegate(this, &CCustomPreferences::OnUIScaleApply));
-    
+
+	{
+		PropValue* V = PHelper().CreateBOOL(props, "UI\\Toolbar\\Vertical orientation", &toolbar_vertical);
+		V->OnChangeEvent.bind(this, &CCustomPreferences::OnToolbarVerticalChange);
+	}
+	{
+		PropValue* V = PHelper().CreateFloat(props, "UI\\Toolbar\\Icon scale", &toolbar_icon_scale, 0.5f, 3.0f, 0.1f, 1);
+		V->OnChangeEvent.bind(this, &CCustomPreferences::OnToolbarIconScaleChange);
+	}
+
     ButtonValue* B = PHelper().CreateButton	(props,"Keyboard\\Common\\File","Load,Save", 0);
     B->OnBtnClickEvent.bind	(this,&CCustomPreferences::OnKeyboardCommonFileClick);
 
@@ -340,6 +363,9 @@ void CCustomPreferences::Load(CInifile* I)
     object_flags.flags	= R_U32_SAFE	("editor_preferences","object_flags"		,object_flags.flags );
 
     ui_scale			= R_FLOAT_SAFE  ("editor_preferences", "ui_scale"           , 1.0f);
+
+    toolbar_vertical	= R_BOOL_SAFE   ("editor_preferences", "toolbar_vertical"   , true);
+	toolbar_icon_scale	= R_FLOAT_SAFE  ("editor_preferences", "toolbar_icon_scale" , 1.3f);
 
 	IM_Storage& ws						   = GetSectionStorage("editor_main_window");
 	windowState.wp.length				   = sizeof(WINDOWPLACEMENT);
@@ -417,6 +443,9 @@ void CCustomPreferences::Save(CInifile* I)
     I->w_u32	("editor_preferences","object_flags",		object_flags.flags);
 
     I->w_float  ("editor_preferences", "ui_scale",          ui_scale);
+
+    I->w_bool   ("editor_preferences", "toolbar_vertical",   toolbar_vertical);
+	I->w_float  ("editor_preferences", "toolbar_icon_scale", toolbar_icon_scale);
 
     for (AStringIt it=scene_recent_list.begin(); it!=scene_recent_list.end(); it++){
         AnsiString L = "recent_files_" + std::to_string(it - scene_recent_list.begin());

@@ -83,8 +83,8 @@ ImVec2 IM_Toolbar::ComputeDesiredSize(int icon_size) const {
 void IM_Toolbar::OnAdd() {
 	IM_Storage& storage = EPrefs->GetSectionStorage("im_toolbar");
 
-	m_vertical			= storage.GetBool("vertical", false);
-	m_icon_scale		= storage.GetFloat("icon_scale", 1.5f);
+	m_vertical			= storage.GetBool("vertical", true);
+	m_icon_scale		= storage.GetFloat("icon_scale", 1.3f);
 
 	m_saved_width		= storage.GetFloat("width", 900.0f);
 	m_saved_height		= storage.GetFloat("height", 400.0f);
@@ -108,6 +108,11 @@ void IM_Toolbar::OnRemove() {
 }
 
 void IM_Toolbar::Render() {
+	if (EPrefs) {
+		m_vertical	 = EPrefs->toolbar_vertical;
+		m_icon_scale = EPrefs->toolbar_icon_scale;
+	}
+
 	UpdateIconCache();
 	const int		  icon_size = m_icon_size;
 	const ImGuiStyle& style		= ImGui::GetStyle();
@@ -177,7 +182,7 @@ void IM_Toolbar::Render() {
 			ImGui::SetWindowSize(snap_size, ImGuiCond_Always);
 			curr_size = snap_size;
 		}
-
+		/*
 		bool		currently_dragging_edge = false;
 		ImVec2		mouse_pos				= ImGui::GetMousePos();
 		ImVec2		win_pos					= ImGui::GetWindowPos();
@@ -197,7 +202,7 @@ void IM_Toolbar::Render() {
 			m_vertical = !m_vertical;
 		}
 		m_is_dragging_edge = currently_dragging_edge;
-
+		*/
 		// undo/redo кнопки отключены ранее, следует пользоваться горячими клавишами
 		//if (SVGButton("undo.svg", "Undo"))	ExecCommand(COMMAND_UNDO);
 		//if (SVGButton("redo.svg", "Redo"))	ExecCommand(COMMAND_REDO);

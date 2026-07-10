@@ -180,6 +180,9 @@ public:
 
     float			ui_scale;
 
+	BOOL			toolbar_vertical;
+	float			toolbar_icon_scale;
+
     SWindowPlacement windowState;
 
 protected:
@@ -198,6 +201,9 @@ public:				// User declarations
     void			OnDestroy			();
 
     void			OnUIScaleApply      (PropItem*);
+
+	void			OnToolbarVerticalChange     (PropValue* prop);
+	void			OnToolbarIconScaleChange    (PropValue* prop);
 
     virtual void	FillProp          	(PropItemVec& items);
 

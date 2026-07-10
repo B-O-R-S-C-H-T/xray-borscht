@@ -7,13 +7,12 @@
 
 class IM_Toolbar : public IM_Window {
 public:
-	bool  m_vertical   = false;
-	float m_icon_scale = 1.5f;
+	bool  m_vertical   = true;
+	float m_icon_scale = 1.3f;
 
 private:
 	int			m_icon_size			= 0;
 	float		m_font_global_scale = 0.0f;
-	bool		m_is_dragging_edge	= false;
 
 	float		m_saved_width		= 900.0f;
 	float		m_saved_height		= 400.0f;
@@ -26,8 +25,13 @@ private:
 public:
 	bool		 SVGButton(const char* svg_name, const char* tooltip = nullptr, bool activated = true);
 	void		 Separator();
+
+	IC		void SetVertical	(bool v)		{ if (m_vertical != v) m_vertical = v; }
+	IC		void SetIconScale	(float scale)	{ if (std::fabs(m_icon_scale - scale) > 0.001f) m_icon_scale = scale; }
+
 	virtual void OnAdd() override;
 	virtual void OnRemove() override;
+
 	virtual void Render() override;
 };
 
