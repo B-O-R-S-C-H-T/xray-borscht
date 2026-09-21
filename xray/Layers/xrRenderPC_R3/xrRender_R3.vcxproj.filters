@@ -753,6 +753,9 @@
     <ClInclude Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx11.h">
       <Filter>ImGui Backends</Filter>
     </ClInclude>
+    <ClInclude Include="blender_combine_dbg.h">
+      <Filter>Shading templates</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\xrRender\xrRender_console.cpp">
@@ -1381,6 +1384,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\3rd_party\imgui\backends\imgui_impl_dx11.cpp">
       <Filter>ImGui Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="blender_combine_dbg.cpp">
+      <Filter>Shading templates</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
